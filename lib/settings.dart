@@ -1,6 +1,6 @@
 class Settings {
     // player settings 
-    static int players = 2;
+    static int players = 4;
     static int startLife = 20;
     
     // timer settings

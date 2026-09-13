@@ -30,6 +30,29 @@ class Game {
             players[activePlayerIndex].timer.startClock();
         }
     }
+
+    void pause() {
+        for (var i = 0; i < players.length; i++) {
+            players[i].timer.active = false;
+            players[i].timer.clock?.cancel();
+        }
+    }
+
+    void resume(Player player) {
+        int idx = players.indexOf(player);
+        if (idx != -1) {
+            activePlayerIndex = idx;
+            for (var i = 0; i < players.length; i++) {
+                if (i == activePlayerIndex) {
+                    players[i].timer.active = true;
+                    players[i].timer.startClock();
+                } else {
+                    players[i].timer.active = false;
+                    players[i].timer.clock?.cancel();
+                }
+            }
+        }
+    }
     
     //TODO: Fix interrupt bug.
     void nextPlayer() {
