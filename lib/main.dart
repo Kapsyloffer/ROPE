@@ -33,7 +33,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late Game _game;
+  late Game game;
 
   @override
   void initState() {
@@ -44,20 +44,27 @@ class _MyHomePageState extends State<MyHomePage> {
         Player newPlayer = Player(i);
         newPlayer.timer.onTick = () {
           if (mounted) {
-            setState(() {});
+            setState(() {
+              bool wasAlive = newPlayer.alive;
+              newPlayer.alive = newPlayer.checkAlive();
+              if (wasAlive && !newPlayer.alive && newPlayer.timer.active) {
+                game.nextPlayer();
+              }
+            });
           }
         };
         initialPlayers.add(newPlayer);
     }
-    _game = Game(initialPlayers, Settings.players, 0);
+    game = Game(initialPlayers, Settings.players, 0);
   }
 
-  void _handleTimerToggle(Player player) {
+  void handleTimerToggle(Player player) {
+    if (!player.alive) return;
     setState(() {
       if(player.timer.active){
       player.timer.toggleTimer();
       if (!player.timer.active) {
-        _game.nextPlayer();
+        game.nextPlayer();
       }
       }
     });
@@ -65,10 +72,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void adjustLife(Player player, int amount) {
     setState(() {
+      bool wasAlive = player.alive;
       if (amount > 0) {
         player.addLife();
       } else {
         player.decreaseLife();
+      }
+      if (wasAlive && !player.alive && player.timer.active) {
+        game.nextPlayer();
       }
     });
   }
@@ -84,12 +95,14 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: SafeArea(
         child: Column(
-          children: _game.players.map((player) {
+          children: game.players.map((player) {
             Widget playerContent = Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
                 decoration: BoxDecoration(
-                  color: player.timer.active ? Colors.green.shade300 : Colors.grey.shade300,
+                  color: player.alive 
+                      ? (player.timer.active ? Colors.green.shade300 : Colors.grey.shade300)
+                      : Colors.grey.shade800,
                   border: Border.all(color: Colors.black, width: 2),
                 ),
                 child: Column(
@@ -107,10 +120,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               child: ElevatedButton(
                                 onPressed: () => adjustLife(player, -1),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey.shade400,
+                                  backgroundColor: player.alive ? Colors.grey.shade400 : Colors.grey.shade900,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
                                 ),
-                                child: const Text('-', style: TextStyle(fontSize: 48, color: Colors.black)),
+                                child: Text('-', style: TextStyle(fontSize: 48, color: player.alive ? Colors.black : Colors.red)),
                               ),
                             ),
                           ),
@@ -119,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: Center(
                               child: Text(
                                 '${player.curLife}',
-                                style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: player.alive ? Colors.black : Colors.red),
                               ),
                             ),
                           ),
@@ -129,10 +142,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               child: ElevatedButton(
                                 onPressed: () => adjustLife(player, 1),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey.shade400,
+                                  backgroundColor: player.alive ? Colors.grey.shade400 : Colors.grey.shade900,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
                                 ),
-                                child: const Text('+', style: TextStyle(fontSize: 48, color: Colors.black)),
+                                child: Text('+', style: TextStyle(fontSize: 48, color: player.alive ? Colors.black : Colors.red)),
                               ),
                             ),
                           ),
@@ -143,18 +156,24 @@ class _MyHomePageState extends State<MyHomePage> {
                     Expanded(
                       flex: 1,
                       child: GestureDetector(
-                        onTap: () => _handleTimerToggle(player),
+                        onTap: () => handleTimerToggle(player),
                         child: Container(
                           width: double.infinity,
                           margin: const EdgeInsets.all(8.0),
                           decoration: BoxDecoration(
-                            color: player.timer.active ? Colors.green.shade500 : Colors.grey.shade400,
-                            border: Border.all(color: player.timer.active ? Colors.greenAccent : Colors.grey, width: 4),
+                            color: player.alive
+                                ? (player.timer.active ? Colors.green.shade500 : Colors.grey.shade400)
+                                : Colors.grey.shade900,
+                            border: Border.all(
+                                color: player.alive 
+                                    ? (player.timer.active ? Colors.greenAccent : Colors.grey)
+                                    : Colors.red.shade900, 
+                                width: 4),
                           ),
                           child: Center(
                             child: Text(
                               formatTime(player.timer.curTime),
-                              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+                              style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: player.alive ? Colors.black : Colors.red),
                             ),
                           ),
                         ),

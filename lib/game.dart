@@ -35,7 +35,18 @@ class Game {
     void nextPlayer() {
         if (players.isEmpty) return;
 
-        activePlayerIndex = (activePlayerIndex + 1) % playerCount;
+        bool anyAlive = players.any((p) => p.alive);
+        if (!anyAlive) {
+            for (var i = 0; i < players.length; i++) {
+                players[i].timer.active = false;
+                players[i].timer.clock?.cancel();
+            }
+            return;
+        }
+
+        do {
+            activePlayerIndex = (activePlayerIndex + 1) % playerCount;
+        } while (!players[activePlayerIndex].alive);
 
         for (var i = 0; i < players.length; i++) {
             if (i == activePlayerIndex) {

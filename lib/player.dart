@@ -40,7 +40,7 @@ class Player {
         if(curLife <= 0) {
             return false;
         }
-        if(timer.curTime == 0) {
+        if(timer.curTime <= 0) {
             return false;
         }
 
