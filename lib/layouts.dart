@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'player.dart';
+import 'settings.dart';
 
 String formatTime(double seconds) {
   int min = seconds ~/ 60;
@@ -23,11 +24,17 @@ class PlayerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Color activeButtonColor = Settings.useTimer && player.timer.active 
+        ? Colors.green.shade400 
+        : Settings.playerColors[player.order];
+        
+    Color buttonColor = player.alive ? activeButtonColor : Colors.grey.shade900;
+
     Widget content = Container(
       margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
       decoration: BoxDecoration(
         color: player.alive 
-            ? (player.timer.active ? Colors.green.shade300 : Colors.grey.shade300)
+            ? (Settings.useTimer && player.timer.active ? Colors.green.shade300 : Settings.playerColors[player.order])
             : Colors.grey.shade800,
         border: Border.all(color: Colors.black, width: 2),
       ),
@@ -46,7 +53,7 @@ class PlayerWidget extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () => onLifeAdjust(-1),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: player.alive ? Colors.grey.shade400 : Colors.grey.shade900,
+                        backgroundColor: buttonColor,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
                       ),
                       child: Text('-', style: TextStyle(fontSize: 48, color: player.alive ? Colors.black : Colors.red)),
@@ -55,11 +62,22 @@ class PlayerWidget extends StatelessWidget {
                 ),
                 Expanded(
                   flex: 2,
-                  child: Center(
-                    child: Text(
-                      '${player.curLife}',
-                      style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: player.alive ? Colors.black : Colors.red),
-                    ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        Settings.playerNames[player.order],
+                        style: TextStyle(
+                            fontSize: 16, 
+                            fontWeight: FontWeight.bold, 
+                            color: player.alive ? Colors.black54 : Colors.red.shade900
+                        ),
+                      ),
+                      Text(
+                        '${player.curLife}',
+                        style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: player.alive ? Colors.black : Colors.red),
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(
@@ -68,7 +86,7 @@ class PlayerWidget extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () => onLifeAdjust(1),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: player.alive ? Colors.grey.shade400 : Colors.grey.shade900,
+                        backgroundColor: buttonColor,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
                       ),
                       child: Text('+', style: TextStyle(fontSize: 48, color: player.alive ? Colors.black : Colors.red)),
@@ -79,32 +97,33 @@ class PlayerWidget extends StatelessWidget {
             ),
           ),
           // Timer 
-          Expanded(
-            flex: 1,
-            child: GestureDetector(
-              onTap: onTimerTap,
-              child: Container(
-                width: double.infinity,
-                margin: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  color: player.alive
-                      ? (player.timer.active ? Colors.green.shade500 : Colors.grey.shade400)
-                      : Colors.grey.shade900,
-                  border: Border.all(
-                      color: player.alive 
-                          ? (player.timer.active ? Colors.greenAccent : Colors.grey)
-                          : Colors.red.shade900, 
-                      width: 4),
-                ),
-                child: Center(
-                  child: Text(
-                    formatTime(player.timer.curTime),
-                    style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: player.alive ? Colors.black : Colors.red),
+          if (Settings.useTimer)
+            Expanded(
+              flex: 1,
+              child: GestureDetector(
+                onTap: onTimerTap,
+                child: Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: player.alive
+                        ? (player.timer.active ? Colors.green.shade500 : Colors.grey.shade400)
+                        : Colors.grey.shade900,
+                    border: Border.all(
+                        color: player.alive 
+                            ? (player.timer.active ? Colors.greenAccent : Colors.grey)
+                            : Colors.red.shade900, 
+                        width: 4),
+                  ),
+                  child: Center(
+                    child: Text(
+                      formatTime(player.timer.curTime),
+                      style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: player.alive ? Colors.black : Colors.red),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -118,10 +137,14 @@ class PlayerWidget extends StatelessWidget {
 
 class MenuRow extends StatelessWidget {
   final VoidCallback onPause;
+  final VoidCallback onReset;
+  final VoidCallback onSettings;
 
   const MenuRow({
     super.key,
     required this.onPause,
+    required this.onReset,
+    required this.onSettings,
   });
 
   @override
@@ -130,11 +153,19 @@ class MenuRow extends StatelessWidget {
       height: 48.0,
       color: Colors.black87,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           IconButton(
-            icon: const Icon(Icons.pause, color: Colors.white, size: 32),
+            icon: const Icon(Icons.stop, color: Colors.white, size: 32),
             onPressed: onPause,
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white, size: 32),
+            onPressed: onReset,
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white, size: 32),
+            onPressed: onSettings,
           ),
         ],
       ),
@@ -147,6 +178,8 @@ class GameLayout extends StatelessWidget {
   final Function(Player) onTimerTap;
   final Function(Player, int) onLifeAdjust;
   final VoidCallback onPause;
+  final VoidCallback onReset;
+  final VoidCallback onSettings;
 
   const GameLayout({
     super.key,
@@ -154,6 +187,8 @@ class GameLayout extends StatelessWidget {
     required this.onTimerTap,
     required this.onLifeAdjust,
     required this.onPause,
+    required this.onReset,
+    required this.onSettings,
   });
 
   @override
@@ -171,6 +206,8 @@ class GameLayout extends StatelessWidget {
           ),
           MenuRow(
             onPause: onPause,
+            onReset: onReset,
+            onSettings: onSettings,
           ),
           Expanded(
             child: PlayerWidget(
@@ -209,6 +246,8 @@ class GameLayout extends StatelessWidget {
           ),
           MenuRow(
             onPause: onPause,
+            onReset: onReset,
+            onSettings: onSettings,
           ),
           Expanded(
             child: PlayerWidget(
@@ -247,6 +286,8 @@ class GameLayout extends StatelessWidget {
           ),
           MenuRow(
             onPause: onPause,
+            onReset: onReset,
+            onSettings: onSettings,
           ),
           Expanded(
             child: Row(

@@ -10,8 +10,8 @@ class Timer {
     void Function()? onTick;
 
     Timer()
-      : curTime = Settings.startTime,
-        startTime = Settings.startTime,
+      : curTime = Settings.startTime * 60.0,
+        startTime = Settings.startTime * 60.0,
         increment = Settings.increment,
         active = false;
 

@@ -3,8 +3,11 @@ import 'game.dart';
 import 'player.dart';
 import 'settings.dart';
 import 'layouts.dart';
+import 'settings_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Settings.init();
   runApp(const MyApp());
 }
 
@@ -38,7 +41,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _initGame();
+  }
 
+  void _initGame() {
     List<Player> initialPlayers = [];
     for(int i = 0; i < Settings.players; i++){
         Player newPlayer = Player(i);
@@ -80,6 +86,30 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void handleReset() {
+    setState(() {
+      _initGame();
+    });
+  }
+
+  void openSettings() async {
+    game.pause();
+    Settings.isDirty = false;
+    
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+    );
+    
+    if (Settings.isDirty) {
+      setState(() {
+        _initGame();
+      });
+    } else {
+      setState(() {});
+    }
+  }
+
   void adjustLife(Player player, int amount) {
     setState(() {
       bool wasAlive = player.alive;
@@ -103,6 +133,8 @@ class _MyHomePageState extends State<MyHomePage> {
           onTimerTap: handleTimerToggle,
           onLifeAdjust: adjustLife,
           onPause: handlePause,
+          onReset: handleReset,
+          onSettings: openSettings,
         ),
       ),
     );
