@@ -26,13 +26,13 @@ class Player {
         timer.Reset();
     }
 
-    void addLife() {
-        curLife++;
+    void addLife(int amount) {
+        curLife += amount;
         alive = checkAlive();
     }
 
-    void decreaseLife(){
-        curLife--;
+    void decreaseLife(int amount){
+        curLife -= amount;
         alive = checkAlive();
     }
 

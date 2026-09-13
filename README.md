@@ -1,17 +1,25 @@
-# rope
+# Rope 
 
-A new Flutter project.
+Tired of your opponents taking 3 business days to resolve their turns? Why not hit them with the round timer? Or maybe you just want to play Blitz Magic.
 
-## Getting Started
+Rope is an MTG life counter with a built-in chess clock, soon compatible with EDH.
 
-This project is a starting point for a Flutter application.
+## Features: 
 
-A few resources to get you started if this is your first Flutter project:
+- [x] Adjustable life total and player count (2 - 4).
+- [x] Togglable chess clock with adjustable starting time & increments.
+- [x] Long-press on life change increments by 10.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## TODO:
+- [ ] Commander damage.
+- [ ] Support for Partner Commanders.
+- [ ] Div. Counters (Poison, Energy, etc).
+- [ ] Ability to change name or some settings mid-game.
+- [ ] Activate your own timer in the middle of a turn for responding. (This should stack)
+- [ ] Fullscreen on Android, no white bars.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Maybe TODOS:
+
+- [ ] Background art.
+- [ ] Ability to change name mid-game.
+- [ ] Support for a fifth player.

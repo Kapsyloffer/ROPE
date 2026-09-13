@@ -1,3 +1,4 @@
+import 'dart:async' as async;
 import 'package:flutter/material.dart';
 import 'player.dart';
 import 'settings.dart';
@@ -8,7 +9,7 @@ String formatTime(double seconds) {
   return '$min:${sec.toString().padLeft(2, '0')}';
 }
 
-class PlayerWidget extends StatelessWidget {
+class PlayerWidget extends StatefulWidget {
   final Player player;
   final VoidCallback onTimerTap;
   final Function(int) onLifeAdjust;
@@ -23,24 +24,141 @@ class PlayerWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    Color activeButtonColor = Settings.useTimer && player.timer.active 
-        ? Colors.green.shade400 
-        : Settings.playerColors[player.order];
+  State<PlayerWidget> createState() => PlayerWidgetState();
+}
+
+class PlayerWidgetState extends State<PlayerWidget> {
+  int lifeDelta = 0;
+  bool showLifeDelta = false;
+  async.Timer? lifeDeltaTimer;
+  double lifeDeltaOpacity = 0.0;
+
+  async.Timer? initialHoldTimer;
+  async.Timer? periodicHoldTimer;
+  bool isHolding = false;
+
+  bool showTimeIncrement = false;
+  async.Timer? timeIncrementTimer;
+  Alignment timeIncAlignment = const Alignment(0.0, -0.8);
+  double timeIncOpacity = 0.0;
+  double lastTime = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    lastTime = widget.player.timer.curTime;
+  }
+
+  @override
+  void didUpdateWidget(covariant PlayerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    if (widget.player.timer.curTime > lastTime && !widget.player.timer.active && Settings.useTimer && Settings.increment > 0) {
+      triggerTimeIncrement();
+    }
+    lastTime = widget.player.timer.curTime;
+  }
+
+  void triggerTimeIncrement() {
+    setState(() {
+      showTimeIncrement = true;
+      timeIncAlignment = const Alignment(0.0, -0.8);
+      timeIncOpacity = 1.0;
+    });
+    
+    Future.delayed(const Duration(milliseconds: 50), () {
+      if (mounted) {
+        setState(() {
+          timeIncAlignment = const Alignment(0.0, -2.0);
+          timeIncOpacity = 0.0;
+        });
+      }
+    });
+
+    timeIncrementTimer?.cancel();
+    timeIncrementTimer = async.Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          showTimeIncrement = false;
+        });
+      }
+    });
+  }
+
+  void handleLifeAdjust(int amount) {
+    widget.onLifeAdjust(amount);
+    setState(() {
+      showLifeDelta = true;
+      lifeDelta += amount;
+      lifeDeltaOpacity = 1.0;
+    });
+    
+    lifeDeltaTimer?.cancel();
+    lifeDeltaTimer = async.Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) {
+        setState(() {
+          lifeDeltaOpacity = 0.0;
+        });
         
-    Color buttonColor = player.alive ? activeButtonColor : Colors.grey.shade900;
+        async.Timer(const Duration(milliseconds: 300), () {
+          if (mounted && lifeDeltaOpacity == 0.0) {
+            setState(() {
+              showLifeDelta = false;
+              lifeDelta = 0;
+            });
+          }
+        });
+      }
+    });
+  }
+
+  void handleTapDown(int amount) {
+    isHolding = false;
+    initialHoldTimer?.cancel();
+    periodicHoldTimer?.cancel();
+    
+    initialHoldTimer = async.Timer(const Duration(milliseconds: 500), () {
+      isHolding = true;
+      handleLifeAdjust(amount * 10);
+      periodicHoldTimer = async.Timer.periodic(const Duration(milliseconds: 500), (t) {
+        handleLifeAdjust(amount * 10);
+      });
+    });
+  }
+
+  void handleTapUp() {
+    initialHoldTimer?.cancel();
+    periodicHoldTimer?.cancel();
+  }
+
+  void handleTapCancel() {
+    initialHoldTimer?.cancel();
+    periodicHoldTimer?.cancel();
+    isHolding = false;
+  }
+
+  @override
+  void dispose() {
+    lifeDeltaTimer?.cancel();
+    timeIncrementTimer?.cancel();
+    initialHoldTimer?.cancel();
+    periodicHoldTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Color buttonColor = widget.player.alive ? Settings.playerColors[widget.player.order] : Colors.grey.shade900;
 
     Widget content = Container(
-      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      margin: EdgeInsets.zero,
       decoration: BoxDecoration(
-        color: player.alive 
-            ? (Settings.useTimer && player.timer.active ? Colors.green.shade300 : Settings.playerColors[player.order])
+        color: widget.player.alive 
+            ? Settings.playerColors[widget.player.order]
             : Colors.grey.shade800,
-        border: Border.all(color: Colors.black, width: 2),
       ),
       child: Column(
         children: [
-          // Life 
           Expanded(
             flex: 2,
             child: Row(
@@ -48,78 +166,141 @@ class PlayerWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ElevatedButton(
-                      onPressed: () => onLifeAdjust(-1),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: buttonColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+                  child: Material(
+                    color: buttonColor,
+                    child: InkWell(
+                      onTap: () {
+                        if (!isHolding) handleLifeAdjust(-1);
+                      },
+                      onTapDown: (_) => handleTapDown(-1),
+                      onTapUp: (_) => handleTapUp(),
+                      onTapCancel: handleTapCancel,
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Icon(Icons.remove, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
+                        ),
                       ),
-                      child: Text('-', style: TextStyle(fontSize: 48, color: player.alive ? Colors.black : Colors.red)),
                     ),
                   ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      Text(
-                        Settings.playerNames[player.order],
-                        style: TextStyle(
-                            fontSize: 16, 
-                            fontWeight: FontWeight.bold, 
-                            color: player.alive ? Colors.black54 : Colors.red.shade900
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              Settings.playerNames[widget.player.order],
+                              style: TextStyle(
+                                  fontSize: 16, 
+                                  fontWeight: FontWeight.bold, 
+                                  color: widget.player.alive ? Colors.black54 : Colors.red.shade900
+                              ),
+                            ),
+                          ),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '${widget.player.curLife}',
+                              style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (showLifeDelta)
+                        Positioned(
+                          top: 16,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 300),
+                            opacity: lifeDeltaOpacity,
+                            child: Text(
+                              lifeDelta > 0 ? '+$lifeDelta' : '$lifeDelta',
+                              style: TextStyle(
+                                fontSize: 32, 
+                                fontWeight: FontWeight.bold, 
+                                color: widget.player.alive ? Colors.black54 : Colors.red
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${player.curLife}',
-                        style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: player.alive ? Colors.black : Colors.red),
-                      ),
                     ],
                   ),
                 ),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ElevatedButton(
-                      onPressed: () => onLifeAdjust(1),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: buttonColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+                  child: Material(
+                    color: buttonColor,
+                    child: InkWell(
+                      onTap: () {
+                        if (!isHolding) handleLifeAdjust(1);
+                      },
+                      onTapDown: (_) => handleTapDown(1),
+                      onTapUp: (_) => handleTapUp(),
+                      onTapCancel: handleTapCancel,
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Icon(Icons.add, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
+                        ),
                       ),
-                      child: Text('+', style: TextStyle(fontSize: 48, color: player.alive ? Colors.black : Colors.red)),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          // Timer 
           if (Settings.useTimer)
             Expanded(
               flex: 1,
               child: GestureDetector(
-                onTap: onTimerTap,
+                onTap: widget.onTimerTap,
                 child: Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.all(8.0),
+                  margin: EdgeInsets.zero,
                   decoration: BoxDecoration(
-                    color: player.alive
-                        ? (player.timer.active ? Colors.green.shade500 : Colors.grey.shade400)
-                        : Colors.grey.shade900,
-                    border: Border.all(
-                        color: player.alive 
-                            ? (player.timer.active ? Colors.greenAccent : Colors.grey)
-                            : Colors.red.shade900, 
-                        width: 4),
+                    color: widget.player.alive
+                        ? (widget.player.timer.active ? Colors.green.shade500 : Colors.black.withOpacity(0.15))
+                        : Colors.black.withOpacity(0.3),
                   ),
-                  child: Center(
-                    child: Text(
-                      formatTime(player.timer.curTime),
-                      style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: player.alive ? Colors.black : Colors.red),
-                    ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              formatTime(widget.player.timer.curTime),
+                              style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (showTimeIncrement)
+                        AnimatedAlign(
+                          duration: const Duration(milliseconds: 1500),
+                          curve: Curves.easeOut,
+                          alignment: timeIncAlignment,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 1500),
+                            curve: Curves.easeInQuint,
+                            opacity: timeIncOpacity,
+                            child: Text(
+                              '+${formatTime(Settings.increment.toDouble())}',
+                              style: TextStyle(
+                                fontSize: 28, 
+                                fontWeight: FontWeight.bold, 
+                                color: widget.player.alive ? Colors.black54 : Colors.red
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -128,8 +309,8 @@ class PlayerWidget extends StatelessWidget {
       ),
     );
 
-    if (rotations > 0) {
-      return RotatedBox(quarterTurns: rotations, child: content);
+    if (widget.rotations > 0) {
+      return RotatedBox(quarterTurns: widget.rotations, child: content);
     }
     return content;
   }
@@ -139,35 +320,51 @@ class MenuRow extends StatelessWidget {
   final VoidCallback onPause;
   final VoidCallback onReset;
   final VoidCallback onSettings;
+  final VoidCallback onToggleMenu;
 
   const MenuRow({
     super.key,
     required this.onPause,
     required this.onReset,
     required this.onSettings,
+    required this.onToggleMenu,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 48.0,
+    return Material(
       color: Colors.black87,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.stop, color: Colors.white, size: 32),
-            onPressed: onPause,
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white, size: 32),
-            onPressed: onReset,
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white, size: 32),
-            onPressed: onSettings,
-          ),
-        ],
+      child: SizedBox(
+        height: 48.0,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: onPause,
+                child: const Icon(Icons.stop, color: Colors.white, size: 32),
+              ),
+            ),
+            Expanded(
+              child: InkWell(
+                onTap: onReset,
+                child: const Icon(Icons.refresh, color: Colors.white, size: 32),
+              ),
+            ),
+            Expanded(
+              child: InkWell(
+                onTap: onSettings,
+                child: const Icon(Icons.settings, color: Colors.white, size: 32),
+              ),
+            ),
+            Expanded(
+              child: InkWell(
+                onTap: onToggleMenu,
+                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white, size: 32),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -180,6 +377,8 @@ class GameLayout extends StatelessWidget {
   final VoidCallback onPause;
   final VoidCallback onReset;
   final VoidCallback onSettings;
+  final VoidCallback onToggleMenu;
+  final bool showMenu;
 
   const GameLayout({
     super.key,
@@ -189,12 +388,16 @@ class GameLayout extends StatelessWidget {
     required this.onPause,
     required this.onReset,
     required this.onSettings,
+    required this.onToggleMenu,
+    required this.showMenu,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget layoutColumn;
+    
     if (players.length == 2) {
-      return Column(
+      layoutColumn = Column(
         children: [
           Expanded(
             child: PlayerWidget(
@@ -204,11 +407,13 @@ class GameLayout extends StatelessWidget {
               rotations: 2,
             ),
           ),
-          MenuRow(
-            onPause: onPause,
-            onReset: onReset,
-            onSettings: onSettings,
-          ),
+          if (showMenu)
+            MenuRow(
+              onPause: onPause,
+              onReset: onReset,
+              onSettings: onSettings,
+              onToggleMenu: onToggleMenu,
+            ),
           Expanded(
             child: PlayerWidget(
               player: players[1], 
@@ -220,7 +425,7 @@ class GameLayout extends StatelessWidget {
         ],
       );
     } else if (players.length == 3) {
-      return Column(
+      layoutColumn = Column(
         children: [
           Expanded(
             child: Row(
@@ -244,11 +449,13 @@ class GameLayout extends StatelessWidget {
               ],
             ),
           ),
-          MenuRow(
-            onPause: onPause,
-            onReset: onReset,
-            onSettings: onSettings,
-          ),
+          if (showMenu)
+            MenuRow(
+              onPause: onPause,
+              onReset: onReset,
+              onSettings: onSettings,
+              onToggleMenu: onToggleMenu,
+            ),
           Expanded(
             child: PlayerWidget(
               player: players[2], 
@@ -260,7 +467,7 @@ class GameLayout extends StatelessWidget {
         ],
       );
     } else if (players.length == 4) {
-      return Column(
+      layoutColumn = Column(
         children: [
           Expanded(
             child: Row(
@@ -284,11 +491,13 @@ class GameLayout extends StatelessWidget {
               ],
             ),
           ),
-          MenuRow(
-            onPause: onPause,
-            onReset: onReset,
-            onSettings: onSettings,
-          ),
+          if (showMenu)
+            MenuRow(
+              onPause: onPause,
+              onReset: onReset,
+              onSettings: onSettings,
+              onToggleMenu: onToggleMenu,
+            ),
           Expanded(
             child: Row(
               children: [
@@ -313,16 +522,31 @@ class GameLayout extends StatelessWidget {
           ),
         ],
       );
+    } else {
+      layoutColumn = Column(
+        children: players.map((p) => Expanded(
+          child: PlayerWidget(
+            player: p, 
+            onTimerTap: () => onTimerTap(p), 
+            onLifeAdjust: (amt) => onLifeAdjust(p, amt),
+          ),
+        )).toList(),
+      );
     }
     
-    return Column(
-      children: players.map((p) => Expanded(
-        child: PlayerWidget(
-          player: p, 
-          onTimerTap: () => onTimerTap(p), 
-          onLifeAdjust: (amt) => onLifeAdjust(p, amt),
-        ),
-      )).toList(),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        layoutColumn,
+        if (!showMenu)
+          FloatingActionButton(
+            mini: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            onPressed: onToggleMenu,
+            child: const Icon(Icons.menu, color: Colors.white),
+          ),
+      ],
     );
   }
 }

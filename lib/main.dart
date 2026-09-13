@@ -14,7 +14,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -32,19 +31,20 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage> createState() => MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class MyHomePageState extends State<MyHomePage> {
   late Game game;
+  bool showMenu = false;
 
   @override
   void initState() {
     super.initState();
-    _initGame();
+    initGame();
   }
 
-  void _initGame() {
+  void initGame() {
     List<Player> initialPlayers = [];
     for(int i = 0; i < Settings.players; i++){
         Player newPlayer = Player(i);
@@ -88,39 +88,38 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void handleReset() {
     setState(() {
-      _initGame();
+      initGame();
     });
   }
 
   void openSettings() async {
     game.pause();
-    Settings.isDirty = false;
     
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const SettingsScreen()),
     );
     
-    if (Settings.isDirty) {
-      setState(() {
-        _initGame();
-      });
-    } else {
-      setState(() {});
-    }
+    setState(() {});
   }
 
   void adjustLife(Player player, int amount) {
     setState(() {
       bool wasAlive = player.alive;
       if (amount > 0) {
-        player.addLife();
+        player.addLife(amount);
       } else {
-        player.decreaseLife();
+        player.decreaseLife(amount.abs());
       }
       if (wasAlive && !player.alive && player.timer.active) {
         game.nextPlayer();
       }
+    });
+  }
+
+  void toggleMenu() {
+    setState(() {
+      showMenu = !showMenu;
     });
   }
 
@@ -135,6 +134,8 @@ class _MyHomePageState extends State<MyHomePage> {
           onPause: handlePause,
           onReset: handleReset,
           onSettings: openSettings,
+          onToggleMenu: toggleMenu,
+          showMenu: showMenu,
         ),
       ),
     );
