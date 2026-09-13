@@ -3,15 +3,19 @@ import 'settings.dart';
 
 class Player {
     int order;
+    bool activePlayer;
+
     int curLife;
     int startLife;
     bool alive;
+
     Timer timer;
     //TODO: Commander damage 
     //TODO: Counters: poison, energy, etc
 
     Player(this.order)
-      : curLife = Settings.startLife,
+      : activePlayer = false,
+        curLife = Settings.startLife,
         startLife = Settings.startLife,
         alive = true,
         timer = Timer();

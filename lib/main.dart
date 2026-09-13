@@ -41,7 +41,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
     List<Player> initialPlayers = [];
     for(int i = 0; i < Settings.players; i++){
-        initialPlayers.add(Player(i));
+        Player newPlayer = Player(i);
+        newPlayer.timer.onTick = () {
+          if (mounted) {
+            setState(() {});
+          }
+        };
+        initialPlayers.add(newPlayer);
     }
     _game = Game(initialPlayers, Settings.players, 0);
   }
@@ -57,44 +63,108 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void adjustLife(Player player, int amount) {
+    setState(() {
+      if (amount > 0) {
+        player.addLife();
+      } else {
+        player.decreaseLife();
+      }
+    });
+  }
+
+  String formatTime(double seconds) {
+    int min = seconds ~/ 60;
+    int sec = (seconds % 60).toInt();
+    return '$min:${sec.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: _game.players.map((player) {
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _handleTimerToggle(player),
-                child: Container(
-                  margin: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: player.timer.active ? Colors.green.shade300 : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Player ${player.order}',
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        Text(
-                          'Life: ${player.curLife}',
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                        Text(
-                          'Time: ${player.timer.curTime}',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
+            Widget playerContent = Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                decoration: BoxDecoration(
+                  color: player.timer.active ? Colors.green.shade300 : Colors.grey.shade300,
+                  border: Border.all(color: Colors.black, width: 2),
+                ),
+                child: Column(
+                  children: [
+                    // Life 
+                    Expanded(
+                      flex: 2,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: () => adjustLife(player, -1),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey.shade400,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+                                ),
+                                child: const Text('-', style: TextStyle(fontSize: 48, color: Colors.black)),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Center(
+                              child: Text(
+                                '${player.curLife}',
+                                style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: () => adjustLife(player, 1),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey.shade400,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+                                ),
+                                child: const Text('+', style: TextStyle(fontSize: 48, color: Colors.black)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    // Timer 
+                    Expanded(
+                      flex: 1,
+                      child: GestureDetector(
+                        onTap: () => _handleTimerToggle(player),
+                        child: Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: player.timer.active ? Colors.green.shade500 : Colors.grey.shade400,
+                            border: Border.all(color: player.timer.active ? Colors.greenAccent : Colors.grey, width: 4),
+                          ),
+                          child: Center(
+                            child: Text(
+                              formatTime(player.timer.curTime),
+                              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
+            return playerContent;
           }).toList(),
         ),
       ),
