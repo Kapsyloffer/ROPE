@@ -17,7 +17,7 @@ class Timer {
 
     void toggleTimer() {
         active = !active;
-        if(!active) {
+        if (!active) {
             curTime += increment;
             clock?.cancel();
         } else {
@@ -43,7 +43,7 @@ class Timer {
         });
     }
 
-    void Reset(){
+    void reset() {
         curTime = startTime;
         active = false;
         clock?.cancel();

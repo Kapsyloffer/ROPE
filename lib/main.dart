@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'game.dart';
 import 'player.dart';
 import 'settings.dart';
@@ -7,6 +8,11 @@ import 'settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await Settings.init();
   runApp(const MyApp());
 }
@@ -46,7 +52,7 @@ class MyHomePageState extends State<MyHomePage> {
 
   void initGame() {
     List<Player> initialPlayers = [];
-    for(int i = 0; i < Settings.players; i++){
+    for (int i = 0; i < Settings.players; i++) {
         Player newPlayer = Player(i);
         newPlayer.timer.onTick = () {
           if (mounted) {
@@ -71,7 +77,7 @@ class MyHomePageState extends State<MyHomePage> {
       
       if (isPaused) {
         game.resume(player);
-      } else if(player.timer.active){
+      } else if (player.timer.active) {
         player.timer.toggleTimer();
         if (!player.timer.active) {
           game.nextPlayer();
@@ -126,17 +132,15 @@ class MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: GameLayout(
-          players: game.players,
-          onTimerTap: handleTimerToggle,
-          onLifeAdjust: adjustLife,
-          onPause: handlePause,
-          onReset: handleReset,
-          onSettings: openSettings,
-          onToggleMenu: toggleMenu,
-          showMenu: showMenu,
-        ),
+      body: GameLayout(
+        players: game.players,
+        onTimerTap: handleTimerToggle,
+        onLifeAdjust: adjustLife,
+        onPause: handlePause,
+        onReset: handleReset,
+        onSettings: openSettings,
+        onToggleMenu: toggleMenu,
+        showMenu: showMenu,
       ),
     );
   }

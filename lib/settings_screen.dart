@@ -80,7 +80,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   SwitchListTile(
-                    secondary: const Icon(Icons.timer),
+                    secondary: const Icon(Icons.hourglass_bottom_rounded),
                     title: const Text('Use Timer'),
                     value: Settings.useTimer,
                     onChanged: (value) {
@@ -97,6 +97,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Start Time (minutes)',
                         border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.timer_outlined),
                       ),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       enabled: Settings.useTimer,
@@ -116,6 +117,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Increment (seconds)',
                         border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.arrow_drop_up),
                       ),
                       keyboardType: TextInputType.number,
                       enabled: Settings.useTimer,
@@ -153,19 +155,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                       child: Row(
                         children: [
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: Settings.playerNames[index],
-                              decoration: InputDecoration(
-                                labelText: 'Player ${index + 1} Name',
-                                border: const OutlineInputBorder(),
-                              ),
-                              onChanged: (value) {
-                                Settings.playerNames[index] = value;
-                                Settings.save();
-                              },
-                            ),
-                          ),
+                          Icon(Icons.person, color: Settings.playerColors[index]),
                           const SizedBox(width: 16),
                           Container(
                             decoration: BoxDecoration(
@@ -209,6 +199,20 @@ class SettingsScreenState extends State<SettingsScreen> {
                                     Settings.save();
                                   });
                                 }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: Settings.playerNames[index],
+                              decoration: InputDecoration(
+                                labelText: 'Player ${index + 1} Name',
+                                border: const OutlineInputBorder(),
+                              ),
+                              onChanged: (value) {
+                                Settings.playerNames[index] = value;
+                                Settings.save();
                               },
                             ),
                           ),

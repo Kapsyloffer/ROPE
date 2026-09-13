@@ -15,9 +15,9 @@ class Game {
         }
     }
 
-    void Reset(){
+    void reset() {
         for (var player in players) {
-            player.Reset();
+            player.reset();
         }
         activePlayerIndex = 0;
     }

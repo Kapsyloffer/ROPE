@@ -20,10 +20,10 @@ class Player {
         alive = true,
         timer = Timer();
     
-    void Reset(){
+    void reset() {
         curLife = startLife;
         alive = true;
-        timer.Reset();
+        timer.reset();
     }
 
     void addLife(int amount) {
