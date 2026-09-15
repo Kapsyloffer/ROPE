@@ -119,6 +119,22 @@ class MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void adjustCommanderDamage(Player player, int fromPlayerId, int amount) {
+    setState(() {
+      int currentDamage = player.commanderDamage.commanders[fromPlayerId].damage_dealt;
+      if (currentDamage + amount < 0) {
+        amount = -currentDamage;
+      }
+      
+      if (amount == 0) return;
+
+      bool wasAlive = player.alive;
+      player.commanderDamage.commanders[fromPlayerId].damage_dealt += amount;
+      player.decreaseLife(amount);
+      game.checkState(player, wasAlive);
+    });
+  }
+
   void adjustTime(Player player, double amount) {
     setState(() {
       double step = amount.abs();
@@ -150,6 +166,7 @@ class MyHomePageState extends State<MyHomePage> {
         onTimerTap: handleTimerToggle,
         onLifeAdjust: adjustLife,
         onTimeAdjust: adjustTime,
+        onCommanderDamageAdjust: adjustCommanderDamage,
         onTimerLongPress: handlePause,
         onPause: handlePause,
         onReset: handleReset,

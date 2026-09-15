@@ -14,6 +14,7 @@ class PlayerWidget extends StatefulWidget {
   final VoidCallback onTimerTap;
   final Function(int) onLifeAdjust;
   final Function(double) onTimeAdjust;
+  final Function(int, int) onCommanderDamageAdjust;
   final VoidCallback onTimerLongPress;
   final int rotations;
 
@@ -23,6 +24,7 @@ class PlayerWidget extends StatefulWidget {
     required this.onTimerTap,
     required this.onLifeAdjust,
     required this.onTimeAdjust,
+    required this.onCommanderDamageAdjust,
     required this.onTimerLongPress,
     this.rotations = 0,
   });
@@ -48,6 +50,8 @@ class PlayerWidgetState extends State<PlayerWidget> {
   double lastTime = 0.0;
 
   bool isEditingTimer = false;
+  bool showCommanderDamage = false;
+  int? editingCommanderId;
 
   @override
   void initState() {
@@ -143,6 +147,155 @@ class PlayerWidgetState extends State<PlayerWidget> {
     isHolding = false;
   }
 
+  Widget buildCommanderCell(int targetPlayerId) {
+    if (targetPlayerId == widget.player.order) {
+      return const SizedBox.shrink();
+    }
+    
+    bool isEditing = editingCommanderId == targetPlayerId;
+
+    return GestureDetector(
+      onTap: () {
+        if (isEditing) {
+          setState(() {
+            editingCommanderId = null;
+          });
+        } else {
+          widget.onCommanderDamageAdjust(targetPlayerId, 1);
+        }
+      },
+      onLongPress: () {
+        setState(() {
+          editingCommanderId = targetPlayerId;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.all(4.0),
+        decoration: BoxDecoration(
+          color: Settings.playerColors[targetPlayerId].withOpacity(0.8),
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: RotatedBox(
+          quarterTurns: widget.rotations,
+          child: isEditing
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => widget.onCommanderDamageAdjust(targetPlayerId, -1),
+                          child: const Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Icon(Icons.remove, size: 32, color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '${widget.player.commanderDamage.commanders[targetPlayerId].damage_dealt}',
+                              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => widget.onCommanderDamageAdjust(targetPlayerId, 1),
+                          child: const Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Icon(Icons.add, size: 32, color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '${widget.player.commanderDamage.commanders[targetPlayerId].damage_dealt}',
+                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildCommanderGrid() {
+    if (Settings.players == 2) {
+       return Column(
+         crossAxisAlignment: CrossAxisAlignment.stretch,
+         children: [
+           Expanded(child: buildCommanderCell(0)),
+           Expanded(child: buildCommanderCell(1)),
+         ]
+       );
+    } else if (Settings.players == 3) {
+       return Column(
+         crossAxisAlignment: CrossAxisAlignment.stretch,
+         children: [
+           Expanded(
+             child: Row(
+               crossAxisAlignment: CrossAxisAlignment.stretch,
+               children: [
+                 Expanded(child: buildCommanderCell(0)),
+                 Expanded(child: buildCommanderCell(1)),
+               ]
+             )
+           ),
+           Expanded(child: buildCommanderCell(2)),
+         ]
+       );
+    } else {
+       return Column(
+         crossAxisAlignment: CrossAxisAlignment.stretch,
+         children: [
+           Expanded(
+             child: Row(
+               crossAxisAlignment: CrossAxisAlignment.stretch,
+               children: [
+                 Expanded(child: buildCommanderCell(0)),
+                 Expanded(child: buildCommanderCell(1)),
+               ]
+             )
+           ),
+           Expanded(
+             child: Row(
+               crossAxisAlignment: CrossAxisAlignment.stretch,
+               children: [
+                 Expanded(child: buildCommanderCell(3)),
+                 Expanded(child: buildCommanderCell(2)),
+               ]
+             )
+           ),
+         ]
+       );
+    }
+  }
+
   @override
   void dispose() {
     lifeDeltaTimer?.cancel();
@@ -163,134 +316,191 @@ class PlayerWidgetState extends State<PlayerWidget> {
             ? Settings.playerColors[widget.player.order]
             : Colors.grey.shade800,
       ),
-      child: Column(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Material(
-                    color: buttonColor,
-                    child: InkWell(
-                      onTap: () {
-                        if (!isHolding) handleLifeAdjust(-1);
-                      },
-                      onTapDown: (_) => handleTapDown(-1),
-                      onTapUp: (_) => handleTapUp(),
-                      onTapCancel: handleTapCancel,
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Icon(Icons.remove, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              Settings.playerNames[widget.player.order],
-                              style: TextStyle(
-                                  fontSize: 16, 
-                                  fontWeight: FontWeight.bold, 
-                                  color: widget.player.alive ? Colors.black54 : Colors.red.shade900
-                              ),
-                            ),
-                          ),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '${widget.player.curLife}',
-                              style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (showLifeDelta)
-                        Positioned(
-                          top: 16,
-                          child: AnimatedOpacity(
-                            duration: const Duration(milliseconds: 300),
-                            opacity: lifeDeltaOpacity,
-                            child: Text(
-                              lifeDelta > 0 ? '+$lifeDelta' : '$lifeDelta',
-                              style: TextStyle(
-                                fontSize: 32, 
-                                fontWeight: FontWeight.bold, 
-                                color: widget.player.alive ? Colors.black54 : Colors.red
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Material(
-                    color: buttonColor,
-                    child: InkWell(
-                      onTap: () {
-                        if (!isHolding) handleLifeAdjust(1);
-                      },
-                      onTapDown: (_) => handleTapDown(1),
-                      onTapUp: (_) => handleTapUp(),
-                      onTapCancel: handleTapCancel,
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Icon(Icons.add, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (Settings.useTimer)
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onVerticalDragEnd: (details) {
+          if (details.primaryVelocity != null) {
+            if (details.primaryVelocity! < 0) {
+              setState(() {
+                showCommanderDamage = true;
+              });
+            } else if (details.primaryVelocity! > 0) {
+              setState(() {
+                showCommanderDamage = false;
+                editingCommanderId = null;
+              });
+            }
+          }
+        },
+        child: Column(
+          children: [
             Expanded(
-              flex: 1,
-              child: GestureDetector(
-                onTap: () {
-                  if (isEditingTimer) {
+              flex: 2,
+              child: ClipRect(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: AnimatedSlide(
+                        offset: showCommanderDamage ? const Offset(0.0, -1.0) : Offset.zero,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 300),
+                          opacity: showCommanderDamage ? 0.0 : 1.0,
+                          child: IgnorePointer(
+                            ignoring: showCommanderDamage,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: Material(
+                                    color: buttonColor,
+                                    child: InkWell(
+                                      onTap: () {
+                                        if (!isHolding) handleLifeAdjust(-1);
+                                      },
+                                      onTapDown: (_) => handleTapDown(-1),
+                                      onTapUp: (_) => handleTapUp(),
+                                      onTapCancel: handleTapCancel,
+                                      child: Center(
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Icon(Icons.remove, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              Settings.playerNames[widget.player.order],
+                                              style: TextStyle(
+                                                  fontSize: 16, 
+                                                  fontWeight: FontWeight.bold, 
+                                                  color: widget.player.alive ? Colors.black54 : Colors.red.shade900
+                                              ),
+                                            ),
+                                          ),
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              '${widget.player.curLife}',
+                                              style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (showLifeDelta)
+                                        Positioned(
+                                          top: 16,
+                                          child: AnimatedOpacity(
+                                            duration: const Duration(milliseconds: 300),
+                                            opacity: lifeDeltaOpacity,
+                                            child: Text(
+                                              lifeDelta > 0 ? '+$lifeDelta' : '$lifeDelta',
+                                              style: TextStyle(
+                                                fontSize: 32, 
+                                                fontWeight: FontWeight.bold, 
+                                                color: widget.player.alive ? Colors.black54 : Colors.red
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Material(
+                                    color: buttonColor,
+                                    child: InkWell(
+                                      onTap: () {
+                                        if (!isHolding) handleLifeAdjust(1);
+                                      },
+                                      onTapDown: (_) => handleTapDown(1),
+                                      onTapUp: (_) => handleTapUp(),
+                                      onTapCancel: handleTapCancel,
+                                      child: Center(
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Icon(Icons.add, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: AnimatedSlide(
+                        offset: showCommanderDamage ? Offset.zero : const Offset(0.0, 1.0),
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 300),
+                          opacity: showCommanderDamage ? 1.0 : 0.0,
+                          child: IgnorePointer(
+                            ignoring: !showCommanderDamage,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: RotatedBox(
+                                quarterTurns: widget.rotations == 0 ? 0 : 4 - widget.rotations,
+                                child: buildCommanderGrid(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (Settings.useTimer)
+              Expanded(
+                flex: 1,
+                child: GestureDetector(
+                  onTap: () {
+                    if (isEditingTimer) {
+                      setState(() {
+                        isEditingTimer = false;
+                      });
+                    } else {
+                      widget.onTimerTap();
+                    }
+                  },
+                  onLongPress: () {
                     setState(() {
-                      isEditingTimer = false;
+                      isEditingTimer = true;
                     });
-                  } else {
-                    widget.onTimerTap();
-                  }
-                },
-                onLongPress: () {
-                  setState(() {
-                    isEditingTimer = true;
-                  });
-                  widget.onTimerLongPress();
-                },
-                child: Container(
-                  width: double.infinity,
-                  margin: EdgeInsets.zero,
-                  decoration: BoxDecoration(
-                    color: widget.player.alive
-                        ? (widget.player.timer.active ? Colors.green.shade500 : Colors.black.withOpacity(0.15))
-                        : Colors.black.withOpacity(0.3),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      if (isEditingTimer)
-                        Row(
+                    widget.onTimerLongPress();
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.zero,
+                    decoration: BoxDecoration(
+                      color: widget.player.alive
+                          ? (widget.player.timer.active ? Colors.green.shade500 : Colors.black.withOpacity(0.15))
+                          : Colors.black.withOpacity(0.3),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (isEditingTimer)
+                          Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Expanded(
@@ -335,44 +545,45 @@ class PlayerWidgetState extends State<PlayerWidget> {
                             ),
                           ],
                         )
-                      else
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                formatTime(widget.player.timer.curTime),
-                                style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                        else
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  formatTime(widget.player.timer.curTime),
+                                  style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      if (showTimeIncrement && !isEditingTimer)
-                        AnimatedAlign(
-                          duration: const Duration(milliseconds: 1500),
-                          curve: Curves.easeOut,
-                          alignment: timeIncAlignment,
-                          child: AnimatedOpacity(
+                        if (showTimeIncrement && !isEditingTimer)
+                          AnimatedAlign(
                             duration: const Duration(milliseconds: 1500),
-                            curve: Curves.easeInQuint,
-                            opacity: timeIncOpacity,
-                            child: Text(
-                              '+${formatTime(Settings.increment.toDouble())}',
-                              style: TextStyle(
-                                fontSize: 28, 
-                                fontWeight: FontWeight.bold, 
-                                color: widget.player.alive ? Colors.black54 : Colors.red
+                            curve: Curves.easeOut,
+                            alignment: timeIncAlignment,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 1500),
+                              curve: Curves.easeInQuint,
+                              opacity: timeIncOpacity,
+                              child: Text(
+                                '+${formatTime(Settings.increment.toDouble())}',
+                                style: TextStyle(
+                                  fontSize: 28, 
+                                  fontWeight: FontWeight.bold, 
+                                  color: widget.player.alive ? Colors.black54 : Colors.red
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
 
@@ -442,6 +653,7 @@ class GameLayout extends StatelessWidget {
   final Function(Player) onTimerTap;
   final Function(Player, int) onLifeAdjust;
   final Function(Player, double) onTimeAdjust;
+  final Function(Player, int, int) onCommanderDamageAdjust;
   final VoidCallback onTimerLongPress;
   final VoidCallback onPause;
   final VoidCallback onReset;
@@ -455,6 +667,7 @@ class GameLayout extends StatelessWidget {
     required this.onTimerTap,
     required this.onLifeAdjust,
     required this.onTimeAdjust,
+    required this.onCommanderDamageAdjust,
     required this.onTimerLongPress,
     required this.onPause,
     required this.onReset,
@@ -476,6 +689,7 @@ class GameLayout extends StatelessWidget {
               onTimerTap: () => onTimerTap(players[0]), 
               onLifeAdjust: (amt) => onLifeAdjust(players[0], amt), 
               onTimeAdjust: (amt) => onTimeAdjust(players[0], amt),
+              onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[0], targetId, amt),
               onTimerLongPress: onTimerLongPress,
               rotations: 2,
             ),
@@ -493,6 +707,7 @@ class GameLayout extends StatelessWidget {
               onTimerTap: () => onTimerTap(players[1]), 
               onLifeAdjust: (amt) => onLifeAdjust(players[1], amt), 
               onTimeAdjust: (amt) => onTimeAdjust(players[1], amt),
+              onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[1], targetId, amt),
               onTimerLongPress: onTimerLongPress,
               rotations: 0,
             ),
@@ -511,6 +726,7 @@ class GameLayout extends StatelessWidget {
                     onTimerTap: () => onTimerTap(players[0]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[0], amt), 
                     onTimeAdjust: (amt) => onTimeAdjust(players[0], amt),
+                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[0], targetId, amt),
                     onTimerLongPress: onTimerLongPress,
                     rotations: 1,
                   ),
@@ -521,6 +737,7 @@ class GameLayout extends StatelessWidget {
                     onTimerTap: () => onTimerTap(players[1]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[1], amt), 
                     onTimeAdjust: (amt) => onTimeAdjust(players[1], amt),
+                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[1], targetId, amt),
                     onTimerLongPress: onTimerLongPress,
                     rotations: 3,
                   ),
@@ -541,6 +758,7 @@ class GameLayout extends StatelessWidget {
               onTimerTap: () => onTimerTap(players[2]), 
               onLifeAdjust: (amt) => onLifeAdjust(players[2], amt), 
               onTimeAdjust: (amt) => onTimeAdjust(players[2], amt),
+              onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[2], targetId, amt),
               onTimerLongPress: onTimerLongPress,
               rotations: 0,
             ),
@@ -559,6 +777,7 @@ class GameLayout extends StatelessWidget {
                     onTimerTap: () => onTimerTap(players[0]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[0], amt), 
                     onTimeAdjust: (amt) => onTimeAdjust(players[0], amt),
+                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[0], targetId, amt),
                     onTimerLongPress: onTimerLongPress,
                     rotations: 1,
                   ),
@@ -569,6 +788,7 @@ class GameLayout extends StatelessWidget {
                     onTimerTap: () => onTimerTap(players[1]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[1], amt), 
                     onTimeAdjust: (amt) => onTimeAdjust(players[1], amt),
+                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[1], targetId, amt),
                     onTimerLongPress: onTimerLongPress,
                     rotations: 3,
                   ),
@@ -592,6 +812,7 @@ class GameLayout extends StatelessWidget {
                     onTimerTap: () => onTimerTap(players[3]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[3], amt), 
                     onTimeAdjust: (amt) => onTimeAdjust(players[3], amt),
+                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[3], targetId, amt),
                     onTimerLongPress: onTimerLongPress,
                     rotations: 1,
                   ),
@@ -602,6 +823,7 @@ class GameLayout extends StatelessWidget {
                     onTimerTap: () => onTimerTap(players[2]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[2], amt), 
                     onTimeAdjust: (amt) => onTimeAdjust(players[2], amt),
+                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[2], targetId, amt),
                     onTimerLongPress: onTimerLongPress,
                     rotations: 3,
                   ),
@@ -619,6 +841,7 @@ class GameLayout extends StatelessWidget {
             onTimerTap: () => onTimerTap(p), 
             onLifeAdjust: (amt) => onLifeAdjust(p, amt),
             onTimeAdjust: (amt) => onTimeAdjust(p, amt),
+            onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(p, targetId, amt),
             onTimerLongPress: onTimerLongPress,
           ),
         )).toList(),

@@ -1,5 +1,6 @@
 import 'timer.dart';
 import 'settings.dart';
+import 'commander.dart';
 
 class Player {
     int order;
@@ -11,6 +12,7 @@ class Player {
 
     Timer timer;
     //TODO: Commander damage 
+    late CommanderDamage commanderDamage;
     //TODO: Counters: poison, energy, etc
 
     Player(this.order)
@@ -18,12 +20,15 @@ class Player {
         curLife = Settings.startLife,
         startLife = Settings.startLife,
         alive = true,
-        timer = Timer();
+        timer = Timer() {
+        commanderDamage = CommanderDamage(Settings.players);
+    }
     
     void reset() {
         curLife = startLife;
         alive = true;
         timer.reset();
+        commanderDamage = CommanderDamage(Settings.players);
     }
 
     void addLife(int amount) {
@@ -41,6 +46,9 @@ class Player {
             return false;
         }
         if(timer.curTime <= 0) {
+            return false;
+        }
+        if(commanderDamage.isLethal()) {
             return false;
         }
 
