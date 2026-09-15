@@ -59,9 +59,7 @@ class MyHomePageState extends State<MyHomePage> {
             setState(() {
               bool wasAlive = newPlayer.alive;
               newPlayer.alive = newPlayer.checkAlive();
-              if (wasAlive && !newPlayer.alive && newPlayer.timer.active) {
-                game.nextPlayer();
-              }
+              game.checkState(newPlayer, wasAlive);
             });
           }
         };
@@ -117,9 +115,24 @@ class MyHomePageState extends State<MyHomePage> {
       } else {
         player.decreaseLife(amount.abs());
       }
-      if (wasAlive && !player.alive && player.timer.active) {
-        game.nextPlayer();
+      game.checkState(player, wasAlive);
+    });
+  }
+
+  void adjustTime(Player player, double amount) {
+    setState(() {
+      double step = amount.abs();
+      if (amount > 0) {
+        player.timer.curTime = ((player.timer.curTime / step).floor() * step) + step;
+      } else if (amount < 0) {
+        player.timer.curTime = ((player.timer.curTime / step).ceil() * step) - step;
       }
+      
+      if (player.timer.curTime < 0) player.timer.curTime = 0;
+      
+      bool wasAlive = player.alive;
+      player.alive = player.checkAlive();
+      game.checkState(player, wasAlive);
     });
   }
 
@@ -136,6 +149,8 @@ class MyHomePageState extends State<MyHomePage> {
         players: game.players,
         onTimerTap: handleTimerToggle,
         onLifeAdjust: adjustLife,
+        onTimeAdjust: adjustTime,
+        onTimerLongPress: handlePause,
         onPause: handlePause,
         onReset: handleReset,
         onSettings: openSettings,
