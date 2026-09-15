@@ -598,50 +598,54 @@ class MenuRow extends StatelessWidget {
   final VoidCallback onPause;
   final VoidCallback onReset;
   final VoidCallback onSettings;
-  final VoidCallback onToggleMenu;
+  final bool showMenu;
 
   const MenuRow({
     super.key,
     required this.onPause,
     required this.onReset,
     required this.onSettings,
-    required this.onToggleMenu,
+    required this.showMenu,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.black87,
-      child: SizedBox(
-        height: 48.0,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: InkWell(
-                onTap: onPause,
-                child: const Icon(Icons.stop, color: Colors.white, size: 32),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      height: showMenu ? 48.0 : 0.0,
+      child: ClipRect(
+        child: Material(
+          color: Colors.black87,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: onReset,
+                  child: const Icon(Icons.refresh, color: Colors.white, size: 32),
+                ),
               ),
-            ),
-            Expanded(
-              child: InkWell(
-                onTap: onReset,
-                child: const Icon(Icons.refresh, color: Colors.white, size: 32),
+              Expanded(
+                child: InkWell(
+                  onTap: onPause,
+                  child: const Icon(Icons.stop, color: Colors.white, size: 32),
+                ),
               ),
-            ),
-            Expanded(
-              child: InkWell(
-                onTap: onSettings,
-                child: const Icon(Icons.settings, color: Colors.white, size: 32),
+              const Expanded(
+                child: SizedBox(),
               ),
-            ),
-            Expanded(
-              child: InkWell(
-                onTap: onToggleMenu,
-                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white, size: 32),
+              Expanded(
+                child: InkWell(
+                  onTap: onSettings,
+                  child: const Icon(Icons.settings, color: Colors.white, size: 32),
+                ),
               ),
-            ),
-          ],
+              const Expanded(
+                child: SizedBox(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -694,13 +698,12 @@ class GameLayout extends StatelessWidget {
               rotations: 2,
             ),
           ),
-          if (showMenu)
-            MenuRow(
-              onPause: onPause,
-              onReset: onReset,
-              onSettings: onSettings,
-              onToggleMenu: onToggleMenu,
-            ),
+          MenuRow(
+            onPause: onPause,
+            onReset: onReset,
+            onSettings: onSettings,
+            showMenu: showMenu,
+          ),
           Expanded(
             child: PlayerWidget(
               player: players[1], 
@@ -745,13 +748,12 @@ class GameLayout extends StatelessWidget {
               ],
             ),
           ),
-          if (showMenu)
-            MenuRow(
-              onPause: onPause,
-              onReset: onReset,
-              onSettings: onSettings,
-              onToggleMenu: onToggleMenu,
-            ),
+          MenuRow(
+            onPause: onPause,
+            onReset: onReset,
+            onSettings: onSettings,
+            showMenu: showMenu,
+          ),
           Expanded(
             child: PlayerWidget(
               player: players[2], 
@@ -796,13 +798,12 @@ class GameLayout extends StatelessWidget {
               ],
             ),
           ),
-          if (showMenu)
-            MenuRow(
-              onPause: onPause,
-              onReset: onReset,
-              onSettings: onSettings,
-              onToggleMenu: onToggleMenu,
-            ),
+          MenuRow(
+            onPause: onPause,
+            onReset: onReset,
+            onSettings: onSettings,
+            showMenu: showMenu,
+          ),
           Expanded(
             child: Row(
               children: [
@@ -852,14 +853,23 @@ class GameLayout extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         layoutColumn,
-        if (!showMenu)
-          FloatingActionButton(
-            mini: true,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            onPressed: onToggleMenu,
-            child: const Icon(Icons.menu, color: Colors.white),
+        GestureDetector(
+          onTap: onToggleMenu,
+          child: AnimatedRotation(
+            turns: showMenu ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                color: Colors.black,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.hourglass_empty, color: Colors.white),
+            ),
           ),
+        ),
       ],
     );
   }
