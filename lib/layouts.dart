@@ -13,6 +13,8 @@ class PlayerWidget extends StatefulWidget {
   final Player player;
   final VoidCallback onTimerTap;
   final Function(int) onLifeAdjust;
+  final Function(double) onTimeAdjust;
+  final VoidCallback onTimerLongPress;
   final int rotations;
 
   const PlayerWidget({
@@ -20,6 +22,8 @@ class PlayerWidget extends StatefulWidget {
     required this.player,
     required this.onTimerTap,
     required this.onLifeAdjust,
+    required this.onTimeAdjust,
+    required this.onTimerLongPress,
     this.rotations = 0,
   });
 
@@ -42,6 +46,8 @@ class PlayerWidgetState extends State<PlayerWidget> {
   Alignment timeIncAlignment = const Alignment(0.0, -0.8);
   double timeIncOpacity = 0.0;
   double lastTime = 0.0;
+
+  bool isEditingTimer = false;
 
   @override
   void initState() {
@@ -148,7 +154,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Color buttonColor = widget.player.alive ? Settings.playerColors[widget.player.order] : Colors.grey.shade900;
+    Color buttonColor = widget.player.alive ? Settings.playerColors[widget.player.order] : Colors.grey.shade800;
 
     Widget content = Container(
       margin: EdgeInsets.zero,
@@ -257,7 +263,21 @@ class PlayerWidgetState extends State<PlayerWidget> {
             Expanded(
               flex: 1,
               child: GestureDetector(
-                onTap: widget.onTimerTap,
+                onTap: () {
+                  if (isEditingTimer) {
+                    setState(() {
+                      isEditingTimer = false;
+                    });
+                  } else {
+                    widget.onTimerTap();
+                  }
+                },
+                onLongPress: () {
+                  setState(() {
+                    isEditingTimer = true;
+                  });
+                  widget.onTimerLongPress();
+                },
                 child: Container(
                   width: double.infinity,
                   margin: EdgeInsets.zero,
@@ -269,19 +289,66 @@ class PlayerWidgetState extends State<PlayerWidget> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              formatTime(widget.player.timer.curTime),
-                              style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                      if (isEditingTimer)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () => widget.onTimeAdjust(-15.0),
+                                  child: Center(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Icon(Icons.remove, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Center(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    formatTime(widget.player.timer.curTime),
+                                    style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () => widget.onTimeAdjust(15.0),
+                                  child: Center(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Icon(Icons.add, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                formatTime(widget.player.timer.curTime),
+                                style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      if (showTimeIncrement)
+                      if (showTimeIncrement && !isEditingTimer)
                         AnimatedAlign(
                           duration: const Duration(milliseconds: 1500),
                           curve: Curves.easeOut,
@@ -374,6 +441,8 @@ class GameLayout extends StatelessWidget {
   final List<Player> players;
   final Function(Player) onTimerTap;
   final Function(Player, int) onLifeAdjust;
+  final Function(Player, double) onTimeAdjust;
+  final VoidCallback onTimerLongPress;
   final VoidCallback onPause;
   final VoidCallback onReset;
   final VoidCallback onSettings;
@@ -385,6 +454,8 @@ class GameLayout extends StatelessWidget {
     required this.players,
     required this.onTimerTap,
     required this.onLifeAdjust,
+    required this.onTimeAdjust,
+    required this.onTimerLongPress,
     required this.onPause,
     required this.onReset,
     required this.onSettings,
@@ -404,6 +475,8 @@ class GameLayout extends StatelessWidget {
               player: players[0], 
               onTimerTap: () => onTimerTap(players[0]), 
               onLifeAdjust: (amt) => onLifeAdjust(players[0], amt), 
+              onTimeAdjust: (amt) => onTimeAdjust(players[0], amt),
+              onTimerLongPress: onTimerLongPress,
               rotations: 2,
             ),
           ),
@@ -419,6 +492,8 @@ class GameLayout extends StatelessWidget {
               player: players[1], 
               onTimerTap: () => onTimerTap(players[1]), 
               onLifeAdjust: (amt) => onLifeAdjust(players[1], amt), 
+              onTimeAdjust: (amt) => onTimeAdjust(players[1], amt),
+              onTimerLongPress: onTimerLongPress,
               rotations: 0,
             ),
           ),
@@ -435,6 +510,8 @@ class GameLayout extends StatelessWidget {
                     player: players[0], 
                     onTimerTap: () => onTimerTap(players[0]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[0], amt), 
+                    onTimeAdjust: (amt) => onTimeAdjust(players[0], amt),
+                    onTimerLongPress: onTimerLongPress,
                     rotations: 1,
                   ),
                 ),
@@ -443,6 +520,8 @@ class GameLayout extends StatelessWidget {
                     player: players[1], 
                     onTimerTap: () => onTimerTap(players[1]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[1], amt), 
+                    onTimeAdjust: (amt) => onTimeAdjust(players[1], amt),
+                    onTimerLongPress: onTimerLongPress,
                     rotations: 3,
                   ),
                 ),
@@ -461,6 +540,8 @@ class GameLayout extends StatelessWidget {
               player: players[2], 
               onTimerTap: () => onTimerTap(players[2]), 
               onLifeAdjust: (amt) => onLifeAdjust(players[2], amt), 
+              onTimeAdjust: (amt) => onTimeAdjust(players[2], amt),
+              onTimerLongPress: onTimerLongPress,
               rotations: 0,
             ),
           ),
@@ -477,6 +558,8 @@ class GameLayout extends StatelessWidget {
                     player: players[0], 
                     onTimerTap: () => onTimerTap(players[0]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[0], amt), 
+                    onTimeAdjust: (amt) => onTimeAdjust(players[0], amt),
+                    onTimerLongPress: onTimerLongPress,
                     rotations: 1,
                   ),
                 ),
@@ -485,6 +568,8 @@ class GameLayout extends StatelessWidget {
                     player: players[1], 
                     onTimerTap: () => onTimerTap(players[1]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[1], amt), 
+                    onTimeAdjust: (amt) => onTimeAdjust(players[1], amt),
+                    onTimerLongPress: onTimerLongPress,
                     rotations: 3,
                   ),
                 ),
@@ -506,6 +591,8 @@ class GameLayout extends StatelessWidget {
                     player: players[3], 
                     onTimerTap: () => onTimerTap(players[3]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[3], amt), 
+                    onTimeAdjust: (amt) => onTimeAdjust(players[3], amt),
+                    onTimerLongPress: onTimerLongPress,
                     rotations: 1,
                   ),
                 ),
@@ -514,6 +601,8 @@ class GameLayout extends StatelessWidget {
                     player: players[2], 
                     onTimerTap: () => onTimerTap(players[2]), 
                     onLifeAdjust: (amt) => onLifeAdjust(players[2], amt), 
+                    onTimeAdjust: (amt) => onTimeAdjust(players[2], amt),
+                    onTimerLongPress: onTimerLongPress,
                     rotations: 3,
                   ),
                 ),
@@ -529,6 +618,8 @@ class GameLayout extends StatelessWidget {
             player: p, 
             onTimerTap: () => onTimerTap(p), 
             onLifeAdjust: (amt) => onLifeAdjust(p, amt),
+            onTimeAdjust: (amt) => onTimeAdjust(p, amt),
+            onTimerLongPress: onTimerLongPress,
           ),
         )).toList(),
       );

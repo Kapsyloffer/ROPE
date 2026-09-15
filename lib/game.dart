@@ -44,16 +44,23 @@ class Game {
             }
         }
     }
+
+    void checkState(Player player, bool wasAlive) {
+        int aliveCount = players.where((p) => p.alive).length;
+        if (aliveCount <= 1) {
+            pause();
+        } else if (wasAlive && !player.alive && player.timer.active) {
+            nextPlayer();
+        }
+    }
+
     //TODO: Fix interrupt bug.
     void nextPlayer() {
         if (players.isEmpty) return;
 
-        bool anyAlive = players.any((p) => p.alive);
-        if (!anyAlive) {
-            for (var i = 0; i < players.length; i++) {
-                players[i].timer.active = false;
-                players[i].timer.clock?.cancel();
-            }
+        int aliveCount = players.where((p) => p.alive).length;
+        if (aliveCount <= 1) {
+            pause();
             return;
         }
 
