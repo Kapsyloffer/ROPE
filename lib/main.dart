@@ -104,7 +104,12 @@ class MyHomePageState extends State<MyHomePage> {
       MaterialPageRoute(builder: (context) => const SettingsScreen()),
     );
     
-    setState(() {});
+    setState(() {
+      showMenu = false;
+      if (game.players.length != Settings.players) {
+        initGame();
+      }
+    });
   }
 
   void adjustLife(Player player, int amount) {
