@@ -64,6 +64,17 @@ class _GeneralSettingsCard extends StatelessWidget {
                 onChanged: (value) {
                   if (value != null) {
                     Settings.players = value;
+                    while (Settings.playerNames.length < Settings.players) {
+                      Settings.playerNames.add(
+                        "Player ${Settings.playerNames.length + 1}",
+                      );
+                    }
+                    while (Settings.playerColors.length < Settings.players) {
+                      Settings.playerColors.add(Colors.grey.shade300);
+                    }
+                    while (Settings.hasPartner.length < Settings.players) {
+                      Settings.hasPartner.add(false);
+                    }
                     Settings.save();
                     onUpdate();
                   }
@@ -314,57 +325,76 @@ class _PlayerCustomizationCard extends StatelessWidget {
                   horizontal: 16.0,
                   vertical: 8.0,
                 ),
-                child: Row(
+                child: Column(
                   children: [
-                    Icon(Icons.person, color: Settings.playerColors[index]),
-                    const SizedBox(width: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade400),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: DropdownButton<Color>(
-                        value: Settings.playerColors[index],
-                        underline: const SizedBox(),
-                        items: _colorOptions.map((option) {
-                          return DropdownMenuItem<Color>(
-                            value: option.color,
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 16,
-                                  height: 16,
-                                  color: option.color,
+                    Row(
+                      children: [
+                        Icon(Icons.person, color: Settings.playerColors[index]),
+                        const SizedBox(width: 16),
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade400),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: DropdownButton<Color>(
+                            value: Settings.playerColors[index],
+                            underline: const SizedBox(),
+                            items: _colorOptions.map((option) {
+                              return DropdownMenuItem<Color>(
+                                value: option.color,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 16,
+                                      height: 16,
+                                      color: option.color,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(option.name),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Text(option.name),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (Color? newColor) {
-                          if (newColor != null) {
-                            Settings.playerColors[index] = newColor;
-                            Settings.save();
-                            onUpdate();
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: Settings.playerNames[index],
-                        decoration: InputDecoration(
-                          labelText: 'Player ${index + 1} Name',
-                          border: const OutlineInputBorder(),
+                              );
+                            }).toList(),
+                            onChanged: (Color? newColor) {
+                              if (newColor != null) {
+                                Settings.playerColors[index] = newColor;
+                                Settings.save();
+                                onUpdate();
+                              }
+                            },
+                          ),
                         ),
-                        onChanged: (value) {
-                          Settings.playerNames[index] = value;
-                          Settings.save();
-                        },
-                      ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            initialValue: Settings.playerNames[index],
+                            decoration: InputDecoration(
+                              labelText: 'Player ${index + 1} Name',
+                              border: const OutlineInputBorder(),
+                            ),
+                            onChanged: (value) {
+                              Settings.playerNames[index] = value;
+                              Settings.save();
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Partner'),
+                            Switch(
+                              value: Settings.hasPartner[index],
+                              onChanged: (value) {
+                                Settings.hasPartner[index] = value;
+                                Settings.save();
+                                onUpdate();
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),

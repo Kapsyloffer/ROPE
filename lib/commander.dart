@@ -1,8 +1,7 @@
 class Commander {
   int playerId;
-  int damageDealt;
-  int damageDealtPartner;
-  Commander(this.playerId) : damageDealt = 0, damageDealtPartner = 0;
+  List<int> damageDealt;
+  Commander(this.playerId) : damageDealt = [0, 0];
 }
 
 class CommanderDamage {
@@ -17,7 +16,8 @@ class CommanderDamage {
 
   bool isLethal() {
     for (int i = 0; i < numPlayers; i++) {
-      if (commanders[i].damageDealt >= 21 || commanders[i].damageDealtPartner >= 21) {
+      if (commanders[i].damageDealt[0] >= 21 ||
+          commanders[i].damageDealt[1] >= 21) {
         return true;
       }
     }
