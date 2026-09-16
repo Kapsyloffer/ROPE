@@ -1,3 +1,6 @@
+import 'dart:async' as async;
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../models/player.dart';
@@ -6,6 +9,7 @@ import 'player_widget.dart';
 class MenuRow extends StatelessWidget {
   final VoidCallback onPause;
   final VoidCallback onReset;
+  final VoidCallback onRoll;
   final VoidCallback onSettings;
   final bool showMenu;
 
@@ -13,6 +17,7 @@ class MenuRow extends StatelessWidget {
     super.key,
     required this.onPause,
     required this.onReset,
+    required this.onRoll,
     required this.onSettings,
     required this.showMenu,
   });
@@ -45,8 +50,17 @@ class MenuRow extends StatelessWidget {
                   child: const Icon(Icons.stop, color: Colors.white, size: 32),
                 ),
               ),
-              const Expanded(child: SizedBox()),
-              const Expanded(child: SizedBox()),
+              const Expanded(child: SizedBox()), //Behind toggle menu button
+              Expanded(
+                child: InkWell(
+                  onTap: onRoll,
+                  child: const Icon(
+                    Icons.casino_outlined,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+              ),
               Expanded(
                 child: InkWell(
                   onTap: onSettings,
@@ -65,7 +79,7 @@ class MenuRow extends StatelessWidget {
   }
 }
 
-class GameLayout extends StatelessWidget {
+class GameLayout extends StatefulWidget {
   final List<Player> players;
   final void Function(Player) onTimerTap;
   final void Function(Player, int) onLifeAdjust;
@@ -95,22 +109,81 @@ class GameLayout extends StatelessWidget {
     required this.showMenu,
   });
 
+  @override
+  State<GameLayout> createState() => _GameLayoutState();
+}
+
+class _GameLayoutState extends State<GameLayout> {
+  int _resetTrigger = 0;
+  int _highlightedIndex = -1;
+  async.Timer? _rollTimer;
+
+  @override
+  void dispose() {
+    _rollTimer?.cancel();
+    super.dispose();
+  }
+
+  void _handleReset() {
+    setState(() {
+      _resetTrigger++;
+    });
+    widget.onReset();
+  }
+
+  void _handleRoll() {
+    if (_rollTimer?.isActive ?? false) return;
+
+    int totalPlayers = widget.players.length;
+    if (totalPlayers == 0) return;
+
+    int currentStep = 0;
+    int maxSteps = 20 + math.Random().nextInt(totalPlayers * 3);
+    int delay = 25;
+
+    void nextStep() {
+      if (!mounted) return;
+      setState(() {
+        _highlightedIndex = currentStep % totalPlayers;
+      });
+
+      currentStep++;
+
+      if (currentStep >= maxSteps) {
+        _rollTimer = async.Timer(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() {
+              _highlightedIndex = -1;
+            });
+          }
+        });
+      } else {
+        delay = delay + (currentStep * 2).toInt();
+        _rollTimer = async.Timer(Duration(milliseconds: delay), nextStep);
+      }
+    }
+
+    nextStep();
+  }
+
   Widget _buildPlayerWidget(int index, int rotations) {
-    final player = players[index];
+    final player = widget.players[index];
 
     return Expanded(
       child: PlayerWidget(
         key: ValueKey(player.order),
         player: player,
-        onTimerTap: () => onTimerTap(player),
-        onLifeAdjust: (amt) => onLifeAdjust(player, amt),
-        onTimeAdjust: (amt) => onTimeAdjust(player, amt),
-        onCommanderDamageAdjust: (targetId, commanderIndex, amt) =>
-            onCommanderDamageAdjust(player, targetId, commanderIndex, amt),
+        onTimerTap: () => widget.onTimerTap(player),
+        onLifeAdjust: (amt) => widget.onLifeAdjust(player, amt),
+        onTimeAdjust: (amt) => widget.onTimeAdjust(player, amt),
+        onCommanderDamageAdjust: (targetId, commanderIndex, amt) => widget
+            .onCommanderDamageAdjust(player, targetId, commanderIndex, amt),
         onCounterAdjust: (counterType, amt) =>
-            onCounterAdjust(player, counterType, amt),
-        onTimerLongPress: onTimerLongPress,
+            widget.onCounterAdjust(player, counterType, amt),
+        onTimerLongPress: widget.onTimerLongPress,
         rotations: rotations,
+        resetTrigger: _resetTrigger,
+        isHighlighted: _highlightedIndex == index,
       ),
     );
   }
@@ -119,20 +192,21 @@ class GameLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget layoutColumn;
 
-    if (players.length == 2) {
+    if (widget.players.length == 2) {
       layoutColumn = Column(
         children: [
           _buildPlayerWidget(0, 2),
           MenuRow(
-            onPause: onPause,
-            onReset: onReset,
-            onSettings: onSettings,
-            showMenu: showMenu,
+            onPause: widget.onPause,
+            onReset: _handleReset,
+            onRoll: _handleRoll,
+            onSettings: widget.onSettings,
+            showMenu: widget.showMenu,
           ),
           _buildPlayerWidget(1, 0),
         ],
       );
-    } else if (players.length == 3) {
+    } else if (widget.players.length == 3) {
       layoutColumn = Column(
         children: [
           Expanded(
@@ -141,15 +215,16 @@ class GameLayout extends StatelessWidget {
             ),
           ),
           MenuRow(
-            onPause: onPause,
-            onReset: onReset,
-            onSettings: onSettings,
-            showMenu: showMenu,
+            onPause: widget.onPause,
+            onReset: _handleReset,
+            onRoll: _handleRoll,
+            onSettings: widget.onSettings,
+            showMenu: widget.showMenu,
           ),
           _buildPlayerWidget(2, 0),
         ],
       );
-    } else if (players.length == 4) {
+    } else if (widget.players.length == 4) {
       layoutColumn = Column(
         children: [
           Expanded(
@@ -158,10 +233,11 @@ class GameLayout extends StatelessWidget {
             ),
           ),
           MenuRow(
-            onPause: onPause,
-            onReset: onReset,
-            onSettings: onSettings,
-            showMenu: showMenu,
+            onPause: widget.onPause,
+            onReset: _handleReset,
+            onRoll: _handleRoll,
+            onSettings: widget.onSettings,
+            showMenu: widget.showMenu,
           ),
           Expanded(
             child: Row(
@@ -173,7 +249,7 @@ class GameLayout extends StatelessWidget {
     } else {
       layoutColumn = Column(
         children: List.generate(
-          players.length,
+          widget.players.length,
           (index) => _buildPlayerWidget(index, 0),
         ),
       );
@@ -184,9 +260,9 @@ class GameLayout extends StatelessWidget {
       children: [
         layoutColumn,
         GestureDetector(
-          onTap: onToggleMenu,
+          onTap: widget.onToggleMenu,
           child: AnimatedRotation(
-            turns: showMenu ? 1.0 : 0.0,
+            turns: widget.showMenu ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
             child: Container(

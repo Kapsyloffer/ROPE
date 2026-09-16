@@ -19,6 +19,8 @@ class PlayerWidget extends StatefulWidget {
   final void Function(String, int) onCounterAdjust;
   final VoidCallback onTimerLongPress;
   final int rotations;
+  final int resetTrigger;
+  final bool isHighlighted;
 
   const PlayerWidget({
     super.key,
@@ -30,6 +32,8 @@ class PlayerWidget extends StatefulWidget {
     required this.onCounterAdjust,
     required this.onTimerLongPress,
     this.rotations = 0,
+    this.resetTrigger = 0,
+    this.isHighlighted = false,
   });
 
   @override
@@ -40,16 +44,37 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   OverlayMode _overlayMode = OverlayMode.none;
   double _dragDistance = 0.0;
 
+  @override
+  void didUpdateWidget(covariant PlayerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.resetTrigger != widget.resetTrigger) {
+      setState(() {
+        _overlayMode = OverlayMode.none;
+      });
+    }
+  }
+
   Offset _getSlideOffset(OverlayMode targetMode) {
-    if (_overlayMode == targetMode) return Offset.zero;
-    if (_overlayMode == OverlayMode.commander && targetMode == OverlayMode.none)
+    if (_overlayMode == targetMode) {
+      return Offset.zero;
+    }
+    if (_overlayMode == OverlayMode.commander &&
+        targetMode == OverlayMode.none) {
       return const Offset(0.0, -1.0);
-    if (_overlayMode == OverlayMode.counters && targetMode == OverlayMode.none)
+    }
+
+    if (_overlayMode == OverlayMode.counters &&
+        targetMode == OverlayMode.none) {
       return const Offset(0.0, 1.0);
-    if (_overlayMode == OverlayMode.none && targetMode == OverlayMode.commander)
+    }
+    if (_overlayMode == OverlayMode.none &&
+        targetMode == OverlayMode.commander) {
       return const Offset(0.0, 1.0);
-    if (_overlayMode == OverlayMode.none && targetMode == OverlayMode.counters)
+    }
+    if (_overlayMode == OverlayMode.none &&
+        targetMode == OverlayMode.counters) {
       return const Offset(0.0, -1.0);
+    }
     return Offset.zero;
   }
 
@@ -62,119 +87,142 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             ? Settings.playerColors[widget.player.order]
             : Colors.grey.shade800,
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Expanded(
-            flex: 2,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onVerticalDragStart: (_) => _dragDistance = 0.0,
-              onVerticalDragUpdate: (details) =>
-                  _dragDistance += details.primaryDelta ?? 0.0,
-              onVerticalDragEnd: (details) {
-                final velocity = details.primaryVelocity ?? 0.0;
-                if (velocity < -100 || _dragDistance < -40) {
-                  setState(() {
-                    if (_overlayMode == OverlayMode.counters) {
-                      _overlayMode = OverlayMode.none;
-                    } else {
-                      _overlayMode = OverlayMode.commander;
+          Column(
+            children: [
+              Expanded(
+                flex: 2,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onVerticalDragStart: (_) => _dragDistance = 0.0,
+                  onVerticalDragUpdate: (details) =>
+                      _dragDistance += details.primaryDelta ?? 0.0,
+                  onVerticalDragEnd: (details) {
+                    final velocity = details.primaryVelocity ?? 0.0;
+                    if (velocity < -100 || _dragDistance < -40) {
+                      setState(() {
+                        if (_overlayMode == OverlayMode.counters) {
+                          _overlayMode = OverlayMode.none;
+                        } else {
+                          _overlayMode = OverlayMode.commander;
+                        }
+                      });
+                    } else if (velocity > 100 || _dragDistance > 40) {
+                      setState(() {
+                        if (_overlayMode == OverlayMode.commander) {
+                          _overlayMode = OverlayMode.none;
+                        } else {
+                          _overlayMode = OverlayMode.counters;
+                        }
+                      });
                     }
-                  });
-                } else if (velocity > 100 || _dragDistance > 40) {
-                  setState(() {
-                    if (_overlayMode == OverlayMode.commander) {
-                      _overlayMode = OverlayMode.none;
-                    } else {
-                      _overlayMode = OverlayMode.counters;
-                    }
-                  });
-                }
-              },
-              child: ClipRect(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: AnimatedSlide(
-                        offset: _getSlideOffset(OverlayMode.none),
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 300),
-                          opacity: _overlayMode == OverlayMode.none ? 1.0 : 0.0,
-                          child: IgnorePointer(
-                            ignoring: _overlayMode != OverlayMode.none,
-                            child: LifeDisplay(
-                              key: ValueKey(widget.player.order),
-                              player: widget.player,
-                              onLifeAdjust: widget.onLifeAdjust,
+                  },
+                  child: ClipRect(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: AnimatedSlide(
+                            offset: _getSlideOffset(OverlayMode.none),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 300),
+                              opacity: _overlayMode == OverlayMode.none
+                                  ? 1.0
+                                  : 0.0,
+                              child: IgnorePointer(
+                                ignoring: _overlayMode != OverlayMode.none,
+                                child: LifeDisplay(
+                                  key: ValueKey(widget.player.order),
+                                  player: widget.player,
+                                  onLifeAdjust: widget.onLifeAdjust,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: AnimatedSlide(
-                        offset: _getSlideOffset(OverlayMode.commander),
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 300),
-                          opacity: _overlayMode == OverlayMode.commander
-                              ? 1.0
-                              : 0.0,
-                          child: IgnorePointer(
-                            ignoring: _overlayMode != OverlayMode.commander,
-                            child: CommanderDamageGrid(
-                              key: ValueKey(widget.player.order),
-                              player: widget.player,
-                              onCommanderDamageAdjust:
-                                  widget.onCommanderDamageAdjust,
-                              rotations: widget.rotations,
-                              isVisible: _overlayMode == OverlayMode.commander,
+                        Positioned.fill(
+                          child: AnimatedSlide(
+                            offset: _getSlideOffset(OverlayMode.commander),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 300),
+                              opacity: _overlayMode == OverlayMode.commander
+                                  ? 1.0
+                                  : 0.0,
+                              child: IgnorePointer(
+                                ignoring: _overlayMode != OverlayMode.commander,
+                                child: CommanderDamageGrid(
+                                  key: ValueKey(widget.player.order),
+                                  player: widget.player,
+                                  onCommanderDamageAdjust:
+                                      widget.onCommanderDamageAdjust,
+                                  rotations: widget.rotations,
+                                  isVisible:
+                                      _overlayMode == OverlayMode.commander,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: AnimatedSlide(
-                        offset: _getSlideOffset(OverlayMode.counters),
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 300),
-                          opacity: _overlayMode == OverlayMode.counters
-                              ? 1.0
-                              : 0.0,
-                          child: IgnorePointer(
-                            ignoring: _overlayMode != OverlayMode.counters,
-                            child: CountersGrid(
-                              key: ValueKey(widget.player.order),
-                              player: widget.player,
-                              onCounterAdjust: widget.onCounterAdjust,
-                              isVisible: _overlayMode == OverlayMode.counters,
+                        Positioned.fill(
+                          child: AnimatedSlide(
+                            offset: _getSlideOffset(OverlayMode.counters),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 300),
+                              opacity: _overlayMode == OverlayMode.counters
+                                  ? 1.0
+                                  : 0.0,
+                              child: IgnorePointer(
+                                ignoring: _overlayMode != OverlayMode.counters,
+                                child: CountersGrid(
+                                  key: ValueKey(widget.player.order),
+                                  player: widget.player,
+                                  onCounterAdjust: widget.onCounterAdjust,
+                                  isVisible:
+                                      _overlayMode == OverlayMode.counters,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
+                ),
+              ),
+              if (Settings.useTimer)
+                Expanded(
+                  flex: 1,
+                  child: TimerDisplay(
+                    key: ValueKey(widget.player.order),
+                    player: widget.player,
+                    onTimerTap: widget.onTimerTap,
+                    onTimerLongPress: widget.onTimerLongPress,
+                    onTimeAdjust: widget.onTimeAdjust,
+                  ),
+                ),
+            ],
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: widget.isHighlighted
+                        ? Colors.white
+                        : Colors.transparent,
+                    width: 8.0,
+                  ),
                 ),
               ),
             ),
           ),
-          if (Settings.useTimer)
-            Expanded(
-              flex: 1,
-              child: TimerDisplay(
-                key: ValueKey(widget.player.order),
-                player: widget.player,
-                onTimerTap: widget.onTimerTap,
-                onTimerLongPress: widget.onTimerLongPress,
-                onTimeAdjust: widget.onTimeAdjust,
-              ),
-            ),
         ],
       ),
     );

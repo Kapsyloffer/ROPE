@@ -168,8 +168,8 @@ class _CountersGridState extends State<CountersGrid> {
               ),
               Icon(
                 isEnabled ? Icons.military_tech : Icons.military_tech_outlined,
-                size: isEnabled ? 64 : 32,
-                color: Colors.black54,
+                size: 32,
+                color: isEnabled ? Colors.white : Colors.black54,
               ),
             ],
           ),
