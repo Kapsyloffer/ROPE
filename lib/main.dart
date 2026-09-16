@@ -6,6 +6,7 @@ import 'player.dart';
 import 'settings.dart';
 import 'layouts.dart';
 import 'settings_screen.dart';
+import 'counters.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -164,6 +165,39 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _adjustCounter(Player player, String counterType, int amount) {
+    setState(() {
+      bool wasAlive = player.alive;
+
+      if (counterType == 'monarch') {
+        if (player.counters.activeCounters['monarch'] is ToggleCounter) {
+          ToggleCounter monarchCounter =
+              player.counters.activeCounters['monarch'] as ToggleCounter;
+          bool newState = !monarchCounter.enabled;
+
+          if (newState) {
+            for (var p in _game.players) {
+              if (p.counters.activeCounters['monarch'] is ToggleCounter) {
+                (p.counters.activeCounters['monarch'] as ToggleCounter)
+                        .enabled =
+                    false;
+              }
+            }
+          }
+          monarchCounter.enabled = newState;
+        }
+      } else if (player.counters.activeCounters.containsKey(counterType)) {
+        player.counters.activeCounters[counterType]!.amount += amount;
+        if (player.counters.activeCounters[counterType]!.amount < 0) {
+          player.counters.activeCounters[counterType]!.amount = 0;
+        }
+      }
+
+      player.alive = player.checkAlive();
+      _game.checkState(player, wasAlive);
+    });
+  }
+
   void _adjustTime(Player player, double amount) {
     setState(() {
       double step = amount.abs();
@@ -198,6 +232,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onLifeAdjust: _adjustLife,
         onTimeAdjust: _adjustTime,
         onCommanderDamageAdjust: _adjustCommanderDamage,
+        onCounterAdjust: _adjustCounter,
         onTimerLongPress: _handlePause,
         onPause: _handlePause,
         onReset: _handleReset,

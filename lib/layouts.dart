@@ -4,12 +4,15 @@ import 'package:flutter/material.dart';
 
 import 'player.dart';
 import 'settings.dart';
+import 'counters.dart';
 
 String _formatTime(double seconds) {
   int min = seconds ~/ 60;
   int sec = (seconds % 60).toInt();
   return '$min:${sec.toString().padLeft(2, '0')}';
 }
+
+enum _OverlayMode { none, commander, counters }
 
 class _LifeDisplay extends StatefulWidget {
   final Player player;
@@ -35,19 +38,53 @@ class _LifeDisplayState extends State<_LifeDisplay> {
   async.Timer? _periodicHoldTimer;
   bool _isHolding = false;
 
+  bool _wasMonarch = false;
+  bool _showLostMonarch = false;
+  async.Timer? _lostMonarchTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _wasMonarch =
+        (widget.player.counters.activeCounters['monarch'] as ToggleCounter?)
+            ?.enabled ??
+        false;
+  }
+
   @override
   void didUpdateWidget(covariant _LifeDisplay oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    bool currentlyMonarch =
+        (widget.player.counters.activeCounters['monarch'] as ToggleCounter?)
+            ?.enabled ??
+        false;
 
     if (oldWidget.player != widget.player) {
       _lifeDeltaTimer?.cancel();
       _initialHoldTimer?.cancel();
       _periodicHoldTimer?.cancel();
+      _lostMonarchTimer?.cancel();
 
       _lifeDelta = 0;
       _lifeDeltaOpacity = 0.0;
       _showLifeDelta = false;
       _isHolding = false;
+      _showLostMonarch = false;
+      _wasMonarch = currentlyMonarch;
+    } else {
+      if (_wasMonarch && !currentlyMonarch) {
+        _showLostMonarch = true;
+        _lostMonarchTimer?.cancel();
+        _lostMonarchTimer = async.Timer(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            setState(() {
+              _showLostMonarch = false;
+            });
+          }
+        });
+      }
+      _wasMonarch = currentlyMonarch;
     }
   }
 
@@ -137,6 +174,7 @@ class _LifeDisplayState extends State<_LifeDisplay> {
     _lifeDeltaTimer?.cancel();
     _initialHoldTimer?.cancel();
     _periodicHoldTimer?.cancel();
+    _lostMonarchTimer?.cancel();
     super.dispose();
   }
 
@@ -145,6 +183,11 @@ class _LifeDisplayState extends State<_LifeDisplay> {
     final buttonColor = widget.player.alive
         ? Settings.playerColors[widget.player.order]
         : Colors.grey.shade800;
+
+    bool isMonarch =
+        (widget.player.counters.activeCounters['monarch'] as ToggleCounter?)
+            ?.enabled ??
+        false;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -162,6 +205,38 @@ class _LifeDisplayState extends State<_LifeDisplay> {
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
+                      '${widget.player.curLife}',
+                      style: TextStyle(
+                        fontSize: 80,
+                        fontWeight: FontWeight.bold,
+                        color: widget.player.alive ? Colors.black : Colors.red,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 28,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: isMonarch
+                          ? Icon(
+                              Icons.military_tech,
+                              color: Colors.black,
+                              size: 28,
+                              key: const ValueKey('monarch'),
+                            )
+                          : _showLostMonarch
+                          ? const Icon(
+                              Icons.military_tech_outlined,
+                              color: Colors.black54,
+                              size: 28,
+                              key: ValueKey('lost'),
+                            )
+                          : const SizedBox(key: ValueKey('none')),
+                    ),
+                  ),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
                       Settings.playerNames[widget.player.order],
                       style: TextStyle(
                         fontSize: 16,
@@ -169,17 +244,6 @@ class _LifeDisplayState extends State<_LifeDisplay> {
                         color: widget.player.alive
                             ? Colors.black54
                             : Colors.red.shade900,
-                      ),
-                    ),
-                  ),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      '${widget.player.curLife}',
-                      style: TextStyle(
-                        fontSize: 80,
-                        fontWeight: FontWeight.bold,
-                        color: widget.player.alive ? Colors.black : Colors.red,
                       ),
                     ),
                   ),
@@ -451,6 +515,271 @@ class _CommanderDamageGridState extends State<_CommanderDamageGrid> {
   }
 }
 
+class _CountersGrid extends StatefulWidget {
+  final Player player;
+  final void Function(String, int) onCounterAdjust;
+  final bool isVisible;
+
+  const _CountersGrid({
+    super.key,
+    required this.player,
+    required this.onCounterAdjust,
+    required this.isVisible,
+  });
+
+  @override
+  State<_CountersGrid> createState() => _CountersGridState();
+}
+
+class _CountersGridState extends State<_CountersGrid> {
+  String? _editingCounter;
+
+  @override
+  void didUpdateWidget(covariant _CountersGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ((oldWidget.isVisible && !widget.isVisible) ||
+        oldWidget.player != widget.player) {
+      _editingCounter = null;
+    }
+  }
+
+  Widget _buildCounterAdjustButton(
+    String counterType,
+    IconData icon,
+    int amount,
+  ) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => widget.onCounterAdjust(counterType, amount),
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Icon(icon, size: 32, color: Colors.black),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCounterData(String counterType, String label, int value) {
+    bool isEditing = _editingCounter == counterType;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (isEditing) {
+            setState(() {
+              _editingCounter = null;
+            });
+          } else {
+            widget.onCounterAdjust(counterType, 1);
+          }
+        },
+        onLongPress: () {
+          setState(() {
+            _editingCounter = counterType;
+          });
+        },
+        child: Container(
+          color: Colors.transparent,
+          child: isEditing
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildCounterAdjustButton(counterType, Icons.remove, -1),
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              label.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '$value',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _buildCounterAdjustButton(counterType, Icons.add, 1),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '$value',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggleDisplay(String counterType, String label, bool isEnabled) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          widget.onCounterAdjust(counterType, 1);
+        },
+        child: Container(
+          color: Colors.transparent,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black54,
+                  ),
+                ),
+              ),
+              Icon(
+                isEnabled ? Icons.military_tech : Icons.military_tech_outlined,
+                size: isEnabled ? 64 : 32,
+                color: Colors.black54,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCounterCell(List<Widget> children) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.all(4.0),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool hasPartner = Settings.hasPartner[widget.player.order];
+
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildCounterCell([
+                  _buildCounterData(
+                    'poison',
+                    'Poison',
+                    widget.player.counters.activeCounters['poison']?.amount ??
+                        0,
+                  ),
+                ]),
+                _buildCounterCell([
+                  _buildCounterData(
+                    'energy',
+                    'Energy',
+                    widget.player.counters.activeCounters['energy']?.amount ??
+                        0,
+                  ),
+                ]),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildCounterCell([
+                  _buildCounterData(
+                    'taxMain',
+                    'Tax',
+                    widget.player.counters.activeCounters['taxMain']?.amount ??
+                        0,
+                  ),
+                  if (hasPartner)
+                    _buildCounterData(
+                      'taxPartner',
+                      'P. Tax',
+                      widget
+                              .player
+                              .counters
+                              .activeCounters['taxPartner']
+                              ?.amount ??
+                          0,
+                    ),
+                ]),
+                _buildCounterCell([
+                  _buildToggleDisplay(
+                    'monarch',
+                    'Monarch',
+                    (widget.player.counters.activeCounters['monarch']
+                                as ToggleCounter?)
+                            ?.enabled ??
+                        false,
+                  ),
+                ]),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TimerDisplay extends StatefulWidget {
   final Player player;
   final VoidCallback onTimerTap;
@@ -614,15 +943,18 @@ class _TimerDisplayState extends State<_TimerDisplay>
 
   @override
   Widget build(BuildContext context) {
-    Color activeTimerColor = Colors.green.shade500;
-    Color ropeColor = Colors.green.shade900;
+    Color activeTimerColor = Colors.teal.shade400;
+    Color ropeColor = Colors.teal.shade800;
 
-    if (widget.player.timer.curTime <= 10) {
-      activeTimerColor = Colors.red.shade300;
-      ropeColor = Colors.red.shade900;
+    if (widget.player.timer.curTime <= 15) {
+      activeTimerColor = Colors.redAccent.shade400;
+      ropeColor = Colors.redAccent.shade700;
     } else if (widget.player.timer.curTime <= 30) {
-      activeTimerColor = Colors.amber.shade400;
-      ropeColor = Colors.deepOrange.shade900;
+      activeTimerColor = Colors.deepOrange.shade400;
+      ropeColor = Colors.deepOrange.shade700;
+    } else if (widget.player.timer.curTime <= 60) {
+      activeTimerColor = Colors.amber.shade500;
+      ropeColor = Colors.amber.shade800;
     }
 
     return GestureDetector(
@@ -755,6 +1087,7 @@ class PlayerWidget extends StatefulWidget {
   final void Function(int) onLifeAdjust;
   final void Function(double) onTimeAdjust;
   final void Function(int, int, int) onCommanderDamageAdjust;
+  final void Function(String, int) onCounterAdjust;
   final VoidCallback onTimerLongPress;
   final int rotations;
 
@@ -765,6 +1098,7 @@ class PlayerWidget extends StatefulWidget {
     required this.onLifeAdjust,
     required this.onTimeAdjust,
     required this.onCommanderDamageAdjust,
+    required this.onCounterAdjust,
     required this.onTimerLongPress,
     this.rotations = 0,
   });
@@ -774,7 +1108,7 @@ class PlayerWidget extends StatefulWidget {
 }
 
 class _PlayerWidgetState extends State<PlayerWidget> {
-  bool _showCommanderDamage = false;
+  _OverlayMode _overlayMode = _OverlayMode.none;
   double _dragDistance = 0.0;
 
   @override
@@ -786,42 +1120,54 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             ? Settings.playerColors[widget.player.order]
             : Colors.grey.shade800,
       ),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onVerticalDragStart: (_) => _dragDistance = 0.0,
-        onVerticalDragUpdate: (details) =>
-            _dragDistance += details.primaryDelta ?? 0.0,
-        onVerticalDragEnd: (details) {
-          final velocity = details.primaryVelocity ?? 0.0;
-          if (velocity < -100 || _dragDistance < -40) {
-            setState(() {
-              _showCommanderDamage = true;
-            });
-          } else if (velocity > 100 || _dragDistance > 40) {
-            setState(() {
-              _showCommanderDamage = false;
-            });
-          }
-        },
-        child: Column(
-          children: [
-            Expanded(
-              flex: 2,
+      child: Column(
+        children: [
+          Expanded(
+            flex: 2,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onVerticalDragStart: (_) => _dragDistance = 0.0,
+              onVerticalDragUpdate: (details) =>
+                  _dragDistance += details.primaryDelta ?? 0.0,
+              onVerticalDragEnd: (details) {
+                final velocity = details.primaryVelocity ?? 0.0;
+                if (velocity < -100 || _dragDistance < -40) {
+                  setState(() {
+                    if (_overlayMode == _OverlayMode.counters) {
+                      _overlayMode = _OverlayMode.none;
+                    } else {
+                      _overlayMode = _OverlayMode.commander;
+                    }
+                  });
+                } else if (velocity > 100 || _dragDistance > 40) {
+                  setState(() {
+                    if (_overlayMode == _OverlayMode.commander) {
+                      _overlayMode = _OverlayMode.none;
+                    } else {
+                      _overlayMode = _OverlayMode.counters;
+                    }
+                  });
+                }
+              },
               child: ClipRect(
                 child: Stack(
                   children: [
                     Positioned.fill(
                       child: AnimatedSlide(
-                        offset: _showCommanderDamage
+                        offset: _overlayMode == _OverlayMode.commander
                             ? const Offset(0.0, -1.0)
-                            : Offset.zero,
+                            : (_overlayMode == _OverlayMode.counters
+                                  ? const Offset(0.0, 1.0)
+                                  : Offset.zero),
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 300),
-                          opacity: _showCommanderDamage ? 0.0 : 1.0,
+                          opacity: _overlayMode == _OverlayMode.none
+                              ? 1.0
+                              : 0.0,
                           child: IgnorePointer(
-                            ignoring: _showCommanderDamage,
+                            ignoring: _overlayMode != _OverlayMode.none,
                             child: _LifeDisplay(
                               key: ValueKey(widget.player.order),
                               player: widget.player,
@@ -833,23 +1179,49 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                     ),
                     Positioned.fill(
                       child: AnimatedSlide(
-                        offset: _showCommanderDamage
+                        offset: _overlayMode == _OverlayMode.commander
                             ? Offset.zero
                             : const Offset(0.0, 1.0),
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 300),
-                          opacity: _showCommanderDamage ? 1.0 : 0.0,
+                          opacity: _overlayMode == _OverlayMode.commander
+                              ? 1.0
+                              : 0.0,
                           child: IgnorePointer(
-                            ignoring: !_showCommanderDamage,
+                            ignoring: _overlayMode != _OverlayMode.commander,
                             child: _CommanderDamageGrid(
                               key: ValueKey(widget.player.order),
                               player: widget.player,
                               onCommanderDamageAdjust:
                                   widget.onCommanderDamageAdjust,
                               rotations: widget.rotations,
-                              isVisible: _showCommanderDamage,
+                              isVisible: _overlayMode == _OverlayMode.commander,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: AnimatedSlide(
+                        offset: _overlayMode == _OverlayMode.counters
+                            ? Offset.zero
+                            : const Offset(0.0, -1.0),
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 300),
+                          opacity: _overlayMode == _OverlayMode.counters
+                              ? 1.0
+                              : 0.0,
+                          child: IgnorePointer(
+                            ignoring: _overlayMode != _OverlayMode.counters,
+                            child: _CountersGrid(
+                              key: ValueKey(widget.player.order),
+                              player: widget.player,
+                              onCounterAdjust: widget.onCounterAdjust,
+                              isVisible: _overlayMode == _OverlayMode.counters,
                             ),
                           ),
                         ),
@@ -859,19 +1231,19 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                 ),
               ),
             ),
-            if (Settings.useTimer)
-              Expanded(
-                flex: 1,
-                child: _TimerDisplay(
-                  key: ValueKey(widget.player.order),
-                  player: widget.player,
-                  onTimerTap: widget.onTimerTap,
-                  onTimerLongPress: widget.onTimerLongPress,
-                  onTimeAdjust: widget.onTimeAdjust,
-                ),
+          ),
+          if (Settings.useTimer)
+            Expanded(
+              flex: 1,
+              child: _TimerDisplay(
+                key: ValueKey(widget.player.order),
+                player: widget.player,
+                onTimerTap: widget.onTimerTap,
+                onTimerLongPress: widget.onTimerLongPress,
+                onTimeAdjust: widget.onTimeAdjust,
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
 
@@ -949,6 +1321,7 @@ class GameLayout extends StatelessWidget {
   final void Function(Player, int) onLifeAdjust;
   final void Function(Player, double) onTimeAdjust;
   final void Function(Player, int, int, int) onCommanderDamageAdjust;
+  final void Function(Player, String, int) onCounterAdjust;
   final VoidCallback onTimerLongPress;
   final VoidCallback onPause;
   final VoidCallback onReset;
@@ -963,6 +1336,7 @@ class GameLayout extends StatelessWidget {
     required this.onLifeAdjust,
     required this.onTimeAdjust,
     required this.onCommanderDamageAdjust,
+    required this.onCounterAdjust,
     required this.onTimerLongPress,
     required this.onPause,
     required this.onReset,
@@ -983,6 +1357,8 @@ class GameLayout extends StatelessWidget {
         onTimeAdjust: (amt) => onTimeAdjust(player, amt),
         onCommanderDamageAdjust: (targetId, commanderIndex, amt) =>
             onCommanderDamageAdjust(player, targetId, commanderIndex, amt),
+        onCounterAdjust: (counterType, amt) =>
+            onCounterAdjust(player, counterType, amt),
         onTimerLongPress: onTimerLongPress,
         rotations: rotations,
       ),
