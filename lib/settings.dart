@@ -14,6 +14,7 @@ class Settings {
     Colors.purple.shade200,
     Colors.red.shade200,
   ];
+  static List<bool> hasPartner = [false, false, false, false];
 
   // timer settings
   static bool useTimer = true;
@@ -47,6 +48,8 @@ class Settings {
         .map((c) => c.toARGB32().toString())
         .toList();
     prefs.setStringList('playerColors', colorStrings);
+    List<String> partnerStrings = hasPartner.map((p) => p.toString()).toList();
+    prefs.setStringList('hasPartner', partnerStrings);
   }
 
   static void load() {
@@ -85,6 +88,13 @@ class Settings {
         (i) =>
             i < defaultColors.length ? defaultColors[i] : Colors.grey.shade300,
       );
+    }
+    
+    List<String>? partners = prefs.getStringList('hasPartner');
+    if (partners != null && partners.length >= players) {
+      hasPartner = partners.map((p) => p == 'true').toList();
+    } else {
+      hasPartner = List.generate(players, (i) => false);
     }
   }
 }
