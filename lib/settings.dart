@@ -20,6 +20,11 @@ class Settings {
     static double startTime = 1.0;
     static int increment = 5;
 
+    // slow burn
+    static bool useSlowBurn = false;
+    static int burnInterval = 30;
+    static int burnAmount = 5;
+
     // "autosave"
     static late SharedPreferences prefs;
 
@@ -34,6 +39,9 @@ class Settings {
         prefs.setBool('useTimer', useTimer);
         prefs.setDouble('startTime', startTime);
         prefs.setInt('increment', increment);
+        prefs.setBool('useSlowBurn', useSlowBurn);
+        prefs.setInt('burnInterval', burnInterval);
+        prefs.setInt('burnAmount', burnAmount);
         prefs.setStringList('playerNames', playerNames);
         List<String> colorStrings = playerColors.map((c) => c.value.toString()).toList();
         prefs.setStringList('playerColors', colorStrings);
@@ -45,6 +53,9 @@ class Settings {
         useTimer = prefs.getBool('useTimer') ?? true;
         startTime = prefs.getDouble('startTime') ?? 10.0;
         increment = prefs.getInt('increment') ?? 15;
+        useSlowBurn = prefs.getBool('useSlowBurn') ?? false;
+        burnInterval = prefs.getInt('burnInterval') ?? 30;
+        burnAmount = prefs.getInt('burnAmount') ?? 5;
         
         List<String>? names = prefs.getStringList('playerNames');
         if (names != null && names.length >= players) {
