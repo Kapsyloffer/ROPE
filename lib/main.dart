@@ -37,20 +37,20 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class MyHomePageState extends State<MyHomePage> {
-  late Game game;
-  bool showMenu = false;
+class _MyHomePageState extends State<MyHomePage> {
+  late Game _game;
+  bool _showMenu = false;
 
   @override
   void initState() {
     super.initState();
-    initGame();
+    _initGame();
   }
 
-  void initGame() {
+  void _initGame() {
     List<Player> initialPlayers = [];
     for (int i = 0; i < Settings.players; i++) {
         Player newPlayer = Player(i);
@@ -59,7 +59,7 @@ class MyHomePageState extends State<MyHomePage> {
             setState(() {
               bool wasAlive = newPlayer.alive;
               newPlayer.alive = newPlayer.checkAlive();
-              game.checkState(newPlayer, wasAlive);
+              _game.checkState(newPlayer, wasAlive);
             });
           }
         };
@@ -68,46 +68,46 @@ class MyHomePageState extends State<MyHomePage> {
             setState(() {
               bool wasAlive = newPlayer.alive;
               newPlayer.decreaseLife(Settings.burnAmount);
-              game.checkState(newPlayer, wasAlive);
+              _game.checkState(newPlayer, wasAlive);
             });
           }
         };
         initialPlayers.add(newPlayer);
     }
-    game = Game(initialPlayers, Settings.players, 0);
+    _game = Game(initialPlayers, Settings.players, 0);
   }
 
-  void handleTimerToggle(Player player) {
+  void _handleTimerToggle(Player player) {
     if (!player.alive) return;
     setState(() {
-      bool isPaused = !game.players.any((p) => p.timer.active);
+      bool isPaused = !_game.players.any((p) => p.timer.active);
       
       if (isPaused) {
-        game.resume(player);
+        _game.resume(player);
       } else if (player.timer.active) {
         player.timer.toggleTimer();
         if (!player.timer.active) {
-          game.nextPlayer();
+          _game.nextPlayer();
         }
       }
     });
   }
 
-  void handlePause() {
+  void _handlePause() {
     setState(() {
-      game.pause();
+      _game.pause();
     });
   }
 
-  void handleReset() {
+  void _handleReset() {
     setState(() {
-      initGame();
-      showMenu = false;
+      _initGame();
+      _showMenu = false;
     });
   }
 
-  void openSettings() async {
-    game.pause();
+  void _openSettings() async {
+    _game.pause();
     
     await Navigator.push(
       context,
@@ -115,14 +115,14 @@ class MyHomePageState extends State<MyHomePage> {
     );
     
     setState(() {
-      showMenu = false;
-      if (game.players.length != Settings.players) {
-        initGame();
+      _showMenu = false;
+      if (_game.players.length != Settings.players) {
+        _initGame();
       }
     });
   }
 
-  void adjustLife(Player player, int amount) {
+  void _adjustLife(Player player, int amount) {
     setState(() {
       bool wasAlive = player.alive;
       if (amount > 0) {
@@ -130,11 +130,11 @@ class MyHomePageState extends State<MyHomePage> {
       } else {
         player.decreaseLife(amount.abs());
       }
-      game.checkState(player, wasAlive);
+      _game.checkState(player, wasAlive);
     });
   }
 
-  void adjustCommanderDamage(Player player, int fromPlayerId, int amount) {
+  void _adjustCommanderDamage(Player player, int fromPlayerId, int amount) {
     setState(() {
       int currentDamage = player.commanderDamage.commanders[fromPlayerId].damage_dealt;
       if (currentDamage + amount < 0) {
@@ -146,11 +146,11 @@ class MyHomePageState extends State<MyHomePage> {
       bool wasAlive = player.alive;
       player.commanderDamage.commanders[fromPlayerId].damage_dealt += amount;
       player.decreaseLife(amount);
-      game.checkState(player, wasAlive);
+      _game.checkState(player, wasAlive);
     });
   }
 
-  void adjustTime(Player player, double amount) {
+  void _adjustTime(Player player, double amount) {
     setState(() {
       double step = amount.abs();
       if (amount > 0) {
@@ -163,13 +163,13 @@ class MyHomePageState extends State<MyHomePage> {
       
       bool wasAlive = player.alive;
       player.alive = player.checkAlive();
-      game.checkState(player, wasAlive);
+      _game.checkState(player, wasAlive);
     });
   }
 
-  void toggleMenu() {
+  void _toggleMenu() {
     setState(() {
-      showMenu = !showMenu;
+      _showMenu = !_showMenu;
     });
   }
 
@@ -177,17 +177,17 @@ class MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: GameLayout(
-        players: game.players,
-        onTimerTap: handleTimerToggle,
-        onLifeAdjust: adjustLife,
-        onTimeAdjust: adjustTime,
-        onCommanderDamageAdjust: adjustCommanderDamage,
-        onTimerLongPress: handlePause,
-        onPause: handlePause,
-        onReset: handleReset,
-        onSettings: openSettings,
-        onToggleMenu: toggleMenu,
-        showMenu: showMenu,
+        players: _game.players,
+        onTimerTap: _handleTimerToggle,
+        onLifeAdjust: _adjustLife,
+        onTimeAdjust: _adjustTime,
+        onCommanderDamageAdjust: _adjustCommanderDamage,
+        onTimerLongPress: _handlePause,
+        onPause: _handlePause,
+        onReset: _handleReset,
+        onSettings: _openSettings,
+        onToggleMenu: _toggleMenu,
+        showMenu: _showMenu,
       ),
     );
   }

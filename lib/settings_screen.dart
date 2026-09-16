@@ -5,11 +5,11 @@ class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class SettingsScreenState extends State<SettingsScreen> {
-  void refreshSettings() {
+class _SettingsScreenState extends State<SettingsScreen> {
+  void _refreshSettings() {
     setState(() {});
   }
 
@@ -23,13 +23,13 @@ class SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          GeneralSettingsCard(onUpdate: refreshSettings),
+          _GeneralSettingsCard(onUpdate: _refreshSettings),
           const SizedBox(height: 16),
-          TimerSettingsCard(onUpdate: refreshSettings),
+          _TimerSettingsCard(onUpdate: _refreshSettings),
           const SizedBox(height: 16),
-          SlowBurnSettingsCard(onUpdate: refreshSettings),
+          _SlowBurnSettingsCard(onUpdate: _refreshSettings),
           const SizedBox(height: 16),
-          PlayerCustomizationCard(onUpdate: refreshSettings),
+          _PlayerCustomizationCard(onUpdate: _refreshSettings),
           const SizedBox(height: 24),
         ],
       ),
@@ -37,10 +37,10 @@ class SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
-class GeneralSettingsCard extends StatelessWidget {
+class _GeneralSettingsCard extends StatelessWidget {
   final VoidCallback onUpdate;
 
-  const GeneralSettingsCard({required this.onUpdate});
+  const _GeneralSettingsCard({required this.onUpdate});
 
   @override
   Widget build(BuildContext context) {
@@ -98,10 +98,10 @@ class GeneralSettingsCard extends StatelessWidget {
   }
 }
 
-class TimerSettingsCard extends StatelessWidget {
+class _TimerSettingsCard extends StatelessWidget {
   final VoidCallback onUpdate;
 
-  const TimerSettingsCard({required this.onUpdate});
+  const _TimerSettingsCard({required this.onUpdate});
 
   @override
   Widget build(BuildContext context) {
@@ -169,10 +169,10 @@ class TimerSettingsCard extends StatelessWidget {
   }
 }
 
-class SlowBurnSettingsCard extends StatelessWidget {
+class _SlowBurnSettingsCard extends StatelessWidget {
   final VoidCallback onUpdate;
 
-  const SlowBurnSettingsCard({required this.onUpdate});
+  const _SlowBurnSettingsCard({required this.onUpdate});
 
   @override
   Widget build(BuildContext context) {
@@ -246,25 +246,25 @@ class SlowBurnSettingsCard extends StatelessWidget {
   }
 }
 
-class PlayerColorOption {
+class _PlayerColorOption {
   final Color color;
   final String name;
 
-  const PlayerColorOption(this.color, this.name);
+  const _PlayerColorOption(this.color, this.name);
 }
 
-class PlayerCustomizationCard extends StatelessWidget {
+class _PlayerCustomizationCard extends StatelessWidget {
   final VoidCallback onUpdate;
 
-  const PlayerCustomizationCard({required this.onUpdate});
+  const _PlayerCustomizationCard({required this.onUpdate});
 
-  static final List<PlayerColorOption> colorOptions = [
-    PlayerColorOption(Colors.grey.shade300, 'Grey'),
-    PlayerColorOption(Colors.blue.shade200, 'Blue'),
-    PlayerColorOption(Colors.red.shade200, 'Red'),
-    PlayerColorOption(Colors.green.shade200, 'Green'),
-    PlayerColorOption(Colors.amber.shade200, 'Yellow'),
-    PlayerColorOption(Colors.purple.shade200, 'Purple'),
+  static final List<_PlayerColorOption> _colorOptions = [
+    _PlayerColorOption(Colors.grey.shade300, 'Grey'),
+    _PlayerColorOption(Colors.blue.shade200, 'Blue'),
+    _PlayerColorOption(Colors.red.shade200, 'Red'),
+    _PlayerColorOption(Colors.green.shade200, 'Green'),
+    _PlayerColorOption(Colors.amber.shade200, 'Yellow'),
+    _PlayerColorOption(Colors.purple.shade200, 'Purple'),
   ];
 
   @override
@@ -300,7 +300,7 @@ class PlayerCustomizationCard extends StatelessWidget {
                       child: DropdownButton<Color>(
                         value: Settings.playerColors[index],
                         underline: const SizedBox(),
-                        items: colorOptions.map((option) {
+                        items: _colorOptions.map((option) {
                           return DropdownMenuItem<Color>(
                             value: option.color,
                             child: Row(

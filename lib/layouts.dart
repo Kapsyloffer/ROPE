@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'player.dart';
 import 'settings.dart';
 
-String formatTime(double seconds) {
+String _formatTime(double seconds) {
   int min = seconds ~/ 60;
   int sec = (seconds % 60).toInt();
   return '$min:${sec.toString().padLeft(2, '0')}';
@@ -30,94 +30,103 @@ class PlayerWidget extends StatefulWidget {
   });
 
   @override
-  State<PlayerWidget> createState() => PlayerWidgetState();
+  State<PlayerWidget> createState() => _PlayerWidgetState();
 }
 
-class PlayerWidgetState extends State<PlayerWidget> {
-  int lifeDelta = 0;
-  bool showLifeDelta = false;
-  async.Timer? lifeDeltaTimer;
-  double lifeDeltaOpacity = 0.0;
+class _PlayerWidgetState extends State<PlayerWidget> {
+  int _lifeDelta = 0;
+  bool _showLifeDelta = false;
+  async.Timer? _lifeDeltaTimer;
+  double _lifeDeltaOpacity = 0.0;
 
-  async.Timer? initialHoldTimer;
-  async.Timer? periodicHoldTimer;
-  bool isHolding = false;
+  async.Timer? _initialHoldTimer;
+  async.Timer? _periodicHoldTimer;
+  bool _isHolding = false;
 
-  bool showTimeIncrement = false;
-  async.Timer? delayTimer;
-  async.Timer? timeIncrementTimer;
-  Alignment timeIncAlignment = const Alignment(0.0, -0.8);
-  double timeIncOpacity = 0.0;
-  double lastTime = 0.0;
+  bool _showTimeIncrement = false;
+  async.Timer? _delayTimer;
+  async.Timer? _timeIncrementTimer;
+  Alignment _timeIncAlignment = const Alignment(0.0, -0.8);
+  double _timeIncOpacity = 0.0;
+  double _lastTime = 0.0;
 
-  bool isEditingTimer = false;
-  bool showCommanderDamage = false;
-  int? editingCommanderId;
+  bool _isEditingTimer = false;
+  bool _showCommanderDamage = false;
+  int? _editingCommanderId;
   double _dragDistance = 0.0;
 
   @override
   void initState() {
     super.initState();
-    lastTime = widget.player.timer.curTime;
+    _lastTime = widget.player.timer.curTime;
   }
 
   @override
   void didUpdateWidget(covariant PlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    if (widget.player.timer.curTime > lastTime && !widget.player.timer.active && Settings.useTimer && Settings.increment > 0) {
-      triggerTimeIncrement();
+    if (oldWidget.player != widget.player) {
+      setState(() {
+        _showCommanderDamage = false;
+        _editingCommanderId = null;
+        _showLifeDelta = false;
+        _isEditingTimer = false;
+      });
     }
-    lastTime = widget.player.timer.curTime;
+
+    if (widget.player.timer.curTime > _lastTime && !widget.player.timer.active && Settings.useTimer && Settings.increment > 0) {
+      _triggerTimeIncrement();
+    }
+    _lastTime = widget.player.timer.curTime;
   }
 
-  void triggerTimeIncrement() {
+  void _triggerTimeIncrement() {
     setState(() {
-      showTimeIncrement = true;
-      timeIncAlignment = const Alignment(0.0, -0.8);
-      timeIncOpacity = 1.0;
+      _showTimeIncrement = true;
+      _timeIncAlignment = const Alignment(0.0, -0.8);
+      _timeIncOpacity = 1.0;
     });
     
-    delayTimer?.cancel();
-    delayTimer = async.Timer(const Duration(milliseconds: 50), () {
+    _delayTimer?.cancel();
+    _delayTimer = async.Timer(const Duration(milliseconds: 50), () {
       if (mounted) {
         setState(() {
-          timeIncAlignment = const Alignment(0.0, -2.0);
-          timeIncOpacity = 0.0;
+          _timeIncAlignment = const Alignment(0.0, -2.0);
+          _timeIncOpacity = 0.0;
         });
       }
     });
 
-    timeIncrementTimer?.cancel();
-    timeIncrementTimer = async.Timer(const Duration(milliseconds: 1500), () {
+    _timeIncrementTimer?.cancel();
+    _timeIncrementTimer = async.Timer(const Duration(milliseconds: 1500), () {
       if (mounted) {
         setState(() {
-          showTimeIncrement = false;
+          _showTimeIncrement = false;
         });
       }
     });
   }
 
-  void handleLifeAdjust(int amount) {
+  void _handleLifeAdjust(int amount) {
     widget.onLifeAdjust(amount);
     setState(() {
-      showLifeDelta = true;
-      lifeDelta += amount;
-      lifeDeltaOpacity = 1.0;
+      _showLifeDelta = true;
+      _lifeDelta += amount;
+      _lifeDeltaOpacity = 1.0;
     });
     
-    lifeDeltaTimer?.cancel();
-    lifeDeltaTimer = async.Timer(const Duration(milliseconds: 1200), () {
+    _lifeDeltaTimer?.cancel();
+    _lifeDeltaTimer = async.Timer(const Duration(milliseconds: 1200), () {
       if (mounted) {
         setState(() {
-          lifeDeltaOpacity = 0.0;
+          _lifeDeltaOpacity = 0.0;
         });
         
         async.Timer(const Duration(milliseconds: 300), () {
-          if (mounted && lifeDeltaOpacity == 0.0) {
+          if (mounted && _lifeDeltaOpacity == 0.0) {
             setState(() {
-              showLifeDelta = false;
-              lifeDelta = 0;
+              _showLifeDelta = false;
+              _lifeDelta = 0;
             });
           }
         });
@@ -125,29 +134,29 @@ class PlayerWidgetState extends State<PlayerWidget> {
     });
   }
 
-  void handleTapDown(int amount) {
-    isHolding = false;
-    initialHoldTimer?.cancel();
-    periodicHoldTimer?.cancel();
+  void _handleTapDown(int amount) {
+    _isHolding = false;
+    _initialHoldTimer?.cancel();
+    _periodicHoldTimer?.cancel();
     
-    initialHoldTimer = async.Timer(const Duration(milliseconds: 500), () {
-      isHolding = true;
-      handleLifeAdjust(amount * 10);
-      periodicHoldTimer = async.Timer.periodic(const Duration(milliseconds: 500), (t) {
-        handleLifeAdjust(amount * 10);
+    _initialHoldTimer = async.Timer(const Duration(milliseconds: 500), () {
+      _isHolding = true;
+      _handleLifeAdjust(amount * 10);
+      _periodicHoldTimer = async.Timer.periodic(const Duration(milliseconds: 500), (t) {
+        _handleLifeAdjust(amount * 10);
       });
     });
   }
 
-  void handleTapUp() {
-    initialHoldTimer?.cancel();
-    periodicHoldTimer?.cancel();
+  void _handleTapUp() {
+    _initialHoldTimer?.cancel();
+    _periodicHoldTimer?.cancel();
   }
 
-  void handleTapCancel() {
-    initialHoldTimer?.cancel();
-    periodicHoldTimer?.cancel();
-    isHolding = false;
+  void _handleTapCancel() {
+    _initialHoldTimer?.cancel();
+    _periodicHoldTimer?.cancel();
+    _isHolding = false;
   }
 
   Widget _buildAdjustButton(IconData icon, int amount, Color buttonColor) {
@@ -156,11 +165,11 @@ class PlayerWidgetState extends State<PlayerWidget> {
         color: buttonColor,
         child: InkWell(
           onTap: () {
-            if (!isHolding) handleLifeAdjust(amount);
+            if (!_isHolding) _handleLifeAdjust(amount);
           },
-          onTapDown: (_) => handleTapDown(amount),
-          onTapUp: (_) => handleTapUp(),
-          onTapCancel: handleTapCancel,
+          onTapDown: (_) => _handleTapDown(amount),
+          onTapUp: (_) => _handleTapUp(),
+          onTapCancel: _handleTapCancel,
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
@@ -211,13 +220,13 @@ class PlayerWidgetState extends State<PlayerWidget> {
       return const SizedBox.shrink();
     }
     
-    bool isEditing = editingCommanderId == targetPlayerId;
+    bool isEditing = _editingCommanderId == targetPlayerId;
 
     return GestureDetector(
       onTap: () {
         if (isEditing) {
           setState(() {
-            editingCommanderId = null;
+            _editingCommanderId = null;
           });
         } else {
           widget.onCommanderDamageAdjust(targetPlayerId, 1);
@@ -225,7 +234,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
       },
       onLongPress: () {
         setState(() {
-          editingCommanderId = targetPlayerId;
+          _editingCommanderId = targetPlayerId;
         });
       },
       child: Container(
@@ -317,11 +326,11 @@ class PlayerWidgetState extends State<PlayerWidget> {
 
   @override
   void dispose() {
-    lifeDeltaTimer?.cancel();
-    timeIncrementTimer?.cancel();
-    delayTimer?.cancel();
-    initialHoldTimer?.cancel();
-    periodicHoldTimer?.cancel();
+    _lifeDeltaTimer?.cancel();
+    _timeIncrementTimer?.cancel();
+    _delayTimer?.cancel();
+    _initialHoldTimer?.cancel();
+    _periodicHoldTimer?.cancel();
     super.dispose();
   }
 
@@ -344,12 +353,12 @@ class PlayerWidgetState extends State<PlayerWidget> {
           final velocity = details.primaryVelocity ?? 0.0;
           if (velocity < -100 || _dragDistance < -40) {
             setState(() {
-              showCommanderDamage = true;
+              _showCommanderDamage = true;
             });
           } else if (velocity > 100 || _dragDistance > 40) {
             setState(() {
-              showCommanderDamage = false;
-              editingCommanderId = null;
+              _showCommanderDamage = false;
+              _editingCommanderId = null;
             });
           }
         },
@@ -362,14 +371,14 @@ class PlayerWidgetState extends State<PlayerWidget> {
                   children: [
                     Positioned.fill(
                       child: AnimatedSlide(
-                        offset: showCommanderDamage ? const Offset(0.0, -1.0) : Offset.zero,
+                        offset: _showCommanderDamage ? const Offset(0.0, -1.0) : Offset.zero,
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 300),
-                          opacity: showCommanderDamage ? 0.0 : 1.0,
+                          opacity: _showCommanderDamage ? 0.0 : 1.0,
                           child: IgnorePointer(
-                            ignoring: showCommanderDamage,
+                            ignoring: _showCommanderDamage,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -403,14 +412,14 @@ class PlayerWidgetState extends State<PlayerWidget> {
                                           ),
                                         ],
                                       ),
-                                      if (showLifeDelta)
+                                      if (_showLifeDelta)
                                         Positioned(
                                           top: 16,
                                           child: AnimatedOpacity(
                                             duration: const Duration(milliseconds: 300),
-                                            opacity: lifeDeltaOpacity,
+                                            opacity: _lifeDeltaOpacity,
                                             child: Text(
-                                              lifeDelta > 0 ? '+$lifeDelta' : '$lifeDelta',
+                                              _lifeDelta > 0 ? '+$_lifeDelta' : '$_lifeDelta',
                                               style: TextStyle(
                                                 fontSize: 32, 
                                                 fontWeight: FontWeight.bold, 
@@ -431,14 +440,14 @@ class PlayerWidgetState extends State<PlayerWidget> {
                     ),
                     Positioned.fill(
                       child: AnimatedSlide(
-                        offset: showCommanderDamage ? Offset.zero : const Offset(0.0, 1.0),
+                        offset: _showCommanderDamage ? Offset.zero : const Offset(0.0, 1.0),
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 300),
-                          opacity: showCommanderDamage ? 1.0 : 0.0,
+                          opacity: _showCommanderDamage ? 1.0 : 0.0,
                           child: IgnorePointer(
-                            ignoring: !showCommanderDamage,
+                            ignoring: !_showCommanderDamage,
                             child: Padding(
                               padding: const EdgeInsets.all(4.0),
                               child: RotatedBox(
@@ -459,9 +468,9 @@ class PlayerWidgetState extends State<PlayerWidget> {
                 flex: 1,
                 child: GestureDetector(
                   onTap: () {
-                    if (isEditingTimer) {
+                    if (_isEditingTimer) {
                       setState(() {
-                        isEditingTimer = false;
+                        _isEditingTimer = false;
                       });
                     } else {
                       widget.onTimerTap();
@@ -469,7 +478,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
                   },
                   onLongPress: () {
                     setState(() {
-                      isEditingTimer = true;
+                      _isEditingTimer = true;
                     });
                     widget.onTimerLongPress();
                   },
@@ -484,7 +493,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        if (isEditingTimer)
+                        if (_isEditingTimer)
                           Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -495,7 +504,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   child: Text(
-                                    formatTime(widget.player.timer.curTime),
+                                    _formatTime(widget.player.timer.curTime),
                                     style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
                                   ),
                                 ),
@@ -511,23 +520,23 @@ class PlayerWidgetState extends State<PlayerWidget> {
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Text(
-                                  formatTime(widget.player.timer.curTime),
+                                  _formatTime(widget.player.timer.curTime),
                                   style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
                                 ),
                               ),
                             ),
                           ),
-                        if (showTimeIncrement && !isEditingTimer)
+                        if (_showTimeIncrement && !_isEditingTimer)
                           AnimatedAlign(
                             duration: const Duration(milliseconds: 1500),
                             curve: Curves.easeOut,
-                            alignment: timeIncAlignment,
+                            alignment: _timeIncAlignment,
                             child: AnimatedOpacity(
                               duration: const Duration(milliseconds: 1500),
                               curve: Curves.easeInQuint,
-                              opacity: timeIncOpacity,
+                              opacity: _timeIncOpacity,
                               child: Text(
-                                '+${formatTime(Settings.increment.toDouble())}',
+                                '+${_formatTime(Settings.increment.toDouble())}',
                                 style: TextStyle(
                                   fontSize: 28, 
                                   fontWeight: FontWeight.bold, 
@@ -553,14 +562,13 @@ class PlayerWidgetState extends State<PlayerWidget> {
   }
 }
 
-class MenuRow extends StatelessWidget {
+class _MenuRow extends StatelessWidget {
   final VoidCallback onPause;
   final VoidCallback onReset;
   final VoidCallback onSettings;
   final bool showMenu;
 
-  const MenuRow({
-    super.key,
+  const _MenuRow({
     required this.onPause,
     required this.onReset,
     required this.onSettings,
@@ -641,7 +649,6 @@ class GameLayout extends StatelessWidget {
 
     return Expanded(
       child: PlayerWidget(
-        key: ObjectKey(player),
         player: player,
         onTimerTap: () => onTimerTap(player),
         onLifeAdjust: (amt) => onLifeAdjust(player, amt),
@@ -661,7 +668,7 @@ class GameLayout extends StatelessWidget {
       layoutColumn = Column(
         children: [
           _buildPlayerWidget(0, 2),
-          MenuRow(
+          _MenuRow(
             onPause: onPause,
             onReset: onReset,
             onSettings: onSettings,
@@ -681,7 +688,7 @@ class GameLayout extends StatelessWidget {
               ],
             ),
           ),
-          MenuRow(
+          _MenuRow(
             onPause: onPause,
             onReset: onReset,
             onSettings: onSettings,
@@ -701,7 +708,7 @@ class GameLayout extends StatelessWidget {
               ],
             ),
           ),
-          MenuRow(
+          _MenuRow(
             onPause: onPause,
             onReset: onReset,
             onSettings: onSettings,
