@@ -614,6 +614,17 @@ class _TimerDisplayState extends State<_TimerDisplay>
 
   @override
   Widget build(BuildContext context) {
+    Color activeTimerColor = Colors.green.shade500;
+    Color ropeColor = Colors.green.shade900;
+
+    if (widget.player.timer.curTime <= 10) {
+      activeTimerColor = Colors.red.shade300;
+      ropeColor = Colors.red.shade900;
+    } else if (widget.player.timer.curTime <= 30) {
+      activeTimerColor = Colors.amber.shade400;
+      ropeColor = Colors.deepOrange.shade900;
+    }
+
     return GestureDetector(
       onTap: () {
         if (_isEditingTimer) {
@@ -636,7 +647,7 @@ class _TimerDisplayState extends State<_TimerDisplay>
         decoration: BoxDecoration(
           color: widget.player.alive
               ? (widget.player.timer.active
-                    ? Colors.green.shade500
+                    ? activeTimerColor
                     : Colors.black.withValues(alpha: 0.15))
               : Colors.black.withValues(alpha: 0.3),
         ),
@@ -661,16 +672,7 @@ class _TimerDisplayState extends State<_TimerDisplay>
                           child: Container(
                             width: constraints.maxWidth * remaining,
                             height: 8.0,
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade900,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.green.shade800,
-                                  blurRadius: 8.0,
-                                  spreadRadius: 2.0,
-                                ),
-                              ],
-                            ),
+                            decoration: BoxDecoration(color: ropeColor),
                           ),
                         );
                       },
