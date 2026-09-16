@@ -11,7 +11,6 @@ class Player {
   bool alive;
 
   Timer timer;
-  //TODO: Commander damage
   late CommanderDamage commanderDamage;
   //TODO: Counters: poison, energy, etc
 

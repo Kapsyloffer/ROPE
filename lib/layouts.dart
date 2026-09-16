@@ -922,6 +922,7 @@ class _MenuRow extends StatelessWidget {
                 ),
               ),
               const Expanded(child: SizedBox()),
+              const Expanded(child: SizedBox()),
               Expanded(
                 child: InkWell(
                   onTap: onSettings,
