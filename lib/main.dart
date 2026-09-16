@@ -135,10 +135,18 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _adjustCommanderDamage(Player player, int fromPlayerId, int amount) {
+  void _adjustCommanderDamage(
+    Player player,
+    int fromPlayerId,
+    int commanderIndex,
+    int amount,
+  ) {
     setState(() {
-      int currentDamage =
-          player.commanderDamage.commanders[fromPlayerId].damageDealt;
+      int currentDamage = player
+          .commanderDamage
+          .commanders[fromPlayerId]
+          .damageDealt[commanderIndex];
+
       if (currentDamage + amount < 0) {
         amount = -currentDamage;
       }
@@ -146,7 +154,11 @@ class _MyHomePageState extends State<MyHomePage> {
       if (amount == 0) return;
 
       bool wasAlive = player.alive;
-      player.commanderDamage.commanders[fromPlayerId].damageDealt += amount;
+      player
+              .commanderDamage
+              .commanders[fromPlayerId]
+              .damageDealt[commanderIndex] +=
+          amount;
       player.decreaseLife(amount);
       _game.checkState(player, wasAlive);
     });

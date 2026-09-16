@@ -16,7 +16,7 @@ class PlayerWidget extends StatefulWidget {
   final VoidCallback onTimerTap;
   final void Function(int) onLifeAdjust;
   final void Function(double) onTimeAdjust;
-  final void Function(int, int) onCommanderDamageAdjust;
+  final void Function(int, int, int) onCommanderDamageAdjust;
   final VoidCallback onTimerLongPress;
   final int rotations;
 
@@ -56,6 +56,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
   bool _isEditingTimer = false;
   bool _showCommanderDamage = false;
   int? _editingCommanderId;
+  int? _editingCommanderIndex;
   double _dragDistance = 0.0;
 
   late AnimationController _ropeController;
@@ -92,6 +93,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
       setState(() {
         _showCommanderDamage = false;
         _editingCommanderId = null;
+        _editingCommanderIndex = null;
         _showLifeDelta = false;
         _isEditingTimer = false;
       });
@@ -245,6 +247,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
 
   Widget _buildCommanderAdjustButton(
     int targetPlayerId,
+    int commanderIndex,
     IconData icon,
     int amount,
   ) {
@@ -252,7 +255,11 @@ class _PlayerWidgetState extends State<PlayerWidget>
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => widget.onCommanderDamageAdjust(targetPlayerId, amount),
+          onTap: () => widget.onCommanderDamageAdjust(
+            targetPlayerId,
+            commanderIndex,
+            amount,
+          ),
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
@@ -285,43 +292,42 @@ class _PlayerWidgetState extends State<PlayerWidget>
     );
   }
 
-  Widget _buildCommanderCell(int targetPlayerId) {
-    if (targetPlayerId == widget.player.order) {
-      return const SizedBox.shrink();
-    }
+  Widget _buildDamageDisplay(
+    int targetPlayerId,
+    int commanderIndex,
+    int damage,
+  ) {
+    bool isEditing =
+        _editingCommanderId == targetPlayerId &&
+        _editingCommanderIndex == commanderIndex;
 
-    bool isEditing = _editingCommanderId == targetPlayerId;
-
-    return GestureDetector(
-      onTap: () {
-        if (isEditing) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (isEditing) {
+            setState(() {
+              _editingCommanderId = null;
+              _editingCommanderIndex = null;
+            });
+          } else {
+            widget.onCommanderDamageAdjust(targetPlayerId, commanderIndex, 1);
+          }
+        },
+        onLongPress: () {
           setState(() {
-            _editingCommanderId = null;
+            _editingCommanderId = targetPlayerId;
+            _editingCommanderIndex = commanderIndex;
           });
-        } else {
-          widget.onCommanderDamageAdjust(targetPlayerId, 1);
-        }
-      },
-      onLongPress: () {
-        setState(() {
-          _editingCommanderId = targetPlayerId;
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.all(4.0),
-        decoration: BoxDecoration(
-          color: Settings.playerColors[targetPlayerId].withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.black12),
-        ),
-        child: RotatedBox(
-          quarterTurns: widget.rotations,
+        },
+        child: Container(
+          decoration: BoxDecoration(border: Border.all(color: Colors.black12)),
           child: isEditing
               ? Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildCommanderAdjustButton(
                       targetPlayerId,
+                      commanderIndex,
                       Icons.remove,
                       -1,
                     ),
@@ -333,7 +339,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              '${widget.player.commanderDamage.commanders[targetPlayerId].damageDealt}',
+                              '$damage',
                               style: const TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
@@ -344,7 +350,12 @@ class _PlayerWidgetState extends State<PlayerWidget>
                         ],
                       ),
                     ),
-                    _buildCommanderAdjustButton(targetPlayerId, Icons.add, 1),
+                    _buildCommanderAdjustButton(
+                      targetPlayerId,
+                      commanderIndex,
+                      Icons.add,
+                      1,
+                    ),
                   ],
                 )
               : Column(
@@ -353,7 +364,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        '${widget.player.commanderDamage.commanders[targetPlayerId].damageDealt}',
+                        '$damage',
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -363,6 +374,50 @@ class _PlayerWidgetState extends State<PlayerWidget>
                     ),
                   ],
                 ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCommanderCell(int targetPlayerId) {
+    if (targetPlayerId == widget.player.order) {
+      return const SizedBox.shrink();
+    }
+
+    bool hasPartner = Settings.hasPartner[targetPlayerId];
+
+    return Container(
+      margin: const EdgeInsets.all(4.0),
+      decoration: BoxDecoration(
+        color: Settings.playerColors[targetPlayerId].withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: RotatedBox(
+        quarterTurns: widget.rotations,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildDamageDisplay(
+              targetPlayerId,
+              0,
+              widget
+                  .player
+                  .commanderDamage
+                  .commanders[targetPlayerId]
+                  .damageDealt[0],
+            ),
+            if (hasPartner)
+              _buildDamageDisplay(
+                targetPlayerId,
+                1,
+                widget
+                    .player
+                    .commanderDamage
+                    .commanders[targetPlayerId]
+                    .damageDealt[1],
+              ),
+          ],
         ),
       ),
     );
@@ -445,6 +500,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
             setState(() {
               _showCommanderDamage = false;
               _editingCommanderId = null;
+              _editingCommanderIndex = null;
             });
           }
         },
@@ -792,7 +848,7 @@ class GameLayout extends StatelessWidget {
   final void Function(Player) onTimerTap;
   final void Function(Player, int) onLifeAdjust;
   final void Function(Player, double) onTimeAdjust;
-  final void Function(Player, int, int) onCommanderDamageAdjust;
+  final void Function(Player, int, int, int) onCommanderDamageAdjust;
   final VoidCallback onTimerLongPress;
   final VoidCallback onPause;
   final VoidCallback onReset;
@@ -825,8 +881,8 @@ class GameLayout extends StatelessWidget {
         onTimerTap: () => onTimerTap(player),
         onLifeAdjust: (amt) => onLifeAdjust(player, amt),
         onTimeAdjust: (amt) => onTimeAdjust(player, amt),
-        onCommanderDamageAdjust: (targetId, amt) =>
-            onCommanderDamageAdjust(player, targetId, amt),
+        onCommanderDamageAdjust: (targetId, commanderIndex, amt) =>
+            onCommanderDamageAdjust(player, targetId, commanderIndex, amt),
         onTimerLongPress: onTimerLongPress,
         rotations: rotations,
       ),

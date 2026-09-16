@@ -89,7 +89,7 @@ class Settings {
             i < defaultColors.length ? defaultColors[i] : Colors.grey.shade300,
       );
     }
-    
+
     List<String>? partners = prefs.getStringList('hasPartner');
     if (partners != null && partners.length >= players) {
       hasPartner = partners.map((p) => p == 'true').toList();
