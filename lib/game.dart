@@ -71,6 +71,7 @@ class Game {
         for (var i = 0; i < players.length; i++) {
             if (i == activePlayerIndex) {
                 players[i].timer.active = true;
+                players[i].timer.resetTurn();
                 players[i].timer.startClock();
             } else {
                 players[i].timer.active = false;

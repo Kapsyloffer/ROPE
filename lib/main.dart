@@ -63,6 +63,15 @@ class MyHomePageState extends State<MyHomePage> {
             });
           }
         };
+        newPlayer.timer.onBurn = () {
+          if (mounted) {
+            setState(() {
+              bool wasAlive = newPlayer.alive;
+              newPlayer.decreaseLife(Settings.burnAmount);
+              game.checkState(newPlayer, wasAlive);
+            });
+          }
+        };
         initialPlayers.add(newPlayer);
     }
     game = Game(initialPlayers, Settings.players, 0);
