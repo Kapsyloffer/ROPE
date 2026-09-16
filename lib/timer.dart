@@ -8,6 +8,8 @@ class Timer {
     bool active;
     async.Timer? clock;
     void Function()? onTick;
+    void Function()? onBurn;
+    int elapsedTurnTime = 0;
 
     Timer()
       : curTime = Settings.startTime * 60.0,
@@ -30,6 +32,15 @@ class Timer {
         clock = async.Timer.periodic(const Duration(seconds: 1), (timer) {
             if (curTime > 0) {
                 curTime -= 1;
+                if (Settings.useSlowBurn) {
+                    elapsedTurnTime += 1;
+                    if (elapsedTurnTime >= Settings.burnInterval) {
+                        if (onBurn != null) {
+                            onBurn!();
+                        }
+                        elapsedTurnTime = 0;
+                    }
+                }
                 if (onTick != null) {
                     onTick!();
                 }
@@ -43,9 +54,14 @@ class Timer {
         });
     }
 
+    void resetTurn() {
+        elapsedTurnTime = 0;
+    }
+
     void reset() {
         curTime = startTime;
         active = false;
+        elapsedTurnTime = 0;
         clock?.cancel();
     }
 }
