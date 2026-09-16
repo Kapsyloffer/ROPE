@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'game.dart';
 import 'player.dart';
 import 'settings.dart';
@@ -53,26 +54,26 @@ class _MyHomePageState extends State<MyHomePage> {
   void _initGame() {
     List<Player> initialPlayers = [];
     for (int i = 0; i < Settings.players; i++) {
-        Player newPlayer = Player(i);
-        newPlayer.timer.onTick = () {
-          if (mounted) {
-            setState(() {
-              bool wasAlive = newPlayer.alive;
-              newPlayer.alive = newPlayer.checkAlive();
-              _game.checkState(newPlayer, wasAlive);
-            });
-          }
-        };
-        newPlayer.timer.onBurn = () {
-          if (mounted) {
-            setState(() {
-              bool wasAlive = newPlayer.alive;
-              newPlayer.decreaseLife(Settings.burnAmount);
-              _game.checkState(newPlayer, wasAlive);
-            });
-          }
-        };
-        initialPlayers.add(newPlayer);
+      Player newPlayer = Player(i);
+      newPlayer.timer.onTick = () {
+        if (mounted) {
+          setState(() {
+            bool wasAlive = newPlayer.alive;
+            newPlayer.alive = newPlayer.checkAlive();
+            _game.checkState(newPlayer, wasAlive);
+          });
+        }
+      };
+      newPlayer.timer.onBurn = () {
+        if (mounted) {
+          setState(() {
+            bool wasAlive = newPlayer.alive;
+            newPlayer.decreaseLife(Settings.burnAmount);
+            _game.checkState(newPlayer, wasAlive);
+          });
+        }
+      };
+      initialPlayers.add(newPlayer);
     }
     _game = Game(initialPlayers, Settings.players, 0);
   }
@@ -81,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (!player.alive) return;
     setState(() {
       bool isPaused = !_game.players.any((p) => p.timer.active);
-      
+
       if (isPaused) {
         _game.resume(player);
       } else if (player.timer.active) {
@@ -108,12 +109,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _openSettings() async {
     _game.pause();
-    
+
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const SettingsScreen()),
     );
-    
+
     setState(() {
       _showMenu = false;
       if (_game.players.length != Settings.players) {
@@ -136,15 +137,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _adjustCommanderDamage(Player player, int fromPlayerId, int amount) {
     setState(() {
-      int currentDamage = player.commanderDamage.commanders[fromPlayerId].damage_dealt;
+      int currentDamage =
+          player.commanderDamage.commanders[fromPlayerId].damageDealt;
       if (currentDamage + amount < 0) {
         amount = -currentDamage;
       }
-      
+
       if (amount == 0) return;
 
       bool wasAlive = player.alive;
-      player.commanderDamage.commanders[fromPlayerId].damage_dealt += amount;
+      player.commanderDamage.commanders[fromPlayerId].damageDealt += amount;
       player.decreaseLife(amount);
       _game.checkState(player, wasAlive);
     });
@@ -154,13 +156,15 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       double step = amount.abs();
       if (amount > 0) {
-        player.timer.curTime = ((player.timer.curTime / step).floor() * step) + step;
+        player.timer.curTime =
+            ((player.timer.curTime / step).floor() * step) + step;
       } else if (amount < 0) {
-        player.timer.curTime = ((player.timer.curTime / step).ceil() * step) - step;
+        player.timer.curTime =
+            ((player.timer.curTime / step).ceil() * step) - step;
       }
-      
+
       if (player.timer.curTime < 0) player.timer.curTime = 0;
-      
+
       bool wasAlive = player.alive;
       player.alive = player.checkAlive();
       _game.checkState(player, wasAlive);

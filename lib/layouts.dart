@@ -1,5 +1,7 @@
 import 'dart:async' as async;
+
 import 'package:flutter/material.dart';
+
 import 'player.dart';
 import 'settings.dart';
 
@@ -33,7 +35,8 @@ class PlayerWidget extends StatefulWidget {
   State<PlayerWidget> createState() => _PlayerWidgetState();
 }
 
-class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderStateMixin {
+class _PlayerWidgetState extends State<PlayerWidget>
+    with SingleTickerProviderStateMixin {
   int _lifeDelta = 0;
   bool _showLifeDelta = false;
   async.Timer? _lifeDeltaTimer;
@@ -61,14 +64,16 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _lastTime = widget.player.timer.curTime;
-    
+
     int durationSec = Settings.burnInterval > 0 ? Settings.burnInterval : 1;
     _ropeController = AnimationController(
       vsync: this,
       duration: Duration(seconds: durationSec),
     );
 
-    if (Settings.useSlowBurn && widget.player.timer.active && widget.player.alive) {
+    if (Settings.useSlowBurn &&
+        widget.player.timer.active &&
+        widget.player.alive) {
       double startFraction = Settings.burnInterval > 0
           ? widget.player.timer.elapsedTurnTime / Settings.burnInterval
           : 0.0;
@@ -82,7 +87,7 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
   @override
   void didUpdateWidget(covariant PlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     if (oldWidget.player != widget.player) {
       setState(() {
         _showCommanderDamage = false;
@@ -92,7 +97,10 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
       });
     }
 
-    if (widget.player.timer.curTime > _lastTime && !widget.player.timer.active && Settings.useTimer && Settings.increment > 0) {
+    if (widget.player.timer.curTime > _lastTime &&
+        !widget.player.timer.active &&
+        Settings.useTimer &&
+        Settings.increment > 0) {
       _triggerTimeIncrement();
     }
 
@@ -106,7 +114,9 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
       _ropeController.duration = Duration(seconds: durationSec);
     }
 
-    if (!Settings.useSlowBurn || !widget.player.alive || !widget.player.timer.active) {
+    if (!Settings.useSlowBurn ||
+        !widget.player.alive ||
+        !widget.player.timer.active) {
       if (_ropeController.isAnimating || _ropeController.value != 0.0) {
         _ropeController.stop();
         _ropeController.value = 0.0;
@@ -131,7 +141,7 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
       _timeIncAlignment = const Alignment(0.0, -0.8);
       _timeIncOpacity = 1.0;
     });
-    
+
     _delayTimer?.cancel();
     _delayTimer = async.Timer(const Duration(milliseconds: 50), () {
       if (mounted) {
@@ -159,14 +169,14 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
       _lifeDelta += amount;
       _lifeDeltaOpacity = 1.0;
     });
-    
+
     _lifeDeltaTimer?.cancel();
     _lifeDeltaTimer = async.Timer(const Duration(milliseconds: 1200), () {
       if (mounted) {
         setState(() {
           _lifeDeltaOpacity = 0.0;
         });
-        
+
         async.Timer(const Duration(milliseconds: 300), () {
           if (mounted && _lifeDeltaOpacity == 0.0) {
             setState(() {
@@ -183,13 +193,16 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
     _isHolding = false;
     _initialHoldTimer?.cancel();
     _periodicHoldTimer?.cancel();
-    
+
     _initialHoldTimer = async.Timer(const Duration(milliseconds: 500), () {
       _isHolding = true;
       _handleLifeAdjust(amount * 10);
-      _periodicHoldTimer = async.Timer.periodic(const Duration(milliseconds: 500), (t) {
-        _handleLifeAdjust(amount * 10);
-      });
+      _periodicHoldTimer = async.Timer.periodic(
+        const Duration(milliseconds: 500),
+        (t) {
+          _handleLifeAdjust(amount * 10);
+        },
+      );
     });
   }
 
@@ -218,7 +231,11 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(icon, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
+              child: Icon(
+                icon,
+                size: 48,
+                color: widget.player.alive ? Colors.black : Colors.red,
+              ),
             ),
           ),
         ),
@@ -226,7 +243,11 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildCommanderAdjustButton(int targetPlayerId, IconData icon, int amount) {
+  Widget _buildCommanderAdjustButton(
+    int targetPlayerId,
+    IconData icon,
+    int amount,
+  ) {
     return Expanded(
       child: Material(
         color: Colors.transparent,
@@ -252,7 +273,11 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(icon, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
+              child: Icon(
+                icon,
+                size: 48,
+                color: widget.player.alive ? Colors.black : Colors.red,
+              ),
             ),
           ),
         ),
@@ -264,7 +289,7 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
     if (targetPlayerId == widget.player.order) {
       return const SizedBox.shrink();
     }
-    
+
     bool isEditing = _editingCommanderId == targetPlayerId;
 
     return GestureDetector(
@@ -285,7 +310,7 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
       child: Container(
         margin: const EdgeInsets.all(4.0),
         decoration: BoxDecoration(
-          color: Settings.playerColors[targetPlayerId].withOpacity(0.8),
+          color: Settings.playerColors[targetPlayerId].withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(8.0),
           border: Border.all(color: Colors.black12),
         ),
@@ -295,7 +320,11 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
               ? Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildCommanderAdjustButton(targetPlayerId, Icons.remove, -1),
+                    _buildCommanderAdjustButton(
+                      targetPlayerId,
+                      Icons.remove,
+                      -1,
+                    ),
                     Expanded(
                       flex: 2,
                       child: Column(
@@ -304,8 +333,12 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              '${widget.player.commanderDamage.commanders[targetPlayerId].damage_dealt}',
-                              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
+                              '${widget.player.commanderDamage.commanders[targetPlayerId].damageDealt}',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
                         ],
@@ -320,8 +353,12 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        '${widget.player.commanderDamage.commanders[targetPlayerId].damage_dealt}',
-                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
+                        '${widget.player.commanderDamage.commanders[targetPlayerId].damageDealt}',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                   ],
@@ -343,29 +380,29 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
 
   Widget _buildCommanderGrid() {
     if (Settings.players == 2) {
-       return Column(
-         crossAxisAlignment: CrossAxisAlignment.stretch,
-         children: [
-           Expanded(child: _buildCommanderCell(0)),
-           Expanded(child: _buildCommanderCell(1)),
-         ],
-       );
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _buildCommanderCell(0)),
+          Expanded(child: _buildCommanderCell(1)),
+        ],
+      );
     } else if (Settings.players == 3) {
-       return Column(
-         crossAxisAlignment: CrossAxisAlignment.stretch,
-         children: [
-           Expanded(child: _buildCommanderRow(0, 1)),
-           Expanded(child: _buildCommanderCell(2)),
-         ],
-       );
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _buildCommanderRow(0, 1)),
+          Expanded(child: _buildCommanderCell(2)),
+        ],
+      );
     } else {
-       return Column(
-         crossAxisAlignment: CrossAxisAlignment.stretch,
-         children: [
-           Expanded(child: _buildCommanderRow(0, 1)),
-           Expanded(child: _buildCommanderRow(3, 2)),
-         ],
-       );
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _buildCommanderRow(0, 1)),
+          Expanded(child: _buildCommanderRow(3, 2)),
+        ],
+      );
     }
   }
 
@@ -382,19 +419,22 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    Color buttonColor = widget.player.alive ? Settings.playerColors[widget.player.order] : Colors.grey.shade800;
+    Color buttonColor = widget.player.alive
+        ? Settings.playerColors[widget.player.order]
+        : Colors.grey.shade800;
 
     Widget content = Container(
       margin: EdgeInsets.zero,
       decoration: BoxDecoration(
-        color: widget.player.alive 
+        color: widget.player.alive
             ? Settings.playerColors[widget.player.order]
             : Colors.grey.shade800,
       ),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onVerticalDragStart: (_) => _dragDistance = 0.0,
-        onVerticalDragUpdate: (details) => _dragDistance += details.primaryDelta ?? 0.0,
+        onVerticalDragUpdate: (details) =>
+            _dragDistance += details.primaryDelta ?? 0.0,
         onVerticalDragEnd: (details) {
           final velocity = details.primaryVelocity ?? 0.0;
           if (velocity < -100 || _dragDistance < -40) {
@@ -417,7 +457,9 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                   children: [
                     Positioned.fill(
                       child: AnimatedSlide(
-                        offset: _showCommanderDamage ? const Offset(0.0, -1.0) : Offset.zero,
+                        offset: _showCommanderDamage
+                            ? const Offset(0.0, -1.0)
+                            : Offset.zero,
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
                         child: AnimatedOpacity(
@@ -429,23 +471,32 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                _buildAdjustButton(Icons.remove, -1, buttonColor),
+                                _buildAdjustButton(
+                                  Icons.remove,
+                                  -1,
+                                  buttonColor,
+                                ),
                                 Expanded(
                                   flex: 2,
                                   child: Stack(
                                     alignment: Alignment.center,
                                     children: [
                                       Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           FittedBox(
                                             fit: BoxFit.scaleDown,
                                             child: Text(
-                                              Settings.playerNames[widget.player.order],
+                                              Settings.playerNames[widget
+                                                  .player
+                                                  .order],
                                               style: TextStyle(
-                                                  fontSize: 16, 
-                                                  fontWeight: FontWeight.bold, 
-                                                  color: widget.player.alive ? Colors.black54 : Colors.red.shade900
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: widget.player.alive
+                                                    ? Colors.black54
+                                                    : Colors.red.shade900,
                                               ),
                                             ),
                                           ),
@@ -453,7 +504,13 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                                             fit: BoxFit.scaleDown,
                                             child: Text(
                                               '${widget.player.curLife}',
-                                              style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                                              style: TextStyle(
+                                                fontSize: 80,
+                                                fontWeight: FontWeight.bold,
+                                                color: widget.player.alive
+                                                    ? Colors.black
+                                                    : Colors.red,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -462,14 +519,20 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                                         Positioned(
                                           top: 16,
                                           child: AnimatedOpacity(
-                                            duration: const Duration(milliseconds: 300),
+                                            duration: const Duration(
+                                              milliseconds: 300,
+                                            ),
                                             opacity: _lifeDeltaOpacity,
                                             child: Text(
-                                              _lifeDelta > 0 ? '+$_lifeDelta' : '$_lifeDelta',
+                                              _lifeDelta > 0
+                                                  ? '+$_lifeDelta'
+                                                  : '$_lifeDelta',
                                               style: TextStyle(
-                                                fontSize: 32, 
-                                                fontWeight: FontWeight.bold, 
-                                                color: widget.player.alive ? Colors.black54 : Colors.red
+                                                fontSize: 32,
+                                                fontWeight: FontWeight.bold,
+                                                color: widget.player.alive
+                                                    ? Colors.black54
+                                                    : Colors.red,
                                               ),
                                             ),
                                           ),
@@ -486,7 +549,9 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                     ),
                     Positioned.fill(
                       child: AnimatedSlide(
-                        offset: _showCommanderDamage ? Offset.zero : const Offset(0.0, 1.0),
+                        offset: _showCommanderDamage
+                            ? Offset.zero
+                            : const Offset(0.0, 1.0),
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
                         child: AnimatedOpacity(
@@ -497,7 +562,9 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                             child: Padding(
                               padding: const EdgeInsets.all(4.0),
                               child: RotatedBox(
-                                quarterTurns: widget.rotations == 0 ? 0 : 4 - widget.rotations,
+                                quarterTurns: widget.rotations == 0
+                                    ? 0
+                                    : 4 - widget.rotations,
                                 child: _buildCommanderGrid(),
                               ),
                             ),
@@ -533,13 +600,17 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                     margin: EdgeInsets.zero,
                     decoration: BoxDecoration(
                       color: widget.player.alive
-                          ? (widget.player.timer.active ? Colors.green.shade500 : Colors.black.withOpacity(0.15))
-                          : Colors.black.withOpacity(0.3),
+                          ? (widget.player.timer.active
+                                ? Colors.green.shade500
+                                : Colors.black.withValues(alpha: 0.15))
+                          : Colors.black.withValues(alpha: 0.3),
                     ),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        if (Settings.useSlowBurn && widget.player.alive && widget.player.timer.active)
+                        if (Settings.useSlowBurn &&
+                            widget.player.alive &&
+                            widget.player.timer.active)
                           Positioned(
                             top: 0,
                             left: 0,
@@ -549,7 +620,8 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                                 return AnimatedBuilder(
                                   animation: _ropeController,
                                   builder: (context, child) {
-                                    double remaining = 1.0 - _ropeController.value;
+                                    double remaining =
+                                        1.0 - _ropeController.value;
                                     return Align(
                                       alignment: Alignment.centerLeft,
                                       child: Container(
@@ -574,24 +646,30 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                           ),
                         if (_isEditingTimer)
                           Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildTimerAdjustButton(Icons.remove, -15.0),
-                            Expanded(
-                              flex: 2,
-                              child: Center(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    _formatTime(widget.player.timer.curTime),
-                                    style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildTimerAdjustButton(Icons.remove, -15.0),
+                              Expanded(
+                                flex: 2,
+                                child: Center(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      _formatTime(widget.player.timer.curTime),
+                                      style: TextStyle(
+                                        fontSize: 48,
+                                        fontWeight: FontWeight.bold,
+                                        color: widget.player.alive
+                                            ? Colors.black
+                                            : Colors.red,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            _buildTimerAdjustButton(Icons.add, 15.0),
-                          ],
-                        )
+                              _buildTimerAdjustButton(Icons.add, 15.0),
+                            ],
+                          )
                         else
                           Center(
                             child: Padding(
@@ -600,7 +678,13 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                                 fit: BoxFit.scaleDown,
                                 child: Text(
                                   _formatTime(widget.player.timer.curTime),
-                                  style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: widget.player.alive ? Colors.black : Colors.red),
+                                  style: TextStyle(
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.bold,
+                                    color: widget.player.alive
+                                        ? Colors.black
+                                        : Colors.red,
+                                  ),
                                 ),
                               ),
                             ),
@@ -617,9 +701,11 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                               child: Text(
                                 '+${_formatTime(Settings.increment.toDouble())}',
                                 style: TextStyle(
-                                  fontSize: 28, 
-                                  fontWeight: FontWeight.bold, 
-                                  color: widget.player.alive ? Colors.black54 : Colors.red
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: widget.player.alive
+                                      ? Colors.black54
+                                      : Colors.red,
                                 ),
                               ),
                             ),
@@ -669,7 +755,11 @@ class _MenuRow extends StatelessWidget {
               Expanded(
                 child: InkWell(
                   onTap: onReset,
-                  child: const Icon(Icons.refresh, color: Colors.white, size: 32),
+                  child: const Icon(
+                    Icons.refresh,
+                    color: Colors.white,
+                    size: 32,
+                  ),
                 ),
               ),
               Expanded(
@@ -678,13 +768,15 @@ class _MenuRow extends StatelessWidget {
                   child: const Icon(Icons.stop, color: Colors.white, size: 32),
                 ),
               ),
-              const Expanded(
-                child: SizedBox(),
-              ),
+              const Expanded(child: SizedBox()),
               Expanded(
                 child: InkWell(
                   onTap: onSettings,
-                  child: const Icon(Icons.settings, color: Colors.white, size: 32),
+                  child: const Icon(
+                    Icons.settings,
+                    color: Colors.white,
+                    size: 32,
+                  ),
                 ),
               ),
             ],
@@ -733,7 +825,8 @@ class GameLayout extends StatelessWidget {
         onTimerTap: () => onTimerTap(player),
         onLifeAdjust: (amt) => onLifeAdjust(player, amt),
         onTimeAdjust: (amt) => onTimeAdjust(player, amt),
-        onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(player, targetId, amt),
+        onCommanderDamageAdjust: (targetId, amt) =>
+            onCommanderDamageAdjust(player, targetId, amt),
         onTimerLongPress: onTimerLongPress,
         rotations: rotations,
       ),
@@ -743,7 +836,7 @@ class GameLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget layoutColumn;
-    
+
     if (players.length == 2) {
       layoutColumn = Column(
         children: [
@@ -762,10 +855,7 @@ class GameLayout extends StatelessWidget {
         children: [
           Expanded(
             child: Row(
-              children: [
-                _buildPlayerWidget(0, 1),
-                _buildPlayerWidget(1, 3),
-              ],
+              children: [_buildPlayerWidget(0, 1), _buildPlayerWidget(1, 3)],
             ),
           ),
           _MenuRow(
@@ -782,10 +872,7 @@ class GameLayout extends StatelessWidget {
         children: [
           Expanded(
             child: Row(
-              children: [
-                _buildPlayerWidget(0, 1),
-                _buildPlayerWidget(1, 3),
-              ],
+              children: [_buildPlayerWidget(0, 1), _buildPlayerWidget(1, 3)],
             ),
           ),
           _MenuRow(
@@ -796,20 +883,20 @@ class GameLayout extends StatelessWidget {
           ),
           Expanded(
             child: Row(
-              children: [
-                _buildPlayerWidget(3, 1),
-                _buildPlayerWidget(2, 3),
-              ],
+              children: [_buildPlayerWidget(3, 1), _buildPlayerWidget(2, 3)],
             ),
           ),
         ],
       );
     } else {
       layoutColumn = Column(
-        children: List.generate(players.length, (index) => _buildPlayerWidget(index, 0)),
+        children: List.generate(
+          players.length,
+          (index) => _buildPlayerWidget(index, 0),
+        ),
       );
     }
-    
+
     return Stack(
       alignment: Alignment.center,
       children: [

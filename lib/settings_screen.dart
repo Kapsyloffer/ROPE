@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'settings.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -16,10 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Game Settings'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Game Settings'), elevation: 0),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -73,7 +71,10 @@ class _GeneralSettingsCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: TextFormField(
                 initialValue: Settings.startLife.toString(),
                 decoration: const InputDecoration(
@@ -83,7 +84,8 @@ class _GeneralSettingsCard extends StatelessWidget {
                 ),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
-                  int? parsedValue = num.tryParse(value.replaceAll(',', '.'))?.toInt();
+                  int? parsedValue = num.tryParse(value.replaceAll(',', '.'))
+                      ?.toInt();
                   if (parsedValue != null) {
                     Settings.startLife = parsedValue;
                     Settings.save();
@@ -123,7 +125,10 @@ class _TimerSettingsCard extends StatelessWidget {
               },
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: TextFormField(
                 initialValue: Settings.startTime.toString(),
                 decoration: const InputDecoration(
@@ -131,10 +136,13 @@ class _TimerSettingsCard extends StatelessWidget {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.timer_outlined),
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 enabled: Settings.useTimer,
                 onChanged: (value) {
-                  double? parsedValue = num.tryParse(value.replaceAll(',', '.'))?.toDouble();
+                  double? parsedValue = num.tryParse(value.replaceAll(',', '.'))
+                      ?.toDouble();
                   if (parsedValue != null) {
                     Settings.startTime = parsedValue;
                     Settings.save();
@@ -143,7 +151,10 @@ class _TimerSettingsCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: TextFormField(
                 initialValue: Settings.increment.toString(),
                 decoration: const InputDecoration(
@@ -154,7 +165,8 @@ class _TimerSettingsCard extends StatelessWidget {
                 keyboardType: TextInputType.number,
                 enabled: Settings.useTimer,
                 onChanged: (value) {
-                  int? parsedValue = num.tryParse(value.replaceAll(',', '.'))?.toInt();
+                  int? parsedValue = num.tryParse(value.replaceAll(',', '.'))
+                      ?.toInt();
                   if (parsedValue != null) {
                     Settings.increment = parsedValue;
                     Settings.save();
@@ -182,7 +194,9 @@ class _SlowBurnSettingsCard extends StatelessWidget {
         ignoring: !Settings.useTimer,
         child: Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -198,7 +212,10 @@ class _SlowBurnSettingsCard extends StatelessWidget {
                   },
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: TextFormField(
                     initialValue: Settings.burnInterval.toString(),
                     decoration: const InputDecoration(
@@ -209,7 +226,9 @@ class _SlowBurnSettingsCard extends StatelessWidget {
                     keyboardType: TextInputType.number,
                     enabled: Settings.useSlowBurn,
                     onChanged: (value) {
-                      int? parsedValue = num.tryParse(value.replaceAll(',', '.'))?.toInt();
+                      int? parsedValue = num.tryParse(
+                        value.replaceAll(',', '.'),
+                      )?.toInt();
                       if (parsedValue != null) {
                         Settings.burnInterval = parsedValue;
                         Settings.save();
@@ -218,7 +237,10 @@ class _SlowBurnSettingsCard extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: TextFormField(
                     initialValue: Settings.burnAmount.toString(),
                     decoration: const InputDecoration(
@@ -229,7 +251,9 @@ class _SlowBurnSettingsCard extends StatelessWidget {
                     keyboardType: TextInputType.number,
                     enabled: Settings.useSlowBurn,
                     onChanged: (value) {
-                      int? parsedValue = num.tryParse(value.replaceAll(',', '.'))?.toInt();
+                      int? parsedValue = num.tryParse(
+                        value.replaceAll(',', '.'),
+                      )?.toInt();
                       if (parsedValue != null) {
                         Settings.burnAmount = parsedValue;
                         Settings.save();
@@ -286,7 +310,10 @@ class _PlayerCustomizationCard extends StatelessWidget {
             ),
             ...List.generate(Settings.players, (index) {
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 child: Row(
                   children: [
                     Icon(Icons.person, color: Settings.playerColors[index]),
@@ -305,7 +332,11 @@ class _PlayerCustomizationCard extends StatelessWidget {
                             value: option.color,
                             child: Row(
                               children: [
-                                Container(width: 16, height: 16, color: option.color),
+                                Container(
+                                  width: 16,
+                                  height: 16,
+                                  color: option.color,
+                                ),
                                 const SizedBox(width: 8),
                                 Text(option.name),
                               ],
