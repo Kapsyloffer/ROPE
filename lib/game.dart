@@ -25,6 +25,7 @@ class Game {
     void pause() {
         for (var i = 0; i < players.length; i++) {
             players[i].timer.active = false;
+            players[i].timer.resetTurn(); 
             players[i].timer.clock?.cancel();
         }
     }
@@ -39,6 +40,7 @@ class Game {
                     players[i].timer.startClock();
                 } else {
                     players[i].timer.active = false;
+                    players[i].timer.resetTurn(); 
                     players[i].timer.clock?.cancel();
                 }
             }
@@ -75,6 +77,7 @@ class Game {
                 players[i].timer.startClock();
             } else {
                 players[i].timer.active = false;
+                players[i].timer.resetTurn(); 
                 players[i].timer.clock?.cancel();
             }
         }

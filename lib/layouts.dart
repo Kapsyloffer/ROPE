@@ -33,7 +33,7 @@ class PlayerWidget extends StatefulWidget {
   State<PlayerWidget> createState() => _PlayerWidgetState();
 }
 
-class _PlayerWidgetState extends State<PlayerWidget> {
+class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderStateMixin {
   int _lifeDelta = 0;
   bool _showLifeDelta = false;
   async.Timer? _lifeDeltaTimer;
@@ -55,10 +55,28 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   int? _editingCommanderId;
   double _dragDistance = 0.0;
 
+  late AnimationController _ropeController;
+
   @override
   void initState() {
     super.initState();
     _lastTime = widget.player.timer.curTime;
+    
+    int durationSec = Settings.burnInterval > 0 ? Settings.burnInterval : 1;
+    _ropeController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: durationSec),
+    );
+
+    if (Settings.useSlowBurn && widget.player.timer.active && widget.player.alive) {
+      double startFraction = Settings.burnInterval > 0
+          ? widget.player.timer.elapsedTurnTime / Settings.burnInterval
+          : 0.0;
+      if (startFraction < 0.0) startFraction = 0.0;
+      if (startFraction > 1.0) startFraction = 1.0;
+      _ropeController.value = startFraction;
+      _ropeController.repeat();
+    }
   }
 
   @override
@@ -77,7 +95,34 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     if (widget.player.timer.curTime > _lastTime && !widget.player.timer.active && Settings.useTimer && Settings.increment > 0) {
       _triggerTimeIncrement();
     }
+
+    _handleRopeAnimation();
     _lastTime = widget.player.timer.curTime;
+  }
+
+  void _handleRopeAnimation() {
+    int durationSec = Settings.burnInterval > 0 ? Settings.burnInterval : 1;
+    if (_ropeController.duration?.inSeconds != durationSec) {
+      _ropeController.duration = Duration(seconds: durationSec);
+    }
+
+    if (!Settings.useSlowBurn || !widget.player.alive || !widget.player.timer.active) {
+      if (_ropeController.isAnimating || _ropeController.value != 0.0) {
+        _ropeController.stop();
+        _ropeController.value = 0.0;
+      }
+      return;
+    }
+
+    if (!_ropeController.isAnimating) {
+      double currentFraction = Settings.burnInterval > 0
+          ? widget.player.timer.elapsedTurnTime / Settings.burnInterval
+          : 0.0;
+      if (currentFraction < 0.0) currentFraction = 0.0;
+      if (currentFraction > 1.0) currentFraction = 1.0;
+      _ropeController.value = currentFraction;
+      _ropeController.repeat();
+    }
   }
 
   void _triggerTimeIncrement() {
@@ -326,6 +371,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
 
   @override
   void dispose() {
+    _ropeController.dispose();
     _lifeDeltaTimer?.cancel();
     _timeIncrementTimer?.cancel();
     _delayTimer?.cancel();
@@ -493,6 +539,39 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
+                        if (Settings.useSlowBurn && widget.player.alive && widget.player.timer.active)
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return AnimatedBuilder(
+                                  animation: _ropeController,
+                                  builder: (context, child) {
+                                    double remaining = 1.0 - _ropeController.value;
+                                    return Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Container(
+                                        width: constraints.maxWidth * remaining,
+                                        height: 8.0,
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade900,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.green.shade800,
+                                              blurRadius: 8.0,
+                                              spreadRadius: 2.0,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
                         if (_isEditingTimer)
                           Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -649,6 +728,7 @@ class GameLayout extends StatelessWidget {
 
     return Expanded(
       child: PlayerWidget(
+        key: ObjectKey(player),
         player: player,
         onTimerTap: () => onTimerTap(player),
         onLifeAdjust: (amt) => onLifeAdjust(player, amt),

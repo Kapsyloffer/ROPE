@@ -21,6 +21,7 @@ class Timer {
         active = !active;
         if (!active) {
             curTime += increment;
+            resetTurn();
             clock?.cancel();
         } else {
             startClock();
@@ -46,6 +47,7 @@ class Timer {
                 }
             } else {
                 active = false;
+                resetTurn();
                 clock?.cancel();
                 if (onTick != null) {
                     onTick!();
