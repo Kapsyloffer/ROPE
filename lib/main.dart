@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'game.dart';
-import 'player.dart';
-import 'settings.dart';
-import 'layouts.dart';
-import 'settings_screen.dart';
-import 'counters.dart';
+import 'models/game.dart';
+import 'models/player.dart';
+import 'models/settings.dart';
+import 'models/counters.dart';
+import 'UI/game_layout.dart';
+import 'screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'settings.dart';
+import '../models/settings.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
