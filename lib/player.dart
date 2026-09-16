@@ -1,6 +1,7 @@
 import 'timer.dart';
 import 'settings.dart';
 import 'commander.dart';
+import 'counters.dart';
 
 class Player {
   int order;
@@ -12,7 +13,7 @@ class Player {
 
   Timer timer;
   late CommanderDamage commanderDamage;
-  //TODO: Counters: poison, energy, etc
+  late PlayerCounters counters;
 
   Player(this.order)
     : activePlayer = false,
@@ -21,6 +22,7 @@ class Player {
       alive = true,
       timer = Timer() {
     commanderDamage = CommanderDamage(Settings.players);
+    counters = PlayerCounters();
   }
 
   void reset() {
@@ -28,6 +30,7 @@ class Player {
     alive = true;
     timer.reset();
     commanderDamage = CommanderDamage(Settings.players);
+    counters.reset();
   }
 
   void addLife(int amount) {
@@ -48,6 +51,9 @@ class Player {
       return false;
     }
     if (commanderDamage.isLethal()) {
+      return false;
+    }
+    if (counters.isLethal()) {
       return false;
     }
 
