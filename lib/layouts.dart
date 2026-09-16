@@ -12,9 +12,9 @@ String formatTime(double seconds) {
 class PlayerWidget extends StatefulWidget {
   final Player player;
   final VoidCallback onTimerTap;
-  final Function(int) onLifeAdjust;
-  final Function(double) onTimeAdjust;
-  final Function(int, int) onCommanderDamageAdjust;
+  final void Function(int) onLifeAdjust;
+  final void Function(double) onTimeAdjust;
+  final void Function(int, int) onCommanderDamageAdjust;
   final VoidCallback onTimerLongPress;
   final int rotations;
 
@@ -44,6 +44,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
   bool isHolding = false;
 
   bool showTimeIncrement = false;
+  async.Timer? delayTimer;
   async.Timer? timeIncrementTimer;
   Alignment timeIncAlignment = const Alignment(0.0, -0.8);
   double timeIncOpacity = 0.0;
@@ -52,6 +53,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
   bool isEditingTimer = false;
   bool showCommanderDamage = false;
   int? editingCommanderId;
+  double _dragDistance = 0.0;
 
   @override
   void initState() {
@@ -76,7 +78,8 @@ class PlayerWidgetState extends State<PlayerWidget> {
       timeIncOpacity = 1.0;
     });
     
-    Future.delayed(const Duration(milliseconds: 50), () {
+    delayTimer?.cancel();
+    delayTimer = async.Timer(const Duration(milliseconds: 50), () {
       if (mounted) {
         setState(() {
           timeIncAlignment = const Alignment(0.0, -2.0);
@@ -147,7 +150,63 @@ class PlayerWidgetState extends State<PlayerWidget> {
     isHolding = false;
   }
 
-  Widget buildCommanderCell(int targetPlayerId) {
+  Widget _buildAdjustButton(IconData icon, int amount, Color buttonColor) {
+    return Expanded(
+      child: Material(
+        color: buttonColor,
+        child: InkWell(
+          onTap: () {
+            if (!isHolding) handleLifeAdjust(amount);
+          },
+          onTapDown: (_) => handleTapDown(amount),
+          onTapUp: (_) => handleTapUp(),
+          onTapCancel: handleTapCancel,
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Icon(icon, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCommanderAdjustButton(int targetPlayerId, IconData icon, int amount) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => widget.onCommanderDamageAdjust(targetPlayerId, amount),
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Icon(icon, size: 32, color: Colors.black),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimerAdjustButton(IconData icon, double amount) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => widget.onTimeAdjust(amount),
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Icon(icon, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCommanderCell(int targetPlayerId) {
     if (targetPlayerId == widget.player.order) {
       return const SizedBox.shrink();
     }
@@ -182,20 +241,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
               ? Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => widget.onCommanderDamageAdjust(targetPlayerId, -1),
-                          child: const Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Icon(Icons.remove, size: 32, color: Colors.black),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    _buildCommanderAdjustButton(targetPlayerId, Icons.remove, -1),
                     Expanded(
                       flex: 2,
                       child: Column(
@@ -211,20 +257,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
                         ],
                       ),
                     ),
-                    Expanded(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => widget.onCommanderDamageAdjust(targetPlayerId, 1),
-                          child: const Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Icon(Icons.add, size: 32, color: Colors.black),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    _buildCommanderAdjustButton(targetPlayerId, Icons.add, 1),
                   ],
                 )
               : Column(
@@ -244,54 +277,40 @@ class PlayerWidgetState extends State<PlayerWidget> {
     );
   }
 
-  Widget buildCommanderGrid() {
+  Widget _buildCommanderRow(int id1, int id2) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(child: _buildCommanderCell(id1)),
+        Expanded(child: _buildCommanderCell(id2)),
+      ],
+    );
+  }
+
+  Widget _buildCommanderGrid() {
     if (Settings.players == 2) {
        return Column(
          crossAxisAlignment: CrossAxisAlignment.stretch,
          children: [
-           Expanded(child: buildCommanderCell(0)),
-           Expanded(child: buildCommanderCell(1)),
-         ]
+           Expanded(child: _buildCommanderCell(0)),
+           Expanded(child: _buildCommanderCell(1)),
+         ],
        );
     } else if (Settings.players == 3) {
        return Column(
          crossAxisAlignment: CrossAxisAlignment.stretch,
          children: [
-           Expanded(
-             child: Row(
-               crossAxisAlignment: CrossAxisAlignment.stretch,
-               children: [
-                 Expanded(child: buildCommanderCell(0)),
-                 Expanded(child: buildCommanderCell(1)),
-               ]
-             )
-           ),
-           Expanded(child: buildCommanderCell(2)),
-         ]
+           Expanded(child: _buildCommanderRow(0, 1)),
+           Expanded(child: _buildCommanderCell(2)),
+         ],
        );
     } else {
        return Column(
          crossAxisAlignment: CrossAxisAlignment.stretch,
          children: [
-           Expanded(
-             child: Row(
-               crossAxisAlignment: CrossAxisAlignment.stretch,
-               children: [
-                 Expanded(child: buildCommanderCell(0)),
-                 Expanded(child: buildCommanderCell(1)),
-               ]
-             )
-           ),
-           Expanded(
-             child: Row(
-               crossAxisAlignment: CrossAxisAlignment.stretch,
-               children: [
-                 Expanded(child: buildCommanderCell(3)),
-                 Expanded(child: buildCommanderCell(2)),
-               ]
-             )
-           ),
-         ]
+           Expanded(child: _buildCommanderRow(0, 1)),
+           Expanded(child: _buildCommanderRow(3, 2)),
+         ],
        );
     }
   }
@@ -300,6 +319,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
   void dispose() {
     lifeDeltaTimer?.cancel();
     timeIncrementTimer?.cancel();
+    delayTimer?.cancel();
     initialHoldTimer?.cancel();
     periodicHoldTimer?.cancel();
     super.dispose();
@@ -318,18 +338,19 @@ class PlayerWidgetState extends State<PlayerWidget> {
       ),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
+        onVerticalDragStart: (_) => _dragDistance = 0.0,
+        onVerticalDragUpdate: (details) => _dragDistance += details.primaryDelta ?? 0.0,
         onVerticalDragEnd: (details) {
-          if (details.primaryVelocity != null) {
-            if (details.primaryVelocity! < 0) {
-              setState(() {
-                showCommanderDamage = true;
-              });
-            } else if (details.primaryVelocity! > 0) {
-              setState(() {
-                showCommanderDamage = false;
-                editingCommanderId = null;
-              });
-            }
+          final velocity = details.primaryVelocity ?? 0.0;
+          if (velocity < -100 || _dragDistance < -40) {
+            setState(() {
+              showCommanderDamage = true;
+            });
+          } else if (velocity > 100 || _dragDistance > 40) {
+            setState(() {
+              showCommanderDamage = false;
+              editingCommanderId = null;
+            });
           }
         },
         child: Column(
@@ -353,25 +374,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Expanded(
-                                  child: Material(
-                                    color: buttonColor,
-                                    child: InkWell(
-                                      onTap: () {
-                                        if (!isHolding) handleLifeAdjust(-1);
-                                      },
-                                      onTapDown: (_) => handleTapDown(-1),
-                                      onTapUp: (_) => handleTapUp(),
-                                      onTapCancel: handleTapCancel,
-                                      child: Center(
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Icon(Icons.remove, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                _buildAdjustButton(Icons.remove, -1, buttonColor),
                                 Expanded(
                                   flex: 2,
                                   child: Stack(
@@ -419,25 +422,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
                                     ],
                                   ),
                                 ),
-                                Expanded(
-                                  child: Material(
-                                    color: buttonColor,
-                                    child: InkWell(
-                                      onTap: () {
-                                        if (!isHolding) handleLifeAdjust(1);
-                                      },
-                                      onTapDown: (_) => handleTapDown(1),
-                                      onTapUp: (_) => handleTapUp(),
-                                      onTapCancel: handleTapCancel,
-                                      child: Center(
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Icon(Icons.add, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                _buildAdjustButton(Icons.add, 1, buttonColor),
                               ],
                             ),
                           ),
@@ -458,7 +443,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
                               padding: const EdgeInsets.all(4.0),
                               child: RotatedBox(
                                 quarterTurns: widget.rotations == 0 ? 0 : 4 - widget.rotations,
-                                child: buildCommanderGrid(),
+                                child: _buildCommanderGrid(),
                               ),
                             ),
                           ),
@@ -503,20 +488,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
                           Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Expanded(
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () => widget.onTimeAdjust(-15.0),
-                                  child: Center(
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Icon(Icons.remove, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            _buildTimerAdjustButton(Icons.remove, -15.0),
                             Expanded(
                               flex: 2,
                               child: Center(
@@ -529,20 +501,7 @@ class PlayerWidgetState extends State<PlayerWidget> {
                                 ),
                               ),
                             ),
-                            Expanded(
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () => widget.onTimeAdjust(15.0),
-                                  child: Center(
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Icon(Icons.add, size: 48, color: widget.player.alive ? Colors.black : Colors.red),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            _buildTimerAdjustButton(Icons.add, 15.0),
                           ],
                         )
                         else
@@ -651,10 +610,10 @@ class MenuRow extends StatelessWidget {
 
 class GameLayout extends StatelessWidget {
   final List<Player> players;
-  final Function(Player) onTimerTap;
-  final Function(Player, int) onLifeAdjust;
-  final Function(Player, double) onTimeAdjust;
-  final Function(Player, int, int) onCommanderDamageAdjust;
+  final void Function(Player) onTimerTap;
+  final void Function(Player, int) onLifeAdjust;
+  final void Function(Player, double) onTimeAdjust;
+  final void Function(Player, int, int) onCommanderDamageAdjust;
   final VoidCallback onTimerLongPress;
   final VoidCallback onPause;
   final VoidCallback onReset;
@@ -677,6 +636,23 @@ class GameLayout extends StatelessWidget {
     required this.showMenu,
   });
 
+  Widget _buildPlayerWidget(int index, int rotations) {
+    final player = players[index];
+
+    return Expanded(
+      child: PlayerWidget(
+        key: ObjectKey(player),
+        player: player,
+        onTimerTap: () => onTimerTap(player),
+        onLifeAdjust: (amt) => onLifeAdjust(player, amt),
+        onTimeAdjust: (amt) => onTimeAdjust(player, amt),
+        onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(player, targetId, amt),
+        onTimerLongPress: onTimerLongPress,
+        rotations: rotations,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget layoutColumn;
@@ -684,34 +660,14 @@ class GameLayout extends StatelessWidget {
     if (players.length == 2) {
       layoutColumn = Column(
         children: [
-          Expanded(
-            child: PlayerWidget(
-              player: players[0], 
-              onTimerTap: () => onTimerTap(players[0]), 
-              onLifeAdjust: (amt) => onLifeAdjust(players[0], amt), 
-              onTimeAdjust: (amt) => onTimeAdjust(players[0], amt),
-              onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[0], targetId, amt),
-              onTimerLongPress: onTimerLongPress,
-              rotations: 2,
-            ),
-          ),
+          _buildPlayerWidget(0, 2),
           MenuRow(
             onPause: onPause,
             onReset: onReset,
             onSettings: onSettings,
             showMenu: showMenu,
           ),
-          Expanded(
-            child: PlayerWidget(
-              player: players[1], 
-              onTimerTap: () => onTimerTap(players[1]), 
-              onLifeAdjust: (amt) => onLifeAdjust(players[1], amt), 
-              onTimeAdjust: (amt) => onTimeAdjust(players[1], amt),
-              onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[1], targetId, amt),
-              onTimerLongPress: onTimerLongPress,
-              rotations: 0,
-            ),
-          ),
+          _buildPlayerWidget(1, 0),
         ],
       );
     } else if (players.length == 3) {
@@ -720,28 +676,8 @@ class GameLayout extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                Expanded(
-                  child: PlayerWidget(
-                    player: players[0], 
-                    onTimerTap: () => onTimerTap(players[0]), 
-                    onLifeAdjust: (amt) => onLifeAdjust(players[0], amt), 
-                    onTimeAdjust: (amt) => onTimeAdjust(players[0], amt),
-                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[0], targetId, amt),
-                    onTimerLongPress: onTimerLongPress,
-                    rotations: 1,
-                  ),
-                ),
-                Expanded(
-                  child: PlayerWidget(
-                    player: players[1], 
-                    onTimerTap: () => onTimerTap(players[1]), 
-                    onLifeAdjust: (amt) => onLifeAdjust(players[1], amt), 
-                    onTimeAdjust: (amt) => onTimeAdjust(players[1], amt),
-                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[1], targetId, amt),
-                    onTimerLongPress: onTimerLongPress,
-                    rotations: 3,
-                  ),
-                ),
+                _buildPlayerWidget(0, 1),
+                _buildPlayerWidget(1, 3),
               ],
             ),
           ),
@@ -751,17 +687,7 @@ class GameLayout extends StatelessWidget {
             onSettings: onSettings,
             showMenu: showMenu,
           ),
-          Expanded(
-            child: PlayerWidget(
-              player: players[2], 
-              onTimerTap: () => onTimerTap(players[2]), 
-              onLifeAdjust: (amt) => onLifeAdjust(players[2], amt), 
-              onTimeAdjust: (amt) => onTimeAdjust(players[2], amt),
-              onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[2], targetId, amt),
-              onTimerLongPress: onTimerLongPress,
-              rotations: 0,
-            ),
-          ),
+          _buildPlayerWidget(2, 0),
         ],
       );
     } else if (players.length == 4) {
@@ -770,28 +696,8 @@ class GameLayout extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                Expanded(
-                  child: PlayerWidget(
-                    player: players[0], 
-                    onTimerTap: () => onTimerTap(players[0]), 
-                    onLifeAdjust: (amt) => onLifeAdjust(players[0], amt), 
-                    onTimeAdjust: (amt) => onTimeAdjust(players[0], amt),
-                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[0], targetId, amt),
-                    onTimerLongPress: onTimerLongPress,
-                    rotations: 1,
-                  ),
-                ),
-                Expanded(
-                  child: PlayerWidget(
-                    player: players[1], 
-                    onTimerTap: () => onTimerTap(players[1]), 
-                    onLifeAdjust: (amt) => onLifeAdjust(players[1], amt), 
-                    onTimeAdjust: (amt) => onTimeAdjust(players[1], amt),
-                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[1], targetId, amt),
-                    onTimerLongPress: onTimerLongPress,
-                    rotations: 3,
-                  ),
-                ),
+                _buildPlayerWidget(0, 1),
+                _buildPlayerWidget(1, 3),
               ],
             ),
           ),
@@ -804,28 +710,8 @@ class GameLayout extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                Expanded(
-                  child: PlayerWidget(
-                    player: players[3], 
-                    onTimerTap: () => onTimerTap(players[3]), 
-                    onLifeAdjust: (amt) => onLifeAdjust(players[3], amt), 
-                    onTimeAdjust: (amt) => onTimeAdjust(players[3], amt),
-                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[3], targetId, amt),
-                    onTimerLongPress: onTimerLongPress,
-                    rotations: 1,
-                  ),
-                ),
-                Expanded(
-                  child: PlayerWidget(
-                    player: players[2], 
-                    onTimerTap: () => onTimerTap(players[2]), 
-                    onLifeAdjust: (amt) => onLifeAdjust(players[2], amt), 
-                    onTimeAdjust: (amt) => onTimeAdjust(players[2], amt),
-                    onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(players[2], targetId, amt),
-                    onTimerLongPress: onTimerLongPress,
-                    rotations: 3,
-                  ),
-                ),
+                _buildPlayerWidget(3, 1),
+                _buildPlayerWidget(2, 3),
               ],
             ),
           ),
@@ -833,16 +719,7 @@ class GameLayout extends StatelessWidget {
       );
     } else {
       layoutColumn = Column(
-        children: players.map((p) => Expanded(
-          child: PlayerWidget(
-            player: p, 
-            onTimerTap: () => onTimerTap(p), 
-            onLifeAdjust: (amt) => onLifeAdjust(p, amt),
-            onTimeAdjust: (amt) => onTimeAdjust(p, amt),
-            onCommanderDamageAdjust: (targetId, amt) => onCommanderDamageAdjust(p, targetId, amt),
-            onTimerLongPress: onTimerLongPress,
-          ),
-        )).toList(),
+        children: List.generate(players.length, (index) => _buildPlayerWidget(index, 0)),
       );
     }
     

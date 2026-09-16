@@ -102,6 +102,7 @@ class MyHomePageState extends State<MyHomePage> {
   void handleReset() {
     setState(() {
       initGame();
+      showMenu = false;
     });
   }
 
