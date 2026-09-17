@@ -18,8 +18,9 @@ Or maybe you just want to play Bullet ~~Chess~~ Magic?
 
 | Feature | Description |
 | :--- | :--- |
-| **Chess Clock** | An optional in chess clock featuring adjustable increments, a player is out of the game if they run out of time. |
+| **Chess Clock** | An optional chess clock featuring adjustable increments, a player is out of the game if they run out of time. |
 | **Slow Burn** | An optional feature which punishes the slowest players for taking too long turns by pinging them for a set amount of HP when the "rope" burns out. |
+| **Priority Stack** | Tap your own timer to hold priority. Tap it again to continue the previous turn. This feature stacks. |
 | **Life Tracking** | Just like any MTG life counter you can tap to adjust life by 1, or hold to add/subtract 10. |
 | **Commander Damage** | Swipe vertically on a players life total to add commander damage. You can long press to reveal +/- controls. |
 
