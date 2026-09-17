@@ -45,7 +45,11 @@ class _CountersGridState extends State<CountersGrid> {
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(icon, size: 32, color: Colors.black),
+              child: Icon(
+                icon,
+                size: 32,
+                color: widget.player.alive ? Colors.black : Colors.red,
+              ),
             ),
           ),
         ),
@@ -88,10 +92,12 @@ class _CountersGridState extends State<CountersGrid> {
                             fit: BoxFit.scaleDown,
                             child: Text(
                               label.toUpperCase(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black54,
+                                color: widget.player.alive
+                                    ? Colors.black54
+                                    : Colors.red.shade900,
                               ),
                             ),
                           ),
@@ -99,10 +105,12 @@ class _CountersGridState extends State<CountersGrid> {
                             fit: BoxFit.scaleDown,
                             child: Text(
                               '$value',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: widget.player.alive
+                                    ? Colors.black
+                                    : Colors.red,
                               ),
                             ),
                           ),
@@ -119,10 +127,12 @@ class _CountersGridState extends State<CountersGrid> {
                       fit: BoxFit.scaleDown,
                       child: Text(
                         label.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black54,
+                          color: widget.player.alive
+                              ? Colors.black54
+                              : Colors.red.shade900,
                         ),
                       ),
                     ),
@@ -130,10 +140,12 @@ class _CountersGridState extends State<CountersGrid> {
                       fit: BoxFit.scaleDown,
                       child: Text(
                         '$value',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: widget.player.alive
+                              ? Colors.black
+                              : Colors.red,
                         ),
                       ),
                     ),
@@ -159,17 +171,23 @@ class _CountersGridState extends State<CountersGrid> {
                 fit: BoxFit.scaleDown,
                 child: Text(
                   label.toUpperCase(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black54,
+                    color: widget.player.alive
+                        ? Colors.black54
+                        : Colors.red.shade900,
                   ),
                 ),
               ),
               Icon(
                 isEnabled ? Icons.military_tech : Icons.military_tech_outlined,
                 size: 32,
-                color: isEnabled ? Colors.white : Colors.black54,
+                color: isEnabled
+                    ? (widget.player.alive ? Colors.white : Colors.red.shade200)
+                    : (widget.player.alive
+                          ? Colors.black54
+                          : Colors.red.shade900),
               ),
             ],
           ),
