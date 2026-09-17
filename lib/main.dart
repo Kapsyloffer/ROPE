@@ -95,10 +95,13 @@ class _MyHomePageState extends State<MyHomePage> {
       if (isPaused) {
         _game.resume(player);
       } else if (player.timer.active) {
-        player.timer.toggleTimer();
+        bool isInterrupt = _game.turnStack.isNotEmpty;
+        player.timer.toggleTimer(isInterrupt: isInterrupt);
         if (!player.timer.active) {
           _game.nextPlayer();
         }
+      } else {
+        _game.interruptTurn(player);
       }
     });
   }

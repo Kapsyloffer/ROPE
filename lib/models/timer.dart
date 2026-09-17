@@ -18,10 +18,12 @@ class Timer {
       increment = Settings.increment,
       active = false;
 
-  void toggleTimer() {
+  void toggleTimer({bool isInterrupt = false}) {
     active = !active;
     if (!active) {
-      curTime += increment;
+      if (!isInterrupt) {
+        curTime += increment;
+      }
       resetTurn();
       clock?.cancel();
     } else {

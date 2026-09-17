@@ -86,7 +86,8 @@ class _TimerDisplayState extends State<TimerDisplay>
     if (widget.player.timer.curTime > _lastTime &&
         !widget.player.timer.active &&
         Settings.useTimer &&
-        Settings.increment > 0) {
+        Settings.increment > 0 &&
+        !widget.player.isInterrupted) {
       _triggerTimeIncrement();
     }
 
@@ -218,6 +219,12 @@ class _TimerDisplayState extends State<TimerDisplay>
                     ? activeTimerColor
                     : Colors.black.withValues(alpha: 0.15))
               : Colors.black.withValues(alpha: 0.3),
+          border: Border.all(
+            color: widget.player.isInterrupted
+                ? Colors.white
+                : Colors.transparent,
+            width: 6.0,
+          ),
         ),
         child: Stack(
           alignment: Alignment.center,
