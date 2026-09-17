@@ -10,6 +10,8 @@ class Player {
   int curLife;
   int startLife;
   bool alive;
+  bool isInterrupted = false;
+  bool isBurnFlashing = false;
 
   Timer timer;
   late CommanderDamage commanderDamage;
@@ -28,6 +30,8 @@ class Player {
   void reset() {
     curLife = startLife;
     alive = true;
+    isInterrupted = false;
+    isBurnFlashing = false;
     timer.reset();
     commanderDamage = CommanderDamage(Settings.players);
     counters.reset();

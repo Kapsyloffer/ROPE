@@ -202,7 +202,9 @@ class _PlayerWidgetState extends State<PlayerWidget>
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: widget.isHighlighted
+                    color: widget.player.isBurnFlashing
+                        ? Colors.red
+                        : widget.isHighlighted
                         ? Colors.white
                         : Colors.transparent,
                     width: 8.0,

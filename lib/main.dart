@@ -70,7 +70,15 @@ class _MyHomePageState extends State<MyHomePage> {
           setState(() {
             bool wasAlive = newPlayer.alive;
             newPlayer.decreaseLife(Settings.burnAmount);
+            newPlayer.isBurnFlashing = true;
             _game.checkState(newPlayer, wasAlive);
+          });
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted) {
+              setState(() {
+                newPlayer.isBurnFlashing = false;
+              });
+            }
           });
         }
       };
