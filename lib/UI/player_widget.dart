@@ -101,13 +101,13 @@ class _PlayerWidgetState extends State<PlayerWidget>
             ? Settings.playerColors[widget.player.order]
             : Colors.grey.shade800,
       ),
-      child: Stack(
+      child: Column(
         children: [
-          Column(
-            children: [
-              Expanded(
-                flex: 2,
-                child: GestureDetector(
+          Expanded(
+            flex: 2,
+            child: Stack(
+              children: [
+                GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onVerticalDragUpdate: _onVerticalDragUpdate,
                   onVerticalDragEnd: _onVerticalDragEnd,
@@ -182,37 +182,37 @@ class _PlayerWidgetState extends State<PlayerWidget>
                     ),
                   ),
                 ),
-              ),
-              if (Settings.useTimer)
-                Expanded(
-                  flex: 1,
-                  child: TimerDisplay(
-                    key: ValueKey(widget.player.order),
-                    player: widget.player,
-                    onTimerTap: widget.onTimerTap,
-                    onTimerLongPress: widget.onTimerLongPress,
-                    onTimeAdjust: widget.onTimeAdjust,
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: widget.player.isBurnFlashing
+                              ? Colors.red
+                              : widget.isHighlighted
+                              ? Colors.white
+                              : Colors.transparent,
+                          width: 8.0,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-            ],
-          ),
-          Positioned.fill(
-            child: IgnorePointer(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: widget.player.isBurnFlashing
-                        ? Colors.red
-                        : widget.isHighlighted
-                        ? Colors.white
-                        : Colors.transparent,
-                    width: 8.0,
-                  ),
-                ),
-              ),
+              ],
             ),
           ),
+          if (Settings.useTimer)
+            Expanded(
+              flex: 1,
+              child: TimerDisplay(
+                key: ValueKey(widget.player.order),
+                player: widget.player,
+                onTimerTap: widget.onTimerTap,
+                onTimerLongPress: widget.onTimerLongPress,
+                onTimeAdjust: widget.onTimeAdjust,
+              ),
+            ),
         ],
       ),
     );
