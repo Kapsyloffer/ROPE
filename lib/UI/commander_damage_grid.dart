@@ -149,18 +149,15 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
   }
 
   Widget _buildCommanderCell(int targetPlayerId) {
-    if (targetPlayerId == widget.player.order) {
-      return const SizedBox.shrink();
-    }
-
+    bool me = targetPlayerId == widget.player.order;
     bool hasPartner = Settings.hasPartner[targetPlayerId];
 
     return Container(
       margin: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
-        color: Settings.playerColors[targetPlayerId].withValues(alpha: 0.8),
+        color: Settings.playerColors[targetPlayerId],
         borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: Colors.black12),
+        border: Border.all(color: me ? Colors.black : Colors.black12),
       ),
       child: RotatedBox(
         quarterTurns: widget.rotations,
