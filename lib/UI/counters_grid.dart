@@ -21,15 +21,11 @@ class CountersGrid extends StatefulWidget {
 }
 
 class _CountersGridState extends State<CountersGrid> {
-  String? _editingCounter;
-
   @override
   void didUpdateWidget(covariant CountersGrid oldWidget) {
     super.didUpdateWidget(oldWidget);
     if ((oldWidget.isVisible && !widget.isVisible) ||
-        oldWidget.player != widget.player) {
-      _editingCounter = null;
-    }
+        oldWidget.player != widget.player) {}
   }
 
   Widget _buildCounterAdjustButton(
@@ -58,69 +54,21 @@ class _CountersGridState extends State<CountersGrid> {
   }
 
   Widget _buildCounterData(String counterType, String label, int value) {
-    bool isEditing = _editingCounter == counterType;
-
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          if (isEditing) {
-            setState(() {
-              _editingCounter = null;
-            });
-          } else {
-            widget.onCounterAdjust(counterType, 1);
-          }
-        },
-        onLongPress: () {
-          setState(() {
-            _editingCounter = counterType;
-          });
+          setState(() {});
+          widget.onCounterAdjust(counterType, 1);
         },
         child: Container(
           color: Colors.transparent,
-          child: isEditing
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildCounterAdjustButton(counterType, Icons.remove, -1),
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              label.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: widget.player.alive
-                                    ? Colors.black54
-                                    : Colors.red.shade900,
-                              ),
-                            ),
-                          ),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '$value',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: widget.player.alive
-                                    ? Colors.black
-                                    : Colors.red,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _buildCounterAdjustButton(counterType, Icons.add, 1),
-                  ],
-                )
-              : Column(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildCounterAdjustButton(counterType, Icons.remove, -1),
+              Expanded(
+                flex: 2,
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     FittedBox(
@@ -128,7 +76,7 @@ class _CountersGridState extends State<CountersGrid> {
                       child: Text(
                         label.toUpperCase(),
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: widget.player.alive
                               ? Colors.black54
@@ -151,6 +99,10 @@ class _CountersGridState extends State<CountersGrid> {
                     ),
                   ],
                 ),
+              ),
+              _buildCounterAdjustButton(counterType, Icons.add, 1),
+            ],
+          ),
         ),
       ),
     );
