@@ -11,6 +11,7 @@ class Player {
   int startLife;
   bool alive;
   bool isInterrupted = false;
+  int queuePosition = 0;
   bool isBurnFlashing = false;
 
   Timer timer;
@@ -31,6 +32,7 @@ class Player {
     curLife = startLife;
     alive = true;
     isInterrupted = false;
+    queuePosition = 0;
     isBurnFlashing = false;
     timer.reset();
     commanderDamage = CommanderDamage(Settings.players);

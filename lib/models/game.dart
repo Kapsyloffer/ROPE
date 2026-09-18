@@ -15,12 +15,23 @@ class Game {
     }
   }
 
+  void _updateQueue() {
+    for (var player in players) {
+      player.queuePosition = 0;
+    }
+    int pos = 1;
+    for (int i = 0; i < turnStack.length; i++) {
+      players[turnStack[i]].queuePosition = pos++;
+    }
+  }
+
   void reset() {
     for (var player in players) {
       player.reset();
     }
     activePlayerIndex = 0;
     turnStack.clear();
+    _updateQueue();
   }
 
   void pause() {
@@ -31,6 +42,7 @@ class Game {
       players[i].isInterrupted = false;
     }
     turnStack.clear();
+    _updateQueue();
   }
 
   void resume(Player player) {
@@ -38,6 +50,7 @@ class Game {
     if (idx != -1) {
       activePlayerIndex = idx;
       turnStack.clear();
+      _updateQueue();
       for (var i = 0; i < players.length; i++) {
         players[i].isInterrupted = false;
         if (i == activePlayerIndex) {
@@ -73,6 +86,7 @@ class Game {
     while (turnStack.isNotEmpty) {
       int poppedIndex = turnStack.removeLast();
       players[poppedIndex].isInterrupted = false;
+      _updateQueue();
       if (players[poppedIndex].alive) {
         activePlayerIndex = poppedIndex;
         for (var i = 0; i < players.length; i++) {
@@ -111,6 +125,7 @@ class Game {
 
     players[activePlayerIndex].isInterrupted = true;
     turnStack.add(activePlayerIndex);
+    _updateQueue();
     activePlayerIndex = idx;
 
     for (var i = 0; i < players.length; i++) {

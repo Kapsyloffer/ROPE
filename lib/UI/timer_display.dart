@@ -219,12 +219,6 @@ class _TimerDisplayState extends State<TimerDisplay>
                     ? activeTimerColor
                     : Colors.black.withValues(alpha: 0.15))
               : Colors.black.withValues(alpha: 0.3),
-          border: Border.all(
-            color: widget.player.isInterrupted
-                ? Colors.white
-                : Colors.transparent,
-            width: 6.0,
-          ),
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -253,6 +247,30 @@ class _TimerDisplayState extends State<TimerDisplay>
                       },
                     );
                   },
+                ),
+              ),
+            if (widget.player.queuePosition > 0 && widget.player.alive)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: activeTimerColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    (widget.player.timer.active
+                        ? ''
+                        : '${widget.player.queuePosition}'),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             if (_isEditingTimer)

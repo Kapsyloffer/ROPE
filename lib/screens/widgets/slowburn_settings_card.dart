@@ -82,6 +82,15 @@ class SlowBurnSettingsCard extends StatelessWidget {
                     },
                   ),
                 ),
+                SwitchListTile(
+                  title: const Text('Flash on burn damage'),
+                  value: Settings.useFlashing,
+                  onChanged: (value) {
+                    Settings.useFlashing = value;
+                    Settings.save();
+                    onUpdate();
+                  },
+                ),
               ],
             ),
           ),

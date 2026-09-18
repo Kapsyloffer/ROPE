@@ -25,6 +25,7 @@ class Settings {
   static bool useSlowBurn = false;
   static int burnInterval = 30;
   static int burnAmount = 5;
+  static bool useFlashing = true;
 
   // "autosave"
   static late SharedPreferences prefs;
@@ -43,6 +44,7 @@ class Settings {
     prefs.setBool('useSlowBurn', useSlowBurn);
     prefs.setInt('burnInterval', burnInterval);
     prefs.setInt('burnAmount', burnAmount);
+    prefs.setBool('useFlashing', useFlashing);
     prefs.setStringList('playerNames', playerNames);
     List<String> colorStrings = playerColors
         .map((c) => c.toARGB32().toString())
@@ -61,6 +63,7 @@ class Settings {
     useSlowBurn = prefs.getBool('useSlowBurn') ?? false;
     burnInterval = prefs.getInt('burnInterval') ?? 30;
     burnAmount = prefs.getInt('burnAmount') ?? 5;
+    useFlashing = prefs.getBool('useFlashing') ?? true;
 
     List<String>? names = prefs.getStringList('playerNames');
     if (names != null && names.length >= players) {

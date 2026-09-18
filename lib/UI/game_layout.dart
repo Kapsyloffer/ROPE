@@ -138,8 +138,8 @@ class _GameLayoutState extends State<GameLayout> {
     if (totalPlayers == 0) return;
 
     int currentStep = 0;
-    int maxSteps = 20 + math.Random().nextInt(totalPlayers * 3);
-    int delay = 25;
+    int maxSteps = 10 + math.Random().nextInt(totalPlayers * 3);
+    int delay = 5;
 
     void nextStep() {
       if (!mounted) return;

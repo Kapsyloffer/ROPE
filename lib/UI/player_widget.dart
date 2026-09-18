@@ -182,23 +182,24 @@ class _PlayerWidgetState extends State<PlayerWidget>
                     ),
                   ),
                 ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: widget.player.isBurnFlashing
-                              ? Colors.red
-                              : widget.isHighlighted
-                              ? Colors.white
-                              : Colors.transparent,
-                          width: 8.0,
+                if (Settings.useFlashing)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: widget.player.isBurnFlashing
+                                ? Colors.red
+                                : widget.isHighlighted
+                                ? Colors.white
+                                : Colors.transparent,
+                            width: 8.0,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
