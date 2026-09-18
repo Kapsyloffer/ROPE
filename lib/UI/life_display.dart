@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../models/player.dart';
 import '../models/settings.dart';
-import '../models/counters.dart';
 
 class LifeDisplay extends StatefulWidget {
   final Player player;
@@ -30,53 +29,19 @@ class _LifeDisplayState extends State<LifeDisplay> {
   async.Timer? _periodicHoldTimer;
   bool _isHolding = false;
 
-  bool _wasMonarch = false;
-  bool _showLostMonarch = false;
-  async.Timer? _lostMonarchTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _wasMonarch =
-        (widget.player.counters.activeCounters['monarch'] as ToggleCounter?)
-            ?.enabled ??
-        false;
-  }
-
   @override
   void didUpdateWidget(covariant LifeDisplay oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    bool currentlyMonarch =
-        (widget.player.counters.activeCounters['monarch'] as ToggleCounter?)
-            ?.enabled ??
-        false;
 
     if (oldWidget.player != widget.player) {
       _lifeDeltaTimer?.cancel();
       _initialHoldTimer?.cancel();
       _periodicHoldTimer?.cancel();
-      _lostMonarchTimer?.cancel();
 
       _lifeDelta = 0;
       _lifeDeltaOpacity = 0.0;
       _showLifeDelta = false;
       _isHolding = false;
-      _showLostMonarch = false;
-      _wasMonarch = currentlyMonarch;
-    } else {
-      if (_wasMonarch && !currentlyMonarch) {
-        _showLostMonarch = true;
-        _lostMonarchTimer?.cancel();
-        _lostMonarchTimer = async.Timer(const Duration(milliseconds: 1500), () {
-          if (mounted) {
-            setState(() {
-              _showLostMonarch = false;
-            });
-          }
-        });
-      }
-      _wasMonarch = currentlyMonarch;
     }
   }
 
@@ -166,7 +131,6 @@ class _LifeDisplayState extends State<LifeDisplay> {
     _lifeDeltaTimer?.cancel();
     _initialHoldTimer?.cancel();
     _periodicHoldTimer?.cancel();
-    _lostMonarchTimer?.cancel();
     super.dispose();
   }
 
@@ -175,11 +139,6 @@ class _LifeDisplayState extends State<LifeDisplay> {
     final buttonColor = widget.player.alive
         ? Settings.playerColors[widget.player.order]
         : Colors.grey.shade800;
-
-    bool isMonarch =
-        (widget.player.counters.activeCounters['monarch'] as ToggleCounter?)
-            ?.enabled ??
-        false;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -238,27 +197,6 @@ class _LifeDisplayState extends State<LifeDisplay> {
                     ),
                   ),
                 ),
-              Positioned(
-                bottom: 16,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: isMonarch
-                      ? const Icon(
-                          Icons.military_tech,
-                          color: Colors.black,
-                          size: 28,
-                          key: ValueKey('monarch'),
-                        )
-                      : _showLostMonarch
-                      ? const Icon(
-                          Icons.military_tech_outlined,
-                          color: Colors.black54,
-                          size: 28,
-                          key: ValueKey('lost'),
-                        )
-                      : const SizedBox(key: ValueKey('none')),
-                ),
-              ),
             ],
           ),
         ),
