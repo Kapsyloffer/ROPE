@@ -266,8 +266,8 @@ class _GameLayoutState extends State<GameLayout> {
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
             child: Container(
-              width: 48,
-              height: 48,
+              width: 64,
+              height: 64,
               decoration: const BoxDecoration(
                 color: Colors.black,
                 shape: BoxShape.circle,
