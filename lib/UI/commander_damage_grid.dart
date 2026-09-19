@@ -65,6 +65,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
     int targetPlayerId,
     int commanderIndex,
     int damage,
+    bool me,
   ) {
     bool isEditing =
         _editingCommanderId == targetPlayerId &&
@@ -133,7 +134,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        '$damage',
+                        (me && damage == 0) ? '--' : '$damage',
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -172,6 +173,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                   .commanderDamage
                   .commanders[targetPlayerId]
                   .damageDealt[0],
+              me,
             ),
             if (hasPartner)
               _buildDamageDisplay(
@@ -182,6 +184,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                     .commanderDamage
                     .commanders[targetPlayerId]
                     .damageDealt[1],
+                me,
               ),
           ],
         ),
