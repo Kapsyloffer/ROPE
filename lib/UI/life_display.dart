@@ -150,49 +150,53 @@ class _LifeDisplayState extends State<LifeDisplay> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      '${widget.player.curLife}',
-                      style: TextStyle(
-                        fontSize: 80,
-                        fontWeight: FontWeight.bold,
-                        color: widget.player.alive ? Colors.black : Colors.red,
-                      ),
-                    ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '${widget.player.curLife}',
+                  style: TextStyle(
+                    fontSize: 80,
+                    fontWeight: FontWeight.bold,
+                    color: widget.player.alive ? Colors.black : Colors.red,
                   ),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      Settings.playerNames[widget.player.order],
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: widget.player.alive
-                            ? Colors.black54
-                            : Colors.red.shade900,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-              if (_showLifeDelta)
+              Positioned(
+                bottom: 12,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    Settings.playerNames[widget.player.order],
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: widget.player.alive
+                          ? Colors.black54
+                          : Colors.red.shade900,
+                    ),
+                  ),
+                ),
+              ),
+              if (_showLifeDelta && _lifeDelta != 0)
                 Positioned(
-                  top: 16,
+                  top: 12,
+                  left: _lifeDelta < 0 ? 8 : null,
+                  right: _lifeDelta > 0 ? 8 : null,
                   child: AnimatedOpacity(
                     duration: const Duration(milliseconds: 300),
                     opacity: _lifeDeltaOpacity,
-                    child: Text(
-                      _lifeDelta > 0 ? '+$_lifeDelta' : '$_lifeDelta',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: widget.player.alive
-                            ? Colors.black54
-                            : Colors.red,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        _lifeDelta > 0 ? '+$_lifeDelta' : '$_lifeDelta',
+                        style: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                   ),
