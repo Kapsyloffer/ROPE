@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../models/player.dart';
@@ -40,12 +42,12 @@ class PlayerWidget extends StatefulWidget {
 
 class _PlayerWidgetState extends State<PlayerWidget>
     with SingleTickerProviderStateMixin {
-  late AnimationController _slideController;
+  late AnimationController _flipController;
 
   @override
   void initState() {
     super.initState();
-    _slideController = AnimationController(
+    _flipController = AnimationController(
       vsync: this,
       value: 0.0,
       lowerBound: -1.0,
@@ -58,19 +60,19 @@ class _PlayerWidgetState extends State<PlayerWidget>
   void didUpdateWidget(covariant PlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.resetTrigger != widget.resetTrigger) {
-      _slideController.animateTo(0.0, curve: Curves.easeInOut);
+      _flipController.animateTo(0.0, curve: Curves.easeInOut);
     }
   }
 
   @override
   void dispose() {
-    _slideController.dispose();
+    _flipController.dispose();
     super.dispose();
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     final double height = context.size?.height ?? 300.0;
-    _slideController.value -= details.primaryDelta! / height;
+    _flipController.value -= details.primaryDelta! / height;
   }
 
   void _onVerticalDragEnd(DragEndDetails details) {
@@ -78,18 +80,39 @@ class _PlayerWidgetState extends State<PlayerWidget>
     final double velocity = details.primaryVelocity ?? 0.0;
 
     if (velocity < -100) {
-      target = (_slideController.value + 0.5).ceilToDouble().clamp(-1.0, 1.0);
+      target = (_flipController.value + 0.5).ceilToDouble().clamp(-1.0, 1.0);
     } else if (velocity > 100) {
-      target = (_slideController.value - 0.5).floorToDouble().clamp(-1.0, 1.0);
+      target = (_flipController.value - 0.5).floorToDouble().clamp(-1.0, 1.0);
     } else {
-      if (_slideController.value > 0.4) {
+      if (_flipController.value > 0.4) {
         target = 1.0;
-      } else if (_slideController.value < -0.4) {
+      } else if (_flipController.value < -0.4) {
         target = -1.0;
       }
     }
 
-    _slideController.animateTo(target, curve: Curves.easeOut);
+    _flipController.animateTo(target, curve: Curves.easeOut);
+  }
+
+  Widget _buildFlipFace({
+    required Widget child,
+    required double offset,
+    required double val,
+    required int activeIndex,
+  }) {
+    final double angle = (val - offset) * math.pi;
+
+    if (angle.abs() >= (math.pi / 2)) {
+      return const SizedBox.shrink();
+    }
+
+    return Transform(
+      alignment: Alignment.center,
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, 0.001)
+        ..rotateX(angle),
+      child: IgnorePointer(ignoring: val.round() != activeIndex, child: child),
+    );
   }
 
   @override
@@ -113,67 +136,48 @@ class _PlayerWidgetState extends State<PlayerWidget>
                   onVerticalDragEnd: _onVerticalDragEnd,
                   child: ClipRect(
                     child: AnimatedBuilder(
-                      animation: _slideController,
+                      animation: _flipController,
                       builder: (context, child) {
-                        double val = _slideController.value;
+                        double val = _flipController.value;
                         return Stack(
+                          fit: StackFit.expand,
                           children: [
-                            FractionalTranslation(
-                              translation: Offset(0.0, -1.0 - val),
-                              child: Opacity(
-                                opacity: (1.0 - (val + 1.0).abs()).clamp(
-                                  0.0,
-                                  1.0,
+                            _buildFlipFace(
+                              offset: -1.0,
+                              val: val,
+                              activeIndex: -1,
+                              child: CountersGrid(
+                                key: ValueKey(
+                                  '${widget.player.order}_counters',
                                 ),
-                                child: IgnorePointer(
-                                  ignoring: val.round() != -1,
-                                  child: CountersGrid(
-                                    key: ValueKey(
-                                      '${widget.player.order}_counters',
-                                    ),
-                                    player: widget.player,
-                                    onCounterAdjust: widget.onCounterAdjust,
-                                    isVisible: val.round() == -1,
-                                  ),
-                                ),
+                                player: widget.player,
+                                onCounterAdjust: widget.onCounterAdjust,
+                                isVisible: val.round() == -1,
                               ),
                             ),
-                            FractionalTranslation(
-                              translation: Offset(0.0, -val),
-                              child: Opacity(
-                                opacity: (1.0 - val.abs()).clamp(0.0, 1.0),
-                                child: IgnorePointer(
-                                  ignoring: val.round() != 0,
-                                  child: LifeDisplay(
-                                    key: ValueKey(
-                                      '${widget.player.order}_life',
-                                    ),
-                                    player: widget.player,
-                                    onLifeAdjust: widget.onLifeAdjust,
-                                  ),
-                                ),
+                            _buildFlipFace(
+                              offset: 0.0,
+                              val: val,
+                              activeIndex: 0,
+                              child: LifeDisplay(
+                                key: ValueKey('${widget.player.order}_life'),
+                                player: widget.player,
+                                onLifeAdjust: widget.onLifeAdjust,
                               ),
                             ),
-                            FractionalTranslation(
-                              translation: Offset(0.0, 1.0 - val),
-                              child: Opacity(
-                                opacity: (1.0 - (val - 1.0).abs()).clamp(
-                                  0.0,
-                                  1.0,
+                            _buildFlipFace(
+                              offset: 1.0,
+                              val: val,
+                              activeIndex: 1,
+                              child: CommanderDamageGrid(
+                                key: ValueKey(
+                                  '${widget.player.order}_commander',
                                 ),
-                                child: IgnorePointer(
-                                  ignoring: val.round() != 1,
-                                  child: CommanderDamageGrid(
-                                    key: ValueKey(
-                                      '${widget.player.order}_commander',
-                                    ),
-                                    player: widget.player,
-                                    onCommanderDamageAdjust:
-                                        widget.onCommanderDamageAdjust,
-                                    rotations: widget.rotations,
-                                    isVisible: val.round() == 1,
-                                  ),
-                                ),
+                                player: widget.player,
+                                onCommanderDamageAdjust:
+                                    widget.onCommanderDamageAdjust,
+                                rotations: widget.rotations,
+                                isVisible: val.round() == 1,
                               ),
                             ),
                           ],

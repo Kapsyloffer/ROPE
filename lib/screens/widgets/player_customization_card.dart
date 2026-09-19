@@ -50,7 +50,6 @@ class PlayerCustomizationCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.person, color: Settings.playerColors[index]),
                         const SizedBox(width: 16),
                         Container(
                           decoration: BoxDecoration(
