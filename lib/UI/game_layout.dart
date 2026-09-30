@@ -260,6 +260,7 @@ class _GameLayoutState extends State<GameLayout> {
       children: [
         layoutColumn,
         GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: widget.onToggleMenu,
           child: AnimatedRotation(
             turns: widget.showMenu ? 1.0 : 0.0,

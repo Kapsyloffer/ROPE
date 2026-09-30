@@ -73,6 +73,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
 
     return Expanded(
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () {
           if (isEditing) {
             setState(() {

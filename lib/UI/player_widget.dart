@@ -50,8 +50,8 @@ class _PlayerWidgetState extends State<PlayerWidget>
     _flipController = AnimationController(
       vsync: this,
       value: 0.0,
-      lowerBound: -1.0,
-      upperBound: 1.0,
+      lowerBound: -1.5,
+      upperBound: 1.5,
       duration: const Duration(milliseconds: 300),
     );
   }
@@ -72,26 +72,34 @@ class _PlayerWidgetState extends State<PlayerWidget>
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     final double height = context.size?.height ?? 300.0;
-    _flipController.value -= details.primaryDelta! / height;
+    double delta = details.primaryDelta! / height;
+    
+    if (_flipController.value < -1.0 && delta > 0) {
+      delta *= 0.25; 
+    } else if (_flipController.value > 1.0 && delta < 0) {
+      delta *= 0.25;
+    }
+    
+    _flipController.value -= delta;
   }
 
   void _onVerticalDragEnd(DragEndDetails details) {
     double target = 0.0;
     final double velocity = details.primaryVelocity ?? 0.0;
 
-    if (velocity < -100) {
+    if (velocity < -400) {
       target = (_flipController.value + 0.5).ceilToDouble().clamp(-1.0, 1.0);
-    } else if (velocity > 100) {
+    } else if (velocity > 400) {
       target = (_flipController.value - 0.5).floorToDouble().clamp(-1.0, 1.0);
     } else {
-      if (_flipController.value > 0.4) {
+      if (_flipController.value > 0.5) {
         target = 1.0;
-      } else if (_flipController.value < -0.4) {
+      } else if (_flipController.value < -0.5) {
         target = -1.0;
       }
     }
 
-    _flipController.animateTo(target, curve: Curves.easeOut);
+    _flipController.animateTo(target, curve: Curves.easeOutCubic);
   }
 
   Widget _buildFlipFace({
@@ -106,12 +114,21 @@ class _PlayerWidgetState extends State<PlayerWidget>
       return const SizedBox.shrink();
     }
 
+    bool isIgnoring = false;
+    if (activeIndex == -1) {
+      isIgnoring = val > -0.5;
+    } else if (activeIndex == 0) {
+      isIgnoring = val.abs() >= 0.5;
+    } else if (activeIndex == 1) {
+      isIgnoring = val < 0.5;
+    }
+
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()
         ..setEntry(3, 2, 0.001)
         ..rotateX(angle),
-      child: IgnorePointer(ignoring: val.round() != activeIndex, child: child),
+      child: IgnorePointer(ignoring: isIgnoring, child: child),
     );
   }
 
@@ -152,7 +169,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                                 ),
                                 player: widget.player,
                                 onCounterAdjust: widget.onCounterAdjust,
-                                isVisible: val.round() == -1,
+                                isVisible: val <= -0.5,
                               ),
                             ),
                             _buildFlipFace(
@@ -177,7 +194,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                                 onCommanderDamageAdjust:
                                     widget.onCommanderDamageAdjust,
                                 rotations: widget.rotations,
-                                isVisible: val.round() == 1,
+                                isVisible: val >= 0.5,
                               ),
                             ),
                           ],

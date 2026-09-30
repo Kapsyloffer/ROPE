@@ -83,7 +83,7 @@ class _TimerDisplayState extends State<TimerDisplay>
       _timeIncAlignment = const Alignment(0.0, -0.8);
     }
 
-    if (widget.player.timer.curTime > _lastTime &&
+    if (widget.player.timer.curTime - _lastTime > 0.01 &&
         !widget.player.timer.active &&
         Settings.useTimer &&
         Settings.increment > 0 &&
@@ -195,6 +195,7 @@ class _TimerDisplayState extends State<TimerDisplay>
     }
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         if (_isEditingTimer) {
           setState(() {

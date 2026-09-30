@@ -56,6 +56,7 @@ class _CountersGridState extends State<CountersGrid> {
   Widget _buildCounterData(String counterType, String label, int value) {
     return Expanded(
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () {
           setState(() {});
           widget.onCounterAdjust(counterType, 1);
@@ -111,6 +112,7 @@ class _CountersGridState extends State<CountersGrid> {
   Widget _buildToggleDisplay(String counterType, String label, bool isEnabled) {
     return Expanded(
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () {
           widget.onCounterAdjust(counterType, 1);
         },
