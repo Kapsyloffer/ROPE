@@ -73,13 +73,13 @@ class _PlayerWidgetState extends State<PlayerWidget>
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     final double height = context.size?.height ?? 300.0;
     double delta = details.primaryDelta! / height;
-    
+
     if (_flipController.value < -1.0 && delta > 0) {
-      delta *= 0.25; 
+      delta *= 0.25;
     } else if (_flipController.value > 1.0 && delta < 0) {
       delta *= 0.25;
     }
-    
+
     _flipController.value -= delta;
   }
 
