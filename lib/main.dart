@@ -114,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _handleReset() {
     setState(() {
+      _game.pause();
       _initGame();
       _showMenu = false;
     });

@@ -23,6 +23,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
   int _lifeDelta = 0;
   bool _showLifeDelta = false;
   async.Timer? _lifeDeltaTimer;
+  async.Timer? _lifeDeltaHideTimer; 
   double _lifeDeltaOpacity = 0.0;
 
   async.Timer? _initialHoldTimer;
@@ -35,6 +36,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
 
     if (oldWidget.player != widget.player) {
       _lifeDeltaTimer?.cancel();
+      _lifeDeltaHideTimer?.cancel(); 
       _initialHoldTimer?.cancel();
       _periodicHoldTimer?.cancel();
 
@@ -54,13 +56,15 @@ class _LifeDisplayState extends State<LifeDisplay> {
     });
 
     _lifeDeltaTimer?.cancel();
+    _lifeDeltaHideTimer?.cancel();
+    
     _lifeDeltaTimer = async.Timer(const Duration(milliseconds: 1200), () {
       if (mounted) {
         setState(() {
           _lifeDeltaOpacity = 0.0;
         });
 
-        async.Timer(const Duration(milliseconds: 300), () {
+        _lifeDeltaHideTimer = async.Timer(const Duration(milliseconds: 300), () {
           if (mounted && _lifeDeltaOpacity == 0.0) {
             setState(() {
               _showLifeDelta = false;
@@ -129,6 +133,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
   @override
   void dispose() {
     _lifeDeltaTimer?.cancel();
+    _lifeDeltaHideTimer?.cancel(); 
     _initialHoldTimer?.cancel();
     _periodicHoldTimer?.cancel();
     super.dispose();

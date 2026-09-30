@@ -125,8 +125,10 @@ class _GameLayoutState extends State<GameLayout> {
   }
 
   void _handleReset() {
+    _rollTimer?.cancel();
     setState(() {
       _resetTrigger++;
+      _highlightedIndex = -1; 
     });
     widget.onReset();
   }
