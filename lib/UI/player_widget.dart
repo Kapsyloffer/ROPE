@@ -20,7 +20,8 @@ class PlayerWidget extends StatefulWidget {
   final VoidCallback onTimerLongPress;
   final int rotations;
   final int resetTrigger;
-  final bool isHighlighted;
+  final ValueNotifier<int> highlightedNotifier;
+  final bool isNextInQueue;
 
   const PlayerWidget({
     super.key,
@@ -31,9 +32,10 @@ class PlayerWidget extends StatefulWidget {
     required this.onCommanderDamageAdjust,
     required this.onCounterAdjust,
     required this.onTimerLongPress,
+    required this.highlightedNotifier,
+    required this.isNextInQueue,
     this.rotations = 0,
     this.resetTrigger = 0,
-    this.isHighlighted = false,
   });
 
   @override
@@ -203,24 +205,30 @@ class _PlayerWidgetState extends State<PlayerWidget>
                     ),
                   ),
                 ),
-                if (Settings.useFlashing)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: widget.player.isBurnFlashing
-                                ? Colors.red
-                                : widget.isHighlighted
-                                ? Colors.white
-                                : Colors.transparent,
-                            width: 8.0,
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: widget.highlightedNotifier,
+                      builder: (context, highlightedIndex, child) {
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color:
+                                  widget.player.isBurnFlashing &&
+                                      Settings.useFlashing
+                                  ? Colors.red
+                                  : highlightedIndex == widget.player.order
+                                  ? Colors.white
+                                  : Colors.transparent,
+                              width: 8.0,
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ),
+                ),
               ],
             ),
           ),
@@ -230,6 +238,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
               child: TimerDisplay(
                 key: ValueKey(widget.player.order),
                 player: widget.player,
+                isNextInQueue: widget.isNextInQueue,
                 onTimerTap: widget.onTimerTap,
                 onTimerLongPress: widget.onTimerLongPress,
                 onTimeAdjust: widget.onTimeAdjust,

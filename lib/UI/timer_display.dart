@@ -1,4 +1,5 @@
 import 'dart:async' as async;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -11,8 +12,53 @@ String _formatTime(double seconds) {
   return '$min:${sec.toString().padLeft(2, '0')}';
 }
 
+class _MarchingAntsPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  _MarchingAntsPainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 4.0
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..addRect(
+          Rect.fromLTWH(2.0, 2.0, size.width - 4.0, size.height - 4.0));
+
+    const dashWidth = 10.0;
+    const dashSpace = 10.0;
+    const distance = dashWidth + dashSpace;
+
+    for (PathMetric metric in path.computeMetrics()) {
+      double start = progress * distance;
+
+      while (start < metric.length) {
+        double end = start + dashWidth;
+        double drawEnd = end > metric.length ? metric.length : end;
+
+        canvas.drawPath(metric.extractPath(start, drawEnd), paint);
+
+        if (end > metric.length) {
+          canvas.drawPath(metric.extractPath(0.0, end - metric.length), paint);
+        }
+        start += distance;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MarchingAntsPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.color != color;
+  }
+}
+
 class TimerDisplay extends StatefulWidget {
   final Player player;
+  final bool isNextInQueue;
   final VoidCallback onTimerTap;
   final VoidCallback onTimerLongPress;
   final void Function(double) onTimeAdjust;
@@ -20,6 +66,7 @@ class TimerDisplay extends StatefulWidget {
   const TimerDisplay({
     super.key,
     required this.player,
+    required this.isNextInQueue,
     required this.onTimerTap,
     required this.onTimerLongPress,
     required this.onTimeAdjust,
@@ -30,7 +77,7 @@ class TimerDisplay extends StatefulWidget {
 }
 
 class _TimerDisplayState extends State<TimerDisplay>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool _showTimeIncrement = false;
   async.Timer? _delayTimer;
   async.Timer? _timeIncrementTimer;
@@ -38,7 +85,9 @@ class _TimerDisplayState extends State<TimerDisplay>
   double _timeIncOpacity = 0.0;
   double _lastTime = 0.0;
   bool _isEditingTimer = false;
+
   late AnimationController _ropeController;
+  late AnimationController _antsController;
 
   @override
   void initState() {
@@ -50,6 +99,15 @@ class _TimerDisplayState extends State<TimerDisplay>
       vsync: this,
       duration: Duration(seconds: durationSec),
     );
+
+    _antsController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
+
+    if (widget.isNextInQueue) {
+      _antsController.repeat();
+    }
 
     if (!Settings.useSlowBurn) {
       return;
@@ -81,6 +139,12 @@ class _TimerDisplayState extends State<TimerDisplay>
       _showTimeIncrement = false;
       _timeIncOpacity = 0.0;
       _timeIncAlignment = const Alignment(0.0, -0.8);
+    }
+
+    if (widget.isNextInQueue && !_antsController.isAnimating) {
+      _antsController.repeat();
+    } else if (!widget.isNextInQueue && _antsController.isAnimating) {
+      _antsController.stop();
     }
 
     if (widget.player.timer.curTime - _lastTime > 0.01 &&
@@ -173,6 +237,7 @@ class _TimerDisplayState extends State<TimerDisplay>
   @override
   void dispose() {
     _ropeController.dispose();
+    _antsController.dispose();
     _timeIncrementTimer?.cancel();
     _delayTimer?.cancel();
     super.dispose();
@@ -217,8 +282,8 @@ class _TimerDisplayState extends State<TimerDisplay>
         decoration: BoxDecoration(
           color: widget.player.alive
               ? (widget.player.timer.active
-                    ? activeTimerColor
-                    : Colors.black.withValues(alpha: 0.15))
+                  ? activeTimerColor
+                  : Colors.black.withValues(alpha: 0.15))
               : Colors.black.withValues(alpha: 0.3),
         ),
         child: Stack(
@@ -248,6 +313,22 @@ class _TimerDisplayState extends State<TimerDisplay>
                       },
                     );
                   },
+                ),
+              ),
+            if (widget.isNextInQueue)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _antsController,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        painter: _MarchingAntsPainter(
+                          progress: _antsController.value,
+                          color: Colors.black,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             if (widget.player.queuePosition > 0 && widget.player.alive)

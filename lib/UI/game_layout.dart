@@ -115,12 +115,13 @@ class GameLayout extends StatefulWidget {
 
 class _GameLayoutState extends State<GameLayout> {
   int _resetTrigger = 0;
-  int _highlightedIndex = -1;
+  final ValueNotifier<int> _highlightedNotifier = ValueNotifier<int>(-1);
   async.Timer? _rollTimer;
 
   @override
   void dispose() {
     _rollTimer?.cancel();
+    _highlightedNotifier.dispose();
     super.dispose();
   }
 
@@ -128,8 +129,8 @@ class _GameLayoutState extends State<GameLayout> {
     _rollTimer?.cancel();
     setState(() {
       _resetTrigger++;
-      _highlightedIndex = -1; 
     });
+    _highlightedNotifier.value = -1;
     widget.onReset();
   }
 
@@ -145,18 +146,14 @@ class _GameLayoutState extends State<GameLayout> {
 
     void nextStep() {
       if (!mounted) return;
-      setState(() {
-        _highlightedIndex = currentStep % totalPlayers;
-      });
+      _highlightedNotifier.value = currentStep % totalPlayers;
 
       currentStep++;
 
       if (currentStep >= maxSteps) {
         _rollTimer = async.Timer(const Duration(seconds: 2), () {
           if (mounted) {
-            setState(() {
-              _highlightedIndex = -1;
-            });
+            _highlightedNotifier.value = -1;
           }
         });
       } else {
@@ -168,8 +165,10 @@ class _GameLayoutState extends State<GameLayout> {
     nextStep();
   }
 
-  Widget _buildPlayerWidget(int index, int rotations) {
+  Widget _buildPlayerWidget(int index, int rotations, int maxQueue) {
     final player = widget.players[index];
+    final bool isNextInQueue =
+        player.queuePosition > 0 && player.queuePosition == maxQueue;
 
     return Expanded(
       child: PlayerWidget(
@@ -185,7 +184,8 @@ class _GameLayoutState extends State<GameLayout> {
         onTimerLongPress: widget.onTimerLongPress,
         rotations: rotations,
         resetTrigger: _resetTrigger,
-        isHighlighted: _highlightedIndex == index,
+        highlightedNotifier: _highlightedNotifier,
+        isNextInQueue: isNextInQueue,
       ),
     );
   }
@@ -193,11 +193,15 @@ class _GameLayoutState extends State<GameLayout> {
   @override
   Widget build(BuildContext context) {
     Widget layoutColumn;
+    int maxQueue = widget.players.fold(
+      0,
+      (max, p) => p.queuePosition > max ? p.queuePosition : max,
+    );
 
     if (widget.players.length == 2) {
       layoutColumn = Column(
         children: [
-          _buildPlayerWidget(0, 2),
+          _buildPlayerWidget(0, 2, maxQueue),
           MenuRow(
             onPause: widget.onPause,
             onReset: _handleReset,
@@ -205,7 +209,7 @@ class _GameLayoutState extends State<GameLayout> {
             onSettings: widget.onSettings,
             showMenu: widget.showMenu,
           ),
-          _buildPlayerWidget(1, 0),
+          _buildPlayerWidget(1, 0, maxQueue),
         ],
       );
     } else if (widget.players.length == 3) {
@@ -213,7 +217,10 @@ class _GameLayoutState extends State<GameLayout> {
         children: [
           Expanded(
             child: Row(
-              children: [_buildPlayerWidget(0, 1), _buildPlayerWidget(1, 3)],
+              children: [
+                _buildPlayerWidget(0, 1, maxQueue),
+                _buildPlayerWidget(1, 3, maxQueue),
+              ],
             ),
           ),
           MenuRow(
@@ -223,7 +230,7 @@ class _GameLayoutState extends State<GameLayout> {
             onSettings: widget.onSettings,
             showMenu: widget.showMenu,
           ),
-          _buildPlayerWidget(2, 0),
+          _buildPlayerWidget(2, 0, maxQueue),
         ],
       );
     } else if (widget.players.length == 4) {
@@ -231,7 +238,10 @@ class _GameLayoutState extends State<GameLayout> {
         children: [
           Expanded(
             child: Row(
-              children: [_buildPlayerWidget(0, 1), _buildPlayerWidget(1, 3)],
+              children: [
+                _buildPlayerWidget(0, 1, maxQueue),
+                _buildPlayerWidget(1, 3, maxQueue),
+              ],
             ),
           ),
           MenuRow(
@@ -243,7 +253,10 @@ class _GameLayoutState extends State<GameLayout> {
           ),
           Expanded(
             child: Row(
-              children: [_buildPlayerWidget(3, 1), _buildPlayerWidget(2, 3)],
+              children: [
+                _buildPlayerWidget(3, 1, maxQueue),
+                _buildPlayerWidget(2, 3, maxQueue),
+              ],
             ),
           ),
         ],
@@ -252,7 +265,7 @@ class _GameLayoutState extends State<GameLayout> {
       layoutColumn = Column(
         children: List.generate(
           widget.players.length,
-          (index) => _buildPlayerWidget(index, 0),
+          (index) => _buildPlayerWidget(index, 0, maxQueue),
         ),
       );
     }
