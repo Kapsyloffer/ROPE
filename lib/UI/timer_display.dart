@@ -26,8 +26,7 @@ class _MarchingAntsPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final path = Path()
-      ..addRect(
-          Rect.fromLTWH(2.0, 2.0, size.width - 4.0, size.height - 4.0));
+      ..addRect(Rect.fromLTWH(2.0, 2.0, size.width - 4.0, size.height - 4.0));
 
     const dashWidth = 10.0;
     const dashSpace = 10.0;
@@ -282,8 +281,8 @@ class _TimerDisplayState extends State<TimerDisplay>
         decoration: BoxDecoration(
           color: widget.player.alive
               ? (widget.player.timer.active
-                  ? activeTimerColor
-                  : Colors.black.withValues(alpha: 0.15))
+                    ? activeTimerColor
+                    : Colors.black.withValues(alpha: 0.15))
               : Colors.black.withValues(alpha: 0.3),
         ),
         child: Stack(
