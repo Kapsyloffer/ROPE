@@ -169,22 +169,6 @@ class _LifeDisplayState extends State<LifeDisplay> {
                   ),
                 ),
               ),
-              Positioned(
-                bottom: 12,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    Settings.playerNames[widget.player.order],
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: widget.player.alive
-                          ? Colors.black54
-                          : Colors.red.shade900,
-                    ),
-                  ),
-                ),
-              ),
               if (_showLifeDelta && _lifeDelta != 0)
                 Positioned(
                   top: 12,

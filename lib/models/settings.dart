@@ -7,7 +7,6 @@ class Settings {
   static int startLife = 40;
 
   // player customization
-  static List<String> playerNames = ["Timmy", "Johnny", "Spike", "Vorthos"];
   static List<Color> playerColors = [
     Colors.blue.shade200,
     Colors.amber.shade200,
@@ -45,7 +44,6 @@ class Settings {
     prefs.setInt('burnInterval', burnInterval);
     prefs.setInt('burnAmount', burnAmount);
     prefs.setBool('useFlashing', useFlashing);
-    prefs.setStringList('playerNames', playerNames);
     List<String> colorStrings = playerColors
         .map((c) => c.toARGB32().toString())
         .toList();
@@ -64,17 +62,6 @@ class Settings {
     burnInterval = prefs.getInt('burnInterval') ?? 30;
     burnAmount = prefs.getInt('burnAmount') ?? 5;
     useFlashing = prefs.getBool('useFlashing') ?? true;
-
-    List<String>? names = prefs.getStringList('playerNames');
-    if (names != null && names.length >= players) {
-      playerNames = names;
-    } else {
-      List<String> defaultNames = ["Timmy", "Johnny", "Spike", "Vorthos"];
-      playerNames = List.generate(
-        players,
-        (i) => i < defaultNames.length ? defaultNames[i] : "Player ${i + 1}",
-      );
-    }
 
     List<String>? colors = prefs.getStringList('playerColors');
     if (colors != null && colors.length >= players) {
