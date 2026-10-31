@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/settings.dart';
+import 'player_color_picker_dialog.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -47,144 +48,22 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
   }
 
   void _showColorPicker(BuildContext context, int index) {
-    HSVColor currentHsv = HSVColor.fromColor(Settings.playerColors[index]);
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            Color currentColor = currentHsv.toColor();
-            return AlertDialog(
-              title: Text('Player ${index + 1} Color'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      height: 56,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: currentColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.black26),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: _presetColors.map((color) {
-                        return GestureDetector(
-                          onTap: () {
-                            setDialogState(() {
-                              currentHsv = HSVColor.fromColor(color);
-                            });
-                          },
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color:
-                                    currentColor.toARGB32() == color.toARGB32()
-                                    ? Colors.black
-                                    : Colors.black26,
-                                width:
-                                    currentColor.toARGB32() == color.toARGB32()
-                                    ? 2.5
-                                    : 1.0,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        const SizedBox(width: 24, child: Text('H')),
-                        Expanded(
-                          child: Slider(
-                            value: currentHsv.hue,
-                            min: 0,
-                            max: 360,
-                            onChanged: (val) {
-                              setDialogState(() {
-                                currentHsv = currentHsv.withHue(val);
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const SizedBox(width: 24, child: Text('S')),
-                        Expanded(
-                          child: Slider(
-                            value: currentHsv.saturation,
-                            min: 0,
-                            max: 1,
-                            onChanged: (val) {
-                              setDialogState(() {
-                                currentHsv = currentHsv.withSaturation(val);
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const SizedBox(width: 24, child: Text('V')),
-                        Expanded(
-                          child: Slider(
-                            value: currentHsv.value,
-                            min: 0,
-                            max: 1,
-                            onChanged: (val) {
-                              setDialogState(() {
-                                currentHsv = currentHsv.withValue(val);
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      Settings.playerColors[index] = currentHsv.toColor();
-                    });
-                    Settings.save();
-                    widget.onUpdate();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Select'),
-                ),
-              ],
-            );
-          },
+        return PlayerColorPickerDialog(
+          playerIndex: index,
+          onUpdate: widget.onUpdate,
         );
       },
-    );
+    ).then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   Widget _buildPlayerTile(BuildContext context, int index) {
     final Color bgColor = Settings.playerColors[index];
-    final bool isDark =
-        ThemeData.estimateBrightnessForColor(bgColor) == Brightness.dark;
-    final Color fgColor = isDark ? Colors.white : Colors.black87;
+    final Color fgColor = Settings.playerTextColors[index];
 
     return Expanded(
       child: Padding(
@@ -214,30 +93,31 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                       Icon(Icons.palette_outlined, color: fgColor, size: 20),
                     ],
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Partner',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: fgColor,
+                  if (Settings.useCommanderDamage)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Partner',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: fgColor,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Switch(
-                        value: Settings.hasPartner[index],
-                        onChanged: (value) {
-                          setState(() {
-                            Settings.hasPartner[index] = value;
-                          });
-                          Settings.save();
-                          widget.onUpdate();
-                        },
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 4),
+                        Switch(
+                          value: Settings.hasPartner[index],
+                          onChanged: (value) {
+                            setState(() {
+                              Settings.hasPartner[index] = value;
+                            });
+                            Settings.save();
+                            widget.onUpdate();
+                          },
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -325,6 +205,10 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                       Settings.players = value;
                       while (Settings.playerColors.length < Settings.players) {
                         Settings.playerColors.add(Colors.grey.shade300);
+                      }
+                      while (Settings.playerTextColors.length <
+                          Settings.players) {
+                        Settings.playerTextColors.add(Colors.black87);
                       }
                       while (Settings.hasPartner.length < Settings.players) {
                         Settings.hasPartner.add(false);

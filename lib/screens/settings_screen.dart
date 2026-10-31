@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'widgets/general_settings_card.dart';
 import 'widgets/timer_settings_card.dart';
 import 'widgets/slowburn_settings_card.dart';
+import 'widgets/commander_damage_settings_card.dart';
+import 'widgets/counters_settings_card.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -28,6 +30,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TimerSettingsCard(onUpdate: _refreshSettings),
           const SizedBox(height: 16),
           SlowBurnSettingsCard(onUpdate: _refreshSettings),
+          const SizedBox(height: 24),
+          CommanderDamageSettingsCard(onUpdate: _refreshSettings),
+          const SizedBox(height: 24),
+          CountersSettingsCard(onUpdate: _refreshSettings),
           const SizedBox(height: 24),
         ],
       ),

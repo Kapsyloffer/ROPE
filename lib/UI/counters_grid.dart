@@ -69,13 +69,16 @@ class _CountersGridState extends State<CountersGrid> {
               _buildCounterAdjustButton(counterType, Icons.remove, -1),
               Expanded(
                 flex: 2,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
+                    Positioned(
+                      top: 8,
+                      left: 0,
+                      right: 0,
                       child: Text(
                         label.toUpperCase(),
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -85,16 +88,18 @@ class _CountersGridState extends State<CountersGrid> {
                         ),
                       ),
                     ),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        '$value',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: widget.player.alive
-                              ? Colors.black
-                              : Colors.red,
+                    Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '$value',
+                          style: TextStyle(
+                            fontSize: 56,
+                            fontWeight: FontWeight.bold,
+                            color: widget.player.alive
+                                ? Colors.black
+                                : Colors.red,
+                          ),
                         ),
                       ),
                     ),
@@ -118,15 +123,18 @@ class _CountersGridState extends State<CountersGrid> {
         },
         child: Container(
           color: Colors.transparent,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
+              Positioned(
+                top: 8,
+                left: 0,
+                right: 0,
                 child: Text(
                   label.toUpperCase(),
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: widget.player.alive
                         ? Colors.black54
@@ -134,14 +142,20 @@ class _CountersGridState extends State<CountersGrid> {
                   ),
                 ),
               ),
-              Icon(
-                isEnabled ? Icons.military_tech : Icons.military_tech_outlined,
-                size: 32,
-                color: isEnabled
-                    ? (widget.player.alive ? Colors.white : Colors.red.shade200)
-                    : (widget.player.alive
-                          ? Colors.black54
-                          : Colors.red.shade900),
+              Center(
+                child: Icon(
+                  isEnabled
+                      ? Icons.military_tech
+                      : Icons.military_tech_outlined,
+                  size: 56,
+                  color: isEnabled
+                      ? (widget.player.alive
+                            ? Colors.black
+                            : Colors.red.shade200)
+                      : (widget.player.alive
+                            ? Colors.black54
+                            : Colors.red.shade900),
+                ),
               ),
             ],
           ),
@@ -155,9 +169,9 @@ class _CountersGridState extends State<CountersGrid> {
       child: Container(
         margin: const EdgeInsets.all(4.0),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.15),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.black12),
+          border: Border.all(color: Colors.black),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -207,18 +221,18 @@ class _CountersGridState extends State<CountersGrid> {
                   _buildCounterData(
                     'taxMain',
                     'Tax',
-                    widget.player.counters.activeCounters['taxMain']?.amount ??
+                    (widget.player.counters.activeCounters['commanderTax']
+                                as PairCounter?)
+                            ?.amounts[0] ??
                         0,
                   ),
                   if (hasPartner)
                     _buildCounterData(
                       'taxPartner',
-                      'P. Tax',
-                      widget
-                              .player
-                              .counters
-                              .activeCounters['taxPartner']
-                              ?.amount ??
+                      'Tax',
+                      (widget.player.counters.activeCounters['commanderTax']
+                                  as PairCounter?)
+                              ?.amounts[1] ??
                           0,
                     ),
                 ]),
