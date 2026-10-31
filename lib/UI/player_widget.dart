@@ -63,6 +63,9 @@ class _PlayerWidgetState extends State<PlayerWidget>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.resetTrigger != widget.resetTrigger) {
       _flipController.animateTo(0.0, curve: Curves.easeInOut);
+    } else if (_flipController.value < _minFlip ||
+        _flipController.value > _maxFlip) {
+      _flipController.animateTo(0.0, curve: Curves.easeInOut);
     }
   }
 
@@ -75,11 +78,15 @@ class _PlayerWidgetState extends State<PlayerWidget>
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     final double height = context.size?.height ?? 300.0;
     double delta = details.primaryDelta! / height;
+    final double v = _flipController.value;
 
-    if (_flipController.value < -1.0 && delta > 0) {
-      delta *= 0.25;
-    } else if (_flipController.value > 1.0 && delta < 0) {
-      delta *= 0.25;
+    // value -= delta, so delta > 0 moves toward the counters side
+    if (delta > 0 && v <= _minFlip) {
+      if (_minFlip == 0.0) return;
+      if (v < -1.0) delta *= 0.25;
+    } else if (delta < 0 && v >= _maxFlip) {
+      if (_maxFlip == 0.0) return;
+      if (v > 1.0) delta *= 0.25;
     }
 
     _flipController.value -= delta;
@@ -90,19 +97,28 @@ class _PlayerWidgetState extends State<PlayerWidget>
     final double velocity = details.primaryVelocity ?? 0.0;
 
     if (velocity < -400) {
-      target = (_flipController.value + 0.5).ceilToDouble().clamp(-1.0, 1.0);
+      target = (_flipController.value + 0.5).ceilToDouble().clamp(
+        _minFlip,
+        _maxFlip,
+      );
     } else if (velocity > 400) {
-      target = (_flipController.value - 0.5).floorToDouble().clamp(-1.0, 1.0);
+      target = (_flipController.value - 0.5).floorToDouble().clamp(
+        _minFlip,
+        _maxFlip,
+      );
     } else {
-      if (_flipController.value > 0.5) {
+      if (_flipController.value > 0.5 && _maxFlip > 0) {
         target = 1.0;
-      } else if (_flipController.value < -0.5) {
+      } else if (_flipController.value < -0.5 && _minFlip < 0) {
         target = -1.0;
       }
     }
 
     _flipController.animateTo(target, curve: Curves.easeOutCubic);
   }
+
+  double get _minFlip => Settings.useCounters ? -1.0 : 0.0;
+  double get _maxFlip => Settings.useCommanderDamage ? 1.0 : 0.0;
 
   Widget _buildFlipFace({
     required Widget child,
@@ -161,19 +177,21 @@ class _PlayerWidgetState extends State<PlayerWidget>
                         return Stack(
                           fit: StackFit.expand,
                           children: [
-                            _buildFlipFace(
-                              offset: -1.0,
-                              val: val,
-                              activeIndex: -1,
-                              child: CountersGrid(
-                                key: ValueKey(
-                                  '${widget.player.order}_counters',
+                            if (Settings.useCounters) ...[
+                              _buildFlipFace(
+                                offset: -1.0,
+                                val: val,
+                                activeIndex: -1,
+                                child: CountersGrid(
+                                  key: ValueKey(
+                                    '${widget.player.order}_counters',
+                                  ),
+                                  player: widget.player,
+                                  onCounterAdjust: widget.onCounterAdjust,
+                                  isVisible: val <= -0.5,
                                 ),
-                                player: widget.player,
-                                onCounterAdjust: widget.onCounterAdjust,
-                                isVisible: val <= -0.5,
                               ),
-                            ),
+                            ],
                             _buildFlipFace(
                               offset: 0.0,
                               val: val,
@@ -184,21 +202,23 @@ class _PlayerWidgetState extends State<PlayerWidget>
                                 onLifeAdjust: widget.onLifeAdjust,
                               ),
                             ),
-                            _buildFlipFace(
-                              offset: 1.0,
-                              val: val,
-                              activeIndex: 1,
-                              child: CommanderDamageGrid(
-                                key: ValueKey(
-                                  '${widget.player.order}_commander',
+                            if (Settings.useCommanderDamage) ...[
+                              _buildFlipFace(
+                                offset: 1.0,
+                                val: val,
+                                activeIndex: 1,
+                                child: CommanderDamageGrid(
+                                  key: ValueKey(
+                                    '${widget.player.order}_commander',
+                                  ),
+                                  player: widget.player,
+                                  onCommanderDamageAdjust:
+                                      widget.onCommanderDamageAdjust,
+                                  rotations: widget.rotations,
+                                  isVisible: val >= 0.5,
                                 ),
-                                player: widget.player,
-                                onCommanderDamageAdjust:
-                                    widget.onCommanderDamageAdjust,
-                                rotations: widget.rotations,
-                                isVisible: val >= 0.5,
                               ),
-                            ),
+                            ],
                           ],
                         );
                       },

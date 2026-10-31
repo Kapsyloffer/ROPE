@@ -15,6 +15,11 @@ class LethalCounter extends Counter {
   }
 }
 
+class PairCounter extends Counter {
+  List<int> amounts;
+  PairCounter() : amounts = [0, 0];
+}
+
 class ToggleCounter extends Counter {
   bool enabled;
   ToggleCounter(this.enabled);
@@ -24,8 +29,7 @@ class PlayerCounters {
   Map<String, Counter> activeCounters = {
     'poison': LethalCounter(10),
     'energy': Counter(),
-    'taxMain': Counter(),
-    'taxPartner': Counter(),
+    'commanderTax': PairCounter(),
     'monarch': ToggleCounter(false),
   };
 

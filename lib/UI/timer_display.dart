@@ -213,6 +213,12 @@ class _TimerDisplayState extends State<TimerDisplay>
   }
 
   Widget _buildTimerAdjustButton(IconData icon, double amount) {
+    Color iconColor = widget.player.alive
+        ? (widget.player.timer.active
+              ? Colors.black
+              : Settings.playerTextColors[widget.player.order])
+        : Colors.red;
+
     return Expanded(
       child: Material(
         color: Colors.transparent,
@@ -221,11 +227,7 @@ class _TimerDisplayState extends State<TimerDisplay>
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(
-                icon,
-                size: 48,
-                color: widget.player.alive ? Colors.black : Colors.red,
-              ),
+              child: Icon(icon, size: 48, color: iconColor),
             ),
           ),
         ),
@@ -257,6 +259,16 @@ class _TimerDisplayState extends State<TimerDisplay>
       activeTimerColor = Colors.amber.shade500;
       ropeColor = Colors.amber.shade800;
     }
+
+    Color textColor = widget.player.alive
+        ? (widget.player.timer.active
+              ? Colors.black
+              : Settings.playerTextColors[widget.player.order])
+        : Colors.red;
+
+    Color antsColor = widget.player.timer.active
+        ? Colors.black
+        : Settings.playerTextColors[widget.player.order];
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -323,7 +335,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                       return CustomPaint(
                         painter: _MarchingAntsPainter(
                           progress: _antsController.value,
-                          color: Colors.black,
+                          color: antsColor,
                         ),
                       );
                     },
@@ -369,9 +381,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                           style: TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
-                            color: widget.player.alive
-                                ? Colors.black
-                                : Colors.red,
+                            color: textColor,
                           ),
                         ),
                       ),
@@ -391,7 +401,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                       style: TextStyle(
                         fontSize: 48,
                         fontWeight: FontWeight.bold,
-                        color: widget.player.alive ? Colors.black : Colors.red,
+                        color: textColor,
                       ),
                     ),
                   ),
@@ -411,7 +421,12 @@ class _TimerDisplayState extends State<TimerDisplay>
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: widget.player.alive ? Colors.black54 : Colors.red,
+                      color: widget.player.alive
+                          ? (widget.player.timer.active
+                                ? Colors.black54
+                                : Settings.playerTextColors[widget.player.order]
+                                      .withValues(alpha: 0.6))
+                          : Colors.red,
                     ),
                   ),
                 ),

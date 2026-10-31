@@ -124,7 +124,9 @@ class _LifeDisplayState extends State<LifeDisplay> {
               child: Icon(
                 icon,
                 size: 48,
-                color: widget.player.alive ? Colors.black : Colors.red,
+                color: widget.player.alive
+                    ? Settings.playerTextColors[widget.player.order]
+                    : Colors.red,
               ),
             ),
           ),
@@ -165,7 +167,9 @@ class _LifeDisplayState extends State<LifeDisplay> {
                   style: TextStyle(
                     fontSize: 80,
                     fontWeight: FontWeight.bold,
-                    color: widget.player.alive ? Colors.black : Colors.red,
+                    color: widget.player.alive
+                        ? Settings.playerTextColors[widget.player.order]
+                        : Colors.red,
                   ),
                 ),
               ),
@@ -184,10 +188,10 @@ class _LifeDisplayState extends State<LifeDisplay> {
                       ),
                       child: Text(
                         _lifeDelta > 0 ? '+$_lifeDelta' : '$_lifeDelta',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: Settings.playerTextColors[widget.player.order],
                         ),
                       ),
                     ),
