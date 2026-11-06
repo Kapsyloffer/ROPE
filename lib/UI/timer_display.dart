@@ -61,6 +61,7 @@ class TimerDisplay extends StatefulWidget {
   final VoidCallback onTimerTap;
   final VoidCallback onTimerLongPress;
   final void Function(double) onTimeAdjust;
+  final VoidCallback? onPriorityCheck;
 
   const TimerDisplay({
     super.key,
@@ -69,6 +70,7 @@ class TimerDisplay extends StatefulWidget {
     required this.onTimerTap,
     required this.onTimerLongPress,
     required this.onTimeAdjust,
+    this.onPriorityCheck,
   });
 
   @override
@@ -83,6 +85,7 @@ class _TimerDisplayState extends State<TimerDisplay>
   Alignment _timeIncAlignment = const Alignment(0.0, -0.8);
   double _timeIncOpacity = 0.0;
   double _lastTime = 0.0;
+  double _lastAddedAmount = 0.0;
   bool _isEditingTimer = false;
 
   late AnimationController _ropeController;
@@ -146,12 +149,12 @@ class _TimerDisplayState extends State<TimerDisplay>
       _antsController.stop();
     }
 
-    if (widget.player.timer.curTime - _lastTime > 0.01 &&
-        !widget.player.timer.active &&
+    double timeDiff = widget.player.timer.curTime - _lastTime;
+    if (timeDiff > 0.5 &&
         Settings.useTimer &&
-        Settings.increment > 0 &&
+        !_isEditingTimer &&
         !widget.player.isInterrupted) {
-      _triggerTimeIncrement();
+      _triggerTimeIncrement(timeDiff);
     }
 
     _handleRopeAnimation();
@@ -185,8 +188,9 @@ class _TimerDisplayState extends State<TimerDisplay>
     }
   }
 
-  void _triggerTimeIncrement() {
+  void _triggerTimeIncrement(double amount) {
     setState(() {
+      _lastAddedAmount = amount;
       _showTimeIncrement = true;
       _timeIncAlignment = const Alignment(0.0, -0.8);
       _timeIncOpacity = 1.0;
@@ -212,13 +216,11 @@ class _TimerDisplayState extends State<TimerDisplay>
     });
   }
 
-  Widget _buildTimerAdjustButton(IconData icon, double amount) {
-    Color iconColor = widget.player.alive
-        ? (widget.player.timer.active
-              ? Colors.black
-              : Settings.playerTextColors[widget.player.order])
-        : Colors.red;
-
+  Widget _buildTimerAdjustButton(
+    IconData icon,
+    double amount,
+    Color iconColor,
+  ) {
     return Expanded(
       child: Material(
         color: Colors.transparent,
@@ -260,15 +262,20 @@ class _TimerDisplayState extends State<TimerDisplay>
       ropeColor = Colors.amber.shade800;
     }
 
+    bool isActiveNormal =
+        widget.player.timer.active &&
+        !widget.player.isPriority &&
+        !widget.player.isInterrupting;
+
+    Color antsColor = widget.player.timer.active
+        ? Colors.black
+        : Settings.playerTextColors[widget.player.order];
+
     Color textColor = widget.player.alive
         ? (widget.player.timer.active
               ? Colors.black
               : Settings.playerTextColors[widget.player.order])
         : Colors.red;
-
-    Color antsColor = widget.player.timer.active
-        ? Colors.black
-        : Settings.playerTextColors[widget.player.order];
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -370,7 +377,7 @@ class _TimerDisplayState extends State<TimerDisplay>
               Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildTimerAdjustButton(Icons.remove, -15.0),
+                  _buildTimerAdjustButton(Icons.remove, -15.0, textColor),
                   Expanded(
                     flex: 2,
                     child: Center(
@@ -387,7 +394,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                       ),
                     ),
                   ),
-                  _buildTimerAdjustButton(Icons.add, 15.0),
+                  _buildTimerAdjustButton(Icons.add, 15.0, textColor),
                 ],
               )
             else
@@ -417,7 +424,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                   curve: Curves.easeInQuint,
                   opacity: _timeIncOpacity,
                   child: Text(
-                    '+${_formatTime(Settings.increment.toDouble())}',
+                    '+${_formatTime(_lastAddedAmount)}',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -431,6 +438,34 @@ class _TimerDisplayState extends State<TimerDisplay>
                   ),
                 ),
               ),
+            if (widget.player.timer.active && widget.player.alive) ...[
+              if (widget.player.isPriority)
+                const Positioned(
+                  left: 12,
+                  child: Icon(
+                    Icons.playlist_add_check,
+                    size: 36,
+                    color: Colors.black45,
+                  ),
+                )
+              else if (widget.player.isInterrupting)
+                const Positioned(
+                  left: 12,
+                  child: Icon(Icons.warning, size: 36, color: Colors.black45),
+                ),
+              if (Settings.usePriority)
+                Positioned(
+                  right: 8,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: IconButton(
+                      icon: const Icon(Icons.rotate_right, size: 36),
+                      color: isActiveNormal ? Colors.black45 : Colors.white70,
+                      onPressed: widget.onPriorityCheck,
+                    ),
+                  ),
+                ),
+            ],
           ],
         ),
       ),

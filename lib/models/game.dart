@@ -1,10 +1,22 @@
 import 'player.dart';
+import 'settings.dart';
+
+enum TurnType { normal, interrupt, priority }
+
+class StackItem {
+  final int playerId;
+  final TurnType returnType;
+  final bool isFresh; 
+
+  StackItem(this.playerId, this.returnType, {this.isFresh = false});
+}
 
 class Game {
   List<Player> players;
   int playerCount;
   int activePlayerIndex;
-  List<int> turnStack = [];
+  List<StackItem> turnStack = [];
+  TurnType activeTurnType = TurnType.normal;
 
   Game(this.players, this.playerCount, this.activePlayerIndex) {
     if (players.isNotEmpty) {
@@ -15,13 +27,24 @@ class Game {
     }
   }
 
-  void _updateQueue() {
-    for (var player in players) {
-      player.queuePosition = 0;
+  void _syncPlayerStates() {
+    for (var p in players) {
+      p.queuePosition = 0;
+      p.isInterrupted = false;
+      p.isInterrupting = false;
+      p.isPriority = false;
     }
+
     int pos = 1;
     for (int i = 0; i < turnStack.length; i++) {
-      players[turnStack[i]].queuePosition = pos++;
+      players[turnStack[i].playerId].queuePosition = pos++;
+      players[turnStack[i].playerId].isInterrupted = true;
+    }
+
+    if (activeTurnType == TurnType.interrupt) {
+      players[activePlayerIndex].isInterrupting = true;
+    } else if (activeTurnType == TurnType.priority) {
+      players[activePlayerIndex].isPriority = true;
     }
   }
 
@@ -31,7 +54,8 @@ class Game {
     }
     activePlayerIndex = 0;
     turnStack.clear();
-    _updateQueue();
+    activeTurnType = TurnType.normal;
+    _syncPlayerStates();
   }
 
   void pause() {
@@ -39,10 +63,10 @@ class Game {
       players[i].timer.active = false;
       players[i].timer.resetTurn();
       players[i].timer.clock?.cancel();
-      players[i].isInterrupted = false;
     }
     turnStack.clear();
-    _updateQueue();
+    activeTurnType = TurnType.normal;
+    _syncPlayerStates();
   }
 
   void resume(Player player) {
@@ -50,9 +74,10 @@ class Game {
     if (idx != -1) {
       activePlayerIndex = idx;
       turnStack.clear();
-      _updateQueue();
+      activeTurnType = TurnType.normal;
+      _syncPlayerStates();
+
       for (var i = 0; i < players.length; i++) {
-        players[i].isInterrupted = false;
         if (i == activePlayerIndex) {
           players[i].timer.active = true;
           players[i].timer.startClock();
@@ -84,11 +109,18 @@ class Game {
     }
 
     while (turnStack.isNotEmpty) {
-      int poppedIndex = turnStack.removeLast();
-      players[poppedIndex].isInterrupted = false;
-      _updateQueue();
-      if (players[poppedIndex].alive) {
-        activePlayerIndex = poppedIndex;
+      StackItem popped = turnStack.removeLast();
+
+      if (players[popped.playerId].alive) {
+        activePlayerIndex = popped.playerId;
+        activeTurnType = popped.returnType;
+
+        if (activeTurnType == TurnType.priority && popped.isFresh) {
+          players[activePlayerIndex].timer.curTime += Settings.prio;
+        }
+
+        _syncPlayerStates();
+
         for (var i = 0; i < players.length; i++) {
           if (i == activePlayerIndex) {
             players[i].timer.active = true;
@@ -102,9 +134,12 @@ class Game {
       }
     }
 
+    activeTurnType = TurnType.normal;
     do {
       activePlayerIndex = (activePlayerIndex + 1) % playerCount;
     } while (!players[activePlayerIndex].alive);
+
+    _syncPlayerStates();
 
     for (var i = 0; i < players.length; i++) {
       if (i == activePlayerIndex) {
@@ -123,10 +158,58 @@ class Game {
     int idx = players.indexOf(interrupter);
     if (idx == -1 || idx == activePlayerIndex || !interrupter.alive) return;
 
-    players[activePlayerIndex].isInterrupted = true;
-    turnStack.add(activePlayerIndex);
-    _updateQueue();
+    turnStack.add(StackItem(activePlayerIndex, activeTurnType, isFresh: false));
+
     activePlayerIndex = idx;
+    activeTurnType = TurnType.interrupt;
+
+    _syncPlayerStates();
+
+    for (var i = 0; i < players.length; i++) {
+      if (i == activePlayerIndex) {
+        players[i].timer.active = true;
+        players[i].timer.resetTurn();
+        players[i].timer.startClock();
+      } else {
+        if (players[i].timer.active) {
+          players[i].timer.active = false;
+          players[i].timer.clock?.cancel();
+        }
+      }
+    }
+  }
+
+  void priorityCheck() {
+    if (players.isEmpty) return;
+
+    int a = activePlayerIndex;
+    List<int> priorityOrder = [];
+
+    for (int i = 1; i < playerCount; i++) {
+      int p = (a + i) % playerCount;
+      if (players[p].alive) {
+        priorityOrder.add(p);
+      }
+    }
+
+    if (priorityOrder.isEmpty) return;
+
+    turnStack.add(StackItem(a, activeTurnType, isFresh: false));
+
+    int nextActive = priorityOrder.first;
+
+    for (int i = priorityOrder.length - 1; i >= 1; i--) {
+      turnStack.add(
+        StackItem(priorityOrder[i], TurnType.priority, isFresh: true),
+      );
+    }
+
+    activePlayerIndex = nextActive;
+    activeTurnType = TurnType.priority;
+
+    players[activePlayerIndex].timer.curTime += Settings.prio;
+
+    _syncPlayerStates();
 
     for (var i = 0; i < players.length; i++) {
       if (i == activePlayerIndex) {

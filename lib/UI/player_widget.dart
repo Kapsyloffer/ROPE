@@ -18,6 +18,7 @@ class PlayerWidget extends StatefulWidget {
   final void Function(int, int, int) onCommanderDamageAdjust;
   final void Function(String, int) onCounterAdjust;
   final VoidCallback onTimerLongPress;
+  final VoidCallback? onPriorityCheck;
   final int rotations;
   final int resetTrigger;
   final ValueNotifier<int> highlightedNotifier;
@@ -34,6 +35,7 @@ class PlayerWidget extends StatefulWidget {
     required this.onTimerLongPress,
     required this.highlightedNotifier,
     required this.isNextInQueue,
+    this.onPriorityCheck,
     this.rotations = 0,
     this.resetTrigger = 0,
   });
@@ -262,6 +264,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                 onTimerTap: widget.onTimerTap,
                 onTimerLongPress: widget.onTimerLongPress,
                 onTimeAdjust: widget.onTimeAdjust,
+                onPriorityCheck: widget.onPriorityCheck,
               ),
             ),
         ],
