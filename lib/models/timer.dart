@@ -18,10 +18,12 @@ class Timer {
       increment = Settings.increment,
       active = false;
 
-  void toggleTimer({bool isInterrupt = false}) {
+  void toggleTimer({bool isInterrupt = false, bool isPriority = false}) {
     active = !active;
     if (!active) {
-      if (!isInterrupt) {
+      if (isPriority) {
+        curTime += Settings.prio;
+      } else if (!isInterrupt) {
         curTime += increment;
       }
       resetTurn();

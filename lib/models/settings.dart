@@ -25,6 +25,7 @@ class Settings {
   static bool useTimer = true;
   static double startTime = 1.0;
   static int increment = 5;
+  static bool usePriority = true;
   static int prio = 3;
 
   // slow burn
@@ -50,6 +51,7 @@ class Settings {
     prefs.setBool('useTimer', useTimer);
     prefs.setDouble('startTime', startTime);
     prefs.setInt('increment', increment);
+    prefs.setBool('usePriority', usePriority);
     prefs.setInt('prio', prio);
     prefs.setBool('useSlowBurn', useSlowBurn);
     prefs.setInt('burnInterval', burnInterval);
@@ -78,6 +80,7 @@ class Settings {
     useTimer = prefs.getBool('useTimer') ?? true;
     startTime = prefs.getDouble('startTime') ?? 10.0;
     increment = prefs.getInt('increment') ?? 15;
+    usePriority = prefs.getBool('usePriority') ?? true;
     prio = prefs.getInt('prio') ?? 3;
     useSlowBurn = prefs.getBool('useSlowBurn') ?? false;
     burnInterval = prefs.getInt('burnInterval') ?? 30;

@@ -87,6 +87,7 @@ class GameLayout extends StatefulWidget {
   final void Function(Player, int, int, int) onCommanderDamageAdjust;
   final void Function(Player, String, int) onCounterAdjust;
   final VoidCallback onTimerLongPress;
+  final VoidCallback onPriorityCheck;
   final VoidCallback onPause;
   final VoidCallback onReset;
   final VoidCallback onSettings;
@@ -102,6 +103,7 @@ class GameLayout extends StatefulWidget {
     required this.onCommanderDamageAdjust,
     required this.onCounterAdjust,
     required this.onTimerLongPress,
+    required this.onPriorityCheck,
     required this.onPause,
     required this.onReset,
     required this.onSettings,
@@ -182,6 +184,7 @@ class _GameLayoutState extends State<GameLayout> {
         onCounterAdjust: (counterType, amt) =>
             widget.onCounterAdjust(player, counterType, amt),
         onTimerLongPress: widget.onTimerLongPress,
+        onPriorityCheck: widget.onPriorityCheck,
         rotations: rotations,
         resetTrigger: _resetTrigger,
         highlightedNotifier: _highlightedNotifier,

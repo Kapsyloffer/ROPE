@@ -31,10 +31,7 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
     Colors.purple.shade200,
   ];
 
-  static final List<Color> _presetTextColors = [
-    Colors.black87,
-    Colors.white,
-  ];
+  static final List<Color> _presetTextColors = [Colors.black87, Colors.white];
 
   @override
   void initState() {

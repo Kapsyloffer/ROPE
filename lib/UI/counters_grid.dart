@@ -28,10 +28,7 @@ class _CountersGridState extends State<CountersGrid> {
         oldWidget.player != widget.player) {}
   }
 
-  Widget _buildCounterAdjustButton(
-    IconData icon,
-    VoidCallback onTap,
-  ) {
+  Widget _buildCounterAdjustButton(IconData icon, VoidCallback onTap) {
     return Expanded(
       child: Material(
         color: Colors.transparent,
@@ -145,9 +142,7 @@ class _CountersGridState extends State<CountersGrid> {
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Icon(
-                    isEnabled
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank,
+                    isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
                     size: 48,
                     color: isEnabled
                         ? (widget.player.alive
@@ -215,7 +210,13 @@ class _CountersGridState extends State<CountersGrid> {
                 _buildCounterCell([
                   _buildCounterData(
                     label: 'Poison',
-                    value: widget.player.counters.activeCounters['poison']?.amount ?? 0,
+                    value:
+                        widget
+                            .player
+                            .counters
+                            .activeCounters['poison']
+                            ?.amount ??
+                        0,
                     onIncrement: () => widget.onCounterAdjust('poison', 1),
                     onDecrement: () => widget.onCounterAdjust('poison', -1),
                   ),
@@ -223,7 +224,13 @@ class _CountersGridState extends State<CountersGrid> {
                 _buildCounterCell([
                   _buildCounterData(
                     label: 'Energy',
-                    value: widget.player.counters.activeCounters['energy']?.amount ?? 0,
+                    value:
+                        widget
+                            .player
+                            .counters
+                            .activeCounters['energy']
+                            ?.amount ??
+                        0,
                     onIncrement: () => widget.onCounterAdjust('energy', 1),
                     onDecrement: () => widget.onCounterAdjust('energy', -1),
                   ),
@@ -238,16 +245,24 @@ class _CountersGridState extends State<CountersGrid> {
                 _buildCounterCell([
                   _buildCounterData(
                     label: 'Tax',
-                    value: (widget.player.counters.activeCounters['commanderTax'] as PairCounter?)?.amounts[0] ?? 0,
+                    value:
+                        (widget.player.counters.activeCounters['commanderTax']
+                                as PairCounter?)
+                            ?.amounts[0] ??
+                        0,
                     onIncrement: () {
-                      final c = widget.player.counters.activeCounters['commanderTax'] as PairCounter?;
+                      final c =
+                          widget.player.counters.activeCounters['commanderTax']
+                              as PairCounter?;
                       if (c != null) {
                         c.amounts[0]++;
                         widget.onCounterAdjust('commanderTax', 0);
                       }
                     },
                     onDecrement: () {
-                      final c = widget.player.counters.activeCounters['commanderTax'] as PairCounter?;
+                      final c =
+                          widget.player.counters.activeCounters['commanderTax']
+                              as PairCounter?;
                       if (c != null && c.amounts[0] > 0) {
                         c.amounts[0]--;
                         widget.onCounterAdjust('commanderTax', 0);
@@ -257,16 +272,30 @@ class _CountersGridState extends State<CountersGrid> {
                   if (hasPartner)
                     _buildCounterData(
                       label: 'Tax',
-                      value: (widget.player.counters.activeCounters['commanderTax'] as PairCounter?)?.amounts[1] ?? 0,
+                      value:
+                          (widget.player.counters.activeCounters['commanderTax']
+                                  as PairCounter?)
+                              ?.amounts[1] ??
+                          0,
                       onIncrement: () {
-                        final c = widget.player.counters.activeCounters['commanderTax'] as PairCounter?;
+                        final c =
+                            widget
+                                    .player
+                                    .counters
+                                    .activeCounters['commanderTax']
+                                as PairCounter?;
                         if (c != null) {
                           c.amounts[1]++;
                           widget.onCounterAdjust('commanderTax', 0);
                         }
                       },
                       onDecrement: () {
-                        final c = widget.player.counters.activeCounters['commanderTax'] as PairCounter?;
+                        final c =
+                            widget
+                                    .player
+                                    .counters
+                                    .activeCounters['commanderTax']
+                                as PairCounter?;
                         if (c != null && c.amounts[1] > 0) {
                           c.amounts[1]--;
                           widget.onCounterAdjust('commanderTax', 0);
@@ -277,7 +306,11 @@ class _CountersGridState extends State<CountersGrid> {
                 _buildCounterCell([
                   _buildToggleDisplay(
                     label: 'Monarch',
-                    isEnabled: (widget.player.counters.activeCounters['monarch'] as ToggleCounter?)?.enabled ?? false,
+                    isEnabled:
+                        (widget.player.counters.activeCounters['monarch']
+                                as ToggleCounter?)
+                            ?.enabled ??
+                        false,
                     onToggle: () => widget.onCounterAdjust('monarch', 1),
                   ),
                 ]),

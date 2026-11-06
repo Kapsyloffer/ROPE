@@ -76,6 +76,18 @@ class TimerSettingsCard extends StatelessWidget {
                 },
               ),
             ),
+            SwitchListTile(
+              secondary: const Icon(Icons.playlist_add_check),
+              title: const Text('Use Priority Passing'),
+              value: Settings.usePriority,
+              onChanged: Settings.useTimer
+                  ? (value) {
+                      Settings.usePriority = value;
+                      Settings.save();
+                      onUpdate();
+                    }
+                  : null,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
@@ -84,12 +96,12 @@ class TimerSettingsCard extends StatelessWidget {
               child: TextFormField(
                 initialValue: Settings.prio.toString(),
                 decoration: const InputDecoration(
-                  labelText: 'Priority (seconds)',
+                  labelText: 'Priority Increment (seconds)',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.rotate_right),
                 ),
                 keyboardType: TextInputType.number,
-                enabled: Settings.useTimer,
+                enabled: Settings.useTimer && Settings.usePriority,
                 onChanged: (value) {
                   int? parsedValue = num.tryParse(value.replaceAll(',', '.'))
                       ?.toInt();

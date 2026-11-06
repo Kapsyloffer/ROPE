@@ -96,13 +96,23 @@ class _MyHomePageState extends State<MyHomePage> {
         _game.resume(player);
       } else if (player.timer.active) {
         bool isInterrupt = _game.turnStack.isNotEmpty;
-        player.timer.toggleTimer(isInterrupt: isInterrupt);
+        bool isPriority = player.isPriority;
+        player.timer.toggleTimer(
+          isInterrupt: isInterrupt,
+          isPriority: isPriority,
+        );
         if (!player.timer.active) {
           _game.nextPlayer();
         }
       } else {
         _game.interruptTurn(player);
       }
+    });
+  }
+
+  void _handlePriorityCheck() {
+    setState(() {
+      _game.priorityCheck();
     });
   }
 
@@ -246,6 +256,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onCommanderDamageAdjust: _adjustCommanderDamage,
         onCounterAdjust: _adjustCounter,
         onTimerLongPress: _handlePause,
+        onPriorityCheck: _handlePriorityCheck,
         onPause: _handlePause,
         onReset: _handleReset,
         onSettings: _openSettings,

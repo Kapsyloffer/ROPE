@@ -11,6 +11,8 @@ class Player {
   int startLife;
   bool alive;
   bool isInterrupted = false;
+  bool isPriority = false;
+  bool isInterrupting = false;
   int queuePosition = 0;
   bool isBurnFlashing = false;
 
@@ -32,6 +34,8 @@ class Player {
     curLife = startLife;
     alive = true;
     isInterrupted = false;
+    isPriority = false;
+    isInterrupting = false;
     queuePosition = 0;
     isBurnFlashing = false;
     timer.reset();
