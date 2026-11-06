@@ -29,21 +29,20 @@ class _CountersGridState extends State<CountersGrid> {
   }
 
   Widget _buildCounterAdjustButton(
-    String counterType,
     IconData icon,
-    int amount,
+    VoidCallback onTap,
   ) {
     return Expanded(
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => widget.onCounterAdjust(counterType, amount),
+          onTap: onTap,
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Icon(
                 icon,
-                size: 32,
+                size: 28,
                 color: widget.player.alive ? Colors.black : Colors.red,
               ),
             ),
@@ -53,48 +52,40 @@ class _CountersGridState extends State<CountersGrid> {
     );
   }
 
-  Widget _buildCounterData(String counterType, String label, int value) {
+  Widget _buildCounterData({
+    required String label,
+    required int value,
+    required VoidCallback onIncrement,
+    required VoidCallback onDecrement,
+  }) {
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
           setState(() {});
-          widget.onCounterAdjust(counterType, 1);
+          onIncrement();
         },
         child: Container(
           color: Colors.transparent,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              _buildCounterAdjustButton(counterType, Icons.remove, -1),
-              Expanded(
-                flex: 2,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Positioned(
-                      top: 8,
-                      left: 0,
-                      right: 0,
-                      child: Text(
-                        label.toUpperCase(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: widget.player.alive
-                              ? Colors.black54
-                              : Colors.red.shade900,
-                        ),
-                      ),
-                    ),
-                    Center(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildCounterAdjustButton(Icons.remove, () {
+                    setState(() {});
+                    onDecrement();
+                  }),
+                  Expanded(
+                    flex: 2,
+                    child: Center(
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
                           '$value',
                           style: TextStyle(
-                            fontSize: 56,
+                            fontSize: 48,
                             fontWeight: FontWeight.bold,
                             color: widget.player.alive
                                 ? Colors.black
@@ -103,38 +94,22 @@ class _CountersGridState extends State<CountersGrid> {
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  _buildCounterAdjustButton(Icons.add, () {
+                    setState(() {});
+                    onIncrement();
+                  }),
+                ],
               ),
-              _buildCounterAdjustButton(counterType, Icons.add, 1),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildToggleDisplay(String counterType, String label, bool isEnabled) {
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          widget.onCounterAdjust(counterType, 1);
-        },
-        child: Container(
-          color: Colors.transparent,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
               Positioned(
-                top: 8,
+                top: 4,
                 left: 0,
                 right: 0,
                 child: Text(
                   label.toUpperCase(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: widget.player.alive
                         ? Colors.black54
@@ -142,19 +117,62 @@ class _CountersGridState extends State<CountersGrid> {
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggleDisplay({
+    required String label,
+    required bool isEnabled,
+    required VoidCallback onToggle,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          setState(() {});
+          onToggle();
+        },
+        child: Container(
+          color: Colors.transparent,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
               Center(
-                child: Icon(
-                  isEnabled
-                      ? Icons.military_tech
-                      : Icons.military_tech_outlined,
-                  size: 56,
-                  color: isEnabled
-                      ? (widget.player.alive
-                            ? Colors.black
-                            : Colors.red.shade200)
-                      : (widget.player.alive
-                            ? Colors.black54
-                            : Colors.red.shade900),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Icon(
+                    isEnabled
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank,
+                    size: 48,
+                    color: isEnabled
+                        ? (widget.player.alive
+                              ? Colors.black
+                              : Colors.red.shade200)
+                        : (widget.player.alive
+                              ? Colors.black54
+                              : Colors.red.shade900),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 4,
+                left: 0,
+                right: 0,
+                child: Text(
+                  label.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: widget.player.alive
+                        ? Colors.black54
+                        : Colors.red.shade900,
+                  ),
                 ),
               ),
             ],
@@ -196,18 +214,18 @@ class _CountersGridState extends State<CountersGrid> {
               children: [
                 _buildCounterCell([
                   _buildCounterData(
-                    'poison',
-                    'Poison',
-                    widget.player.counters.activeCounters['poison']?.amount ??
-                        0,
+                    label: 'Poison',
+                    value: widget.player.counters.activeCounters['poison']?.amount ?? 0,
+                    onIncrement: () => widget.onCounterAdjust('poison', 1),
+                    onDecrement: () => widget.onCounterAdjust('poison', -1),
                   ),
                 ]),
                 _buildCounterCell([
                   _buildCounterData(
-                    'energy',
-                    'Energy',
-                    widget.player.counters.activeCounters['energy']?.amount ??
-                        0,
+                    label: 'Energy',
+                    value: widget.player.counters.activeCounters['energy']?.amount ?? 0,
+                    onIncrement: () => widget.onCounterAdjust('energy', 1),
+                    onDecrement: () => widget.onCounterAdjust('energy', -1),
                   ),
                 ]),
               ],
@@ -219,31 +237,48 @@ class _CountersGridState extends State<CountersGrid> {
               children: [
                 _buildCounterCell([
                   _buildCounterData(
-                    'taxMain',
-                    'Tax',
-                    (widget.player.counters.activeCounters['commanderTax']
-                                as PairCounter?)
-                            ?.amounts[0] ??
-                        0,
+                    label: 'Tax',
+                    value: (widget.player.counters.activeCounters['commanderTax'] as PairCounter?)?.amounts[0] ?? 0,
+                    onIncrement: () {
+                      final c = widget.player.counters.activeCounters['commanderTax'] as PairCounter?;
+                      if (c != null) {
+                        c.amounts[0]++;
+                        widget.onCounterAdjust('commanderTax', 0);
+                      }
+                    },
+                    onDecrement: () {
+                      final c = widget.player.counters.activeCounters['commanderTax'] as PairCounter?;
+                      if (c != null && c.amounts[0] > 0) {
+                        c.amounts[0]--;
+                        widget.onCounterAdjust('commanderTax', 0);
+                      }
+                    },
                   ),
                   if (hasPartner)
                     _buildCounterData(
-                      'taxPartner',
-                      'Tax',
-                      (widget.player.counters.activeCounters['commanderTax']
-                                  as PairCounter?)
-                              ?.amounts[1] ??
-                          0,
+                      label: 'Tax',
+                      value: (widget.player.counters.activeCounters['commanderTax'] as PairCounter?)?.amounts[1] ?? 0,
+                      onIncrement: () {
+                        final c = widget.player.counters.activeCounters['commanderTax'] as PairCounter?;
+                        if (c != null) {
+                          c.amounts[1]++;
+                          widget.onCounterAdjust('commanderTax', 0);
+                        }
+                      },
+                      onDecrement: () {
+                        final c = widget.player.counters.activeCounters['commanderTax'] as PairCounter?;
+                        if (c != null && c.amounts[1] > 0) {
+                          c.amounts[1]--;
+                          widget.onCounterAdjust('commanderTax', 0);
+                        }
+                      },
                     ),
                 ]),
                 _buildCounterCell([
                   _buildToggleDisplay(
-                    'monarch',
-                    'Monarch',
-                    (widget.player.counters.activeCounters['monarch']
-                                as ToggleCounter?)
-                            ?.enabled ??
-                        false,
+                    label: 'Monarch',
+                    isEnabled: (widget.player.counters.activeCounters['monarch'] as ToggleCounter?)?.enabled ?? false,
+                    onToggle: () => widget.onCounterAdjust('monarch', 1),
                   ),
                 ]),
               ],

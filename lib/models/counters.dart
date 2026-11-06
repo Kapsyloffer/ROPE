@@ -47,6 +47,8 @@ class PlayerCounters {
       counter.amount = 0;
       if (counter is ToggleCounter) {
         counter.enabled = false;
+      } else if (counter is PairCounter) {
+        counter.amounts = [0, 0];
       }
     }
   }
