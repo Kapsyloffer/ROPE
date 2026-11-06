@@ -76,6 +76,30 @@ class TimerSettingsCard extends StatelessWidget {
                 },
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: TextFormField(
+                initialValue: Settings.prio.toString(),
+                decoration: const InputDecoration(
+                  labelText: 'Priority (seconds)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.rotate_right),
+                ),
+                keyboardType: TextInputType.number,
+                enabled: Settings.useTimer,
+                onChanged: (value) {
+                  int? parsedValue = num.tryParse(value.replaceAll(',', '.'))
+                      ?.toInt();
+                  if (parsedValue != null) {
+                    Settings.prio = parsedValue;
+                    Settings.save();
+                  }
+                },
+              ),
+            ),
           ],
         ),
       ),

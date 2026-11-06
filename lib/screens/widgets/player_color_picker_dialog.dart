@@ -34,10 +34,6 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
   static final List<Color> _presetTextColors = [
     Colors.black87,
     Colors.white,
-    Colors.red.shade900,
-    Colors.blue.shade900,
-    Colors.green.shade900,
-    Colors.purple.shade900,
   ];
 
   @override
