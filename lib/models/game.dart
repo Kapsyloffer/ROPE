@@ -6,7 +6,7 @@ enum TurnType { normal, interrupt, priority }
 class StackItem {
   final int playerId;
   final TurnType returnType;
-  final bool isFresh; 
+  final bool isFresh;
 
   StackItem(this.playerId, this.returnType, {this.isFresh = false});
 }

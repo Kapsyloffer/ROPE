@@ -262,11 +262,6 @@ class _TimerDisplayState extends State<TimerDisplay>
       ropeColor = Colors.amber.shade800;
     }
 
-    bool isActiveNormal =
-        widget.player.timer.active &&
-        !widget.player.isPriority &&
-        !widget.player.isInterrupting;
-
     Color antsColor = widget.player.timer.active
         ? Colors.black
         : Settings.playerTextColors[widget.player.order];
@@ -440,18 +435,18 @@ class _TimerDisplayState extends State<TimerDisplay>
               ),
             if (widget.player.timer.active && widget.player.alive) ...[
               if (widget.player.isPriority)
-                const Positioned(
+                Positioned(
                   left: 12,
                   child: Icon(
                     Icons.playlist_add_check,
                     size: 36,
-                    color: Colors.black45,
+                    color: ropeColor,
                   ),
                 )
               else if (widget.player.isInterrupting)
-                const Positioned(
+                Positioned(
                   left: 12,
-                  child: Icon(Icons.warning, size: 36, color: Colors.black45),
+                  child: Icon(Icons.warning, size: 36, color: ropeColor),
                 ),
               if (Settings.usePriority)
                 Positioned(
@@ -460,7 +455,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                     color: Colors.transparent,
                     child: IconButton(
                       icon: const Icon(Icons.rotate_right, size: 36),
-                      color: isActiveNormal ? Colors.black45 : Colors.white70,
+                      color: ropeColor,
                       onPressed: widget.onPriorityCheck,
                     ),
                   ),
