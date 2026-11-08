@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -45,41 +47,82 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   late Game _game;
   bool _showMenu = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initGame();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || 
+        state == AppLifecycleState.inactive || 
+        state == AppLifecycleState.hidden) {
+      _saveState();
+    }
+  }
+
+  void _saveState() {
+    Settings.saveGame(jsonEncode(_game.toJson()));
+  }
+
+  void _attachTimerCallbacks(Player player) {
+    player.timer.onTick = () {
+      if (mounted) {
+        setState(() {
+          bool wasAlive = player.alive;
+          player.alive = player.checkAlive();
+          _game.checkState(player, wasAlive);
+        });
+      }
+    };
+    player.timer.onBurn = () {
+      if (mounted) {
+        _adjustLife(player, -Settings.burnAmount);
+        setState(() {
+          bool wasAlive = player.alive;
+          _game.checkState(player, wasAlive);
+        });
+      }
+    };
   }
 
   void _initGame() {
     List<Player> initialPlayers = [];
     for (int i = 0; i < Settings.players; i++) {
       Player newPlayer = Player(i);
-      newPlayer.timer.onTick = () {
-        if (mounted) {
-          setState(() {
-            bool wasAlive = newPlayer.alive;
-            newPlayer.alive = newPlayer.checkAlive();
-            _game.checkState(newPlayer, wasAlive);
-          });
-        }
-      };
-      newPlayer.timer.onBurn = () {
-        if (mounted) {
-          _adjustLife(newPlayer, -Settings.burnAmount);
-          setState(() {
-            bool wasAlive = newPlayer.alive;
-            _game.checkState(newPlayer, wasAlive);
-          });
-        }
-      };
+      _attachTimerCallbacks(newPlayer);
       initialPlayers.add(newPlayer);
     }
     _game = Game(initialPlayers, Settings.players, 0);
+
+    String? savedJson = Settings.savedGame;
+    if (savedJson != null) {
+      try {
+        Map<String, dynamic> decoded = jsonDecode(savedJson);
+        if (decoded['playerCount'] == Settings.players) {
+          _game.loadFromJson(decoded);
+          for (var p in _game.players) {
+            if (p.timer.active) p.timer.startClock();
+          }
+        } else {
+          Settings.clearSavedGame();
+        }
+      } catch (e) {
+        Settings.clearSavedGame();
+      }
+    }
   }
 
   void _handleTimerToggle(Player player) {
@@ -104,23 +147,27 @@ class _MyHomePageState extends State<MyHomePage> {
         _game.interruptTurn(player);
       }
     });
+    _saveState();
   }
 
   void _handlePriorityCheck() {
     setState(() {
       _game.priorityCheck();
     });
+    _saveState();
   }
 
   void _handlePause() {
     setState(() {
       _game.pause();
     });
+    _saveState();
   }
 
   void _handleReset() {
     setState(() {
       _game.pause();
+      Settings.clearSavedGame();
       _initGame();
       _showMenu = false;
     });
@@ -128,6 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _openSettings() async {
     _game.pause();
+    _saveState();
 
     await Navigator.push(
       context,
@@ -152,6 +200,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
       _game.checkState(player, wasAlive);
     });
+    _saveState();
   }
 
   void _adjustCommanderDamage(
@@ -182,6 +231,7 @@ class _MyHomePageState extends State<MyHomePage> {
           amount;
       _game.checkState(player, wasAlive);
     });
+    _saveState();
   }
 
   void _adjustCounter(Player player, String counterType, int amount) {
@@ -215,6 +265,7 @@ class _MyHomePageState extends State<MyHomePage> {
       player.alive = player.checkAlive();
       _game.checkState(player, wasAlive);
     });
+    _saveState();
   }
 
   void _adjustTime(Player player, double amount) {
@@ -234,6 +285,7 @@ class _MyHomePageState extends State<MyHomePage> {
       player.alive = player.checkAlive();
       _game.checkState(player, wasAlive);
     });
+    _saveState();
   }
 
   void _toggleMenu() {

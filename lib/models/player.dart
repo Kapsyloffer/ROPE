@@ -67,4 +67,29 @@ class Player {
 
     return true;
   }
+
+  Map<String, dynamic> toJson() => {
+    'order': order,
+    'curLife': curLife,
+    'alive': alive,
+    'isInterrupted': isInterrupted,
+    'isPriority': isPriority,
+    'isInterrupting': isInterrupting,
+    'queuePosition': queuePosition,
+    'timer': timer.toJson(),
+    'commanderDamage': commanderDamage.toJson(),
+    'counters': counters.toJson(),
+  };
+
+  void loadFromJson(Map<String, dynamic> json) {
+    curLife = json['curLife'];
+    alive = json['alive'];
+    isInterrupted = json['isInterrupted'] ?? false;
+    isPriority = json['isPriority'] ?? false;
+    isInterrupting = json['isInterrupting'] ?? false;
+    queuePosition = json['queuePosition'] ?? 0;
+    timer.loadFromJson(json['timer']);
+    commanderDamage.loadFromJson(json['commanderDamage']);
+    counters.loadFromJson(json['counters']);
+  }
 }

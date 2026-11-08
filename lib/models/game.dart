@@ -9,6 +9,17 @@ class StackItem {
   final bool isFresh;
 
   StackItem(this.playerId, this.returnType, {this.isFresh = false});
+
+  Map<String, dynamic> toJson() => {
+    'playerId': playerId,
+    'returnType': returnType.index,
+    'isFresh': isFresh,
+  };
+
+  StackItem.fromJson(Map<String, dynamic> json)
+      : playerId = json['playerId'],
+        returnType = TurnType.values[json['returnType']],
+        isFresh = json['isFresh'] ?? false;
 }
 
 class Game {
@@ -222,6 +233,28 @@ class Game {
           players[i].timer.clock?.cancel();
         }
       }
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+    'playerCount': playerCount,
+    'activePlayerIndex': activePlayerIndex,
+    'activeTurnType': activeTurnType.index,
+    'turnStack': turnStack.map((s) => s.toJson()).toList(),
+    'players': players.map((p) => p.toJson()).toList(),
+  };
+
+  void loadFromJson(Map<String, dynamic> json) {
+    playerCount = json['playerCount'];
+    activePlayerIndex = json['activePlayerIndex'];
+    activeTurnType = TurnType.values[json['activeTurnType'] ?? 0];
+    var stackList = json['turnStack'] as List?;
+    if (stackList != null) {
+      turnStack = stackList.map((s) => StackItem.fromJson(s)).toList();
+    }
+    var pList = json['players'] as List;
+    for (int i = 0; i < players.length && i < pList.length; i++) {
+      players[i].loadFromJson(pList[i]);
     }
   }
 }

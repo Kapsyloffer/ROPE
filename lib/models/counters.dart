@@ -52,4 +52,21 @@ class PlayerCounters {
       }
     }
   }
+
+  Map<String, dynamic> toJson() => {
+    'poison': activeCounters['poison']!.amount,
+    'energy': activeCounters['energy']!.amount,
+    'commanderTax': (activeCounters['commanderTax'] as PairCounter).amounts,
+    'monarch': (activeCounters['monarch'] as ToggleCounter).enabled,
+  };
+
+  void loadFromJson(Map<String, dynamic> json) {
+    activeCounters['poison']!.amount = json['poison'] as int? ?? 0;
+    activeCounters['energy']!.amount = json['energy'] as int? ?? 0;
+    var cTax = json['commanderTax'] as List?;
+    if (cTax != null) {
+      (activeCounters['commanderTax'] as PairCounter).amounts = cTax.cast<int>();
+    }
+    (activeCounters['monarch'] as ToggleCounter).enabled = json['monarch'] as bool? ?? false;
+  }
 }

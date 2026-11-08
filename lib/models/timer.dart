@@ -71,4 +71,16 @@ class Timer {
     elapsedTurnTime = 0;
     clock?.cancel();
   }
+
+  Map<String, dynamic> toJson() => {
+    'curTime': curTime,
+    'active': active,
+    'elapsedTurnTime': elapsedTurnTime,
+  };
+
+  void loadFromJson(Map<String, dynamic> json) {
+    curTime = (json['curTime'] as num?)?.toDouble() ?? curTime;
+    active = json['active'] as bool? ?? false;
+    elapsedTurnTime = json['elapsedTurnTime'] as int? ?? 0;
+  }
 }

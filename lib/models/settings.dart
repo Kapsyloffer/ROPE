@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings {
-  // player settings
   static int players = 4;
   static int startLife = 40;
 
-  // player customization
   static List<Color> playerColors = [
     Colors.blue.shade200,
     Colors.amber.shade200,
@@ -21,14 +19,12 @@ class Settings {
   ];
   static List<bool> hasPartner = [false, false, false, false];
 
-  // timer settings
   static bool useTimer = true;
   static double startTime = 1.0;
   static int increment = 5;
   static bool usePriority = true;
   static int prio = 3;
 
-  // slow burn
   static bool useSlowBurn = false;
   static int burnInterval = 30;
   static int burnAmount = 5;
@@ -37,7 +33,6 @@ class Settings {
   static bool useCommanderDamage = true;
   static bool useCounters = true;
 
-  // "autosave"
   static late SharedPreferences prefs;
 
   static Future<void> init() async {
@@ -86,8 +81,8 @@ class Settings {
     burnInterval = prefs.getInt('burnInterval') ?? 30;
     burnAmount = prefs.getInt('burnAmount') ?? 5;
     useFlashing = prefs.getBool('useFlashing') ?? true;
-    useFlashing = prefs.getBool('useCommanderDamage') ?? true;
-    useFlashing = prefs.getBool('useCounters') ?? true;
+    useCommanderDamage = prefs.getBool('useCommanderDamage') ?? true;
+    useCounters = prefs.getBool('useCounters') ?? true;
 
     List<String>? colors = prefs.getStringList('playerColors');
     if (colors != null && colors.length >= players) {
@@ -120,4 +115,8 @@ class Settings {
       hasPartner = List.generate(players, (i) => false);
     }
   }
+
+  static String? get savedGame => prefs.getString('savedGame');
+  static Future<void> saveGame(String json) => prefs.setString('savedGame', json);
+  static Future<void> clearSavedGame() => prefs.remove('savedGame');
 }
