@@ -14,7 +14,6 @@ class Player {
   bool isPriority = false;
   bool isInterrupting = false;
   int queuePosition = 0;
-  bool isBurnFlashing = false;
 
   Timer timer;
   late CommanderDamage commanderDamage;
@@ -37,7 +36,6 @@ class Player {
     isPriority = false;
     isInterrupting = false;
     queuePosition = 0;
-    isBurnFlashing = false;
     timer.reset();
     commanderDamage = CommanderDamage(Settings.players);
     counters.reset();

@@ -70,18 +70,11 @@ class _MyHomePageState extends State<MyHomePage> {
       };
       newPlayer.timer.onBurn = () {
         if (mounted) {
+          HapticFeedback.mediumImpact();
+          _adjustLife(newPlayer, -Settings.burnAmount);
           setState(() {
             bool wasAlive = newPlayer.alive;
-            newPlayer.decreaseLife(Settings.burnAmount);
-            newPlayer.isBurnFlashing = true;
             _game.checkState(newPlayer, wasAlive);
-          });
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (mounted) {
-              setState(() {
-                newPlayer.isBurnFlashing = false;
-              });
-            }
           });
         }
       };
@@ -178,6 +171,8 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       if (amount == 0) return;
+      
+      _adjustLife(player, -amount);
 
       bool wasAlive = player.alive;
       player
@@ -185,7 +180,6 @@ class _MyHomePageState extends State<MyHomePage> {
               .commanders[fromPlayerId]
               .damageDealt[commanderIndex] +=
           amount;
-      player.decreaseLife(amount);
       _game.checkState(player, wasAlive);
     });
   }

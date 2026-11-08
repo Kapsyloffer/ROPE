@@ -237,10 +237,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                           decoration: BoxDecoration(
                             border: Border.all(
                               color:
-                                  widget.player.isBurnFlashing &&
-                                      Settings.useFlashing
-                                  ? Colors.red
-                                  : highlightedIndex == widget.player.order
+                                highlightedIndex == widget.player.order
                                   ? Colors.white
                                   : Colors.transparent,
                               width: 8.0,
