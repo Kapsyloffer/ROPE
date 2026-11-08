@@ -1,9 +1,11 @@
 import 'dart:async' as async;
 
 import 'package:flutter/material.dart';
+import 'package:fluttericon/rpg_awesome_icons.dart';
 
 import '../models/player.dart';
 import '../models/settings.dart';
+import '../models/counters.dart';
 
 class LifeDisplay extends StatefulWidget {
   final Player player;
@@ -123,7 +125,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
   Widget _buildAdjustButton(IconData icon, int amount) {
     return Expanded(
       child: Material(
-        color: Colors.transparent, // Transparent allows the native InkWell ripple to work normally
+        color: Colors.transparent,
         child: InkWell(
           onTap: () {
             if (!_isHolding) _handleLifeAdjust(amount);
@@ -148,6 +150,81 @@ class _LifeDisplayState extends State<LifeDisplay> {
     );
   }
 
+  Widget _buildActiveCountersRow() {
+    final counters = widget.player.counters.activeCounters;
+    final int poison = counters['poison']?.amount ?? 0;
+    final int energy = counters['energy']?.amount ?? 0;
+    final PairCounter? tax = counters['commanderTax'] as PairCounter?;
+    final bool monarch = (counters['monarch'] as ToggleCounter?)?.enabled ?? false;
+    final bool hasPartner = Settings.hasPartner[widget.player.order];
+
+    List<Widget> activeIcons = [];
+    Color textColor = widget.player.alive
+        ? Settings.playerTextColors[widget.player.order]
+        : Colors.red;
+
+    Widget buildItem(Widget icon, [String? text]) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          icon,
+          if (text != null) ...[
+            const SizedBox(width: 4),
+            Text(
+              text,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ]
+        ],
+      );
+    }
+
+    if (poison > 0) {
+      activeIcons.add(
+        buildItem(
+          Text(
+            'Φ',
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          '$poison',
+        ),
+      );
+    }
+    if (energy > 0) {
+      activeIcons.add(buildItem(Icon(Icons.bolt, color: textColor, size: 20), '$energy'));
+    }
+    if (tax != null) {
+      if (tax.amounts[0] > 0) {
+        activeIcons.add(
+            buildItem(Icon(Icons.shield_outlined, color: textColor, size: 20), '${tax.amounts[0]}'));
+      }
+      if (hasPartner && tax.amounts[1] > 0) {
+        activeIcons.add(
+            buildItem(Icon(Icons.shield_outlined, color: textColor, size: 20), '${tax.amounts[1]}'));
+      }
+    }
+    if (monarch) {
+      activeIcons.add(buildItem(Icon(RpgAwesome.crown, color: textColor, size: 20)));
+    }
+
+    if (activeIcons.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 4,
+      alignment: WrapAlignment.center,
+      children: activeIcons,
+    );
+  }
+
   @override
   void dispose() {
     _lifeDeltaTimer?.cancel();
@@ -160,7 +237,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black.withOpacity(0.05), // Subtle permanent darkening of the life display
+      color: Colors.black.withOpacity(0.05),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -171,6 +248,14 @@ class _LifeDisplayState extends State<LifeDisplay> {
             child: Stack(
               alignment: Alignment.center,
               children: [
+                Positioned(
+                  bottom: 12,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    child: _buildActiveCountersRow(),
+                  ),
+                ),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(

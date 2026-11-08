@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttericon/rpg_awesome_icons.dart';
 
 import '../models/player.dart';
 import '../models/settings.dart';
@@ -28,7 +29,7 @@ class _CountersGridState extends State<CountersGrid> {
         oldWidget.player != widget.player) {}
   }
 
-  Widget _buildCounterAdjustButton(IconData icon, VoidCallback onTap) {
+  Widget _buildCounterAdjustButton(IconData icon, VoidCallback onTap, Color color) {
     return Expanded(
       child: Material(
         color: Colors.transparent,
@@ -40,7 +41,7 @@ class _CountersGridState extends State<CountersGrid> {
               child: Icon(
                 icon,
                 size: 28,
-                color: widget.player.alive ? Colors.black : Colors.red,
+                color: color,
               ),
             ),
           ),
@@ -50,11 +51,15 @@ class _CountersGridState extends State<CountersGrid> {
   }
 
   Widget _buildCounterData({
-    required String label,
+    required Widget prefixWidget,
     required int value,
     required VoidCallback onIncrement,
     required VoidCallback onDecrement,
   }) {
+    Color textColor = widget.player.alive
+        ? Settings.playerTextColors[widget.player.order]
+        : Colors.red;
+
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -64,56 +69,43 @@ class _CountersGridState extends State<CountersGrid> {
         },
         child: Container(
           color: Colors.transparent,
-          child: Stack(
-            fit: StackFit.expand,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildCounterAdjustButton(Icons.remove, () {
-                    setState(() {});
-                    onDecrement();
-                  }),
-                  Expanded(
-                    flex: 2,
-                    child: Center(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          '$value',
-                          style: TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: widget.player.alive
-                                ? Colors.black
-                                : Colors.red,
+              _buildCounterAdjustButton(Icons.remove, () {
+                setState(() {});
+                onDecrement();
+              }, textColor),
+              Expanded(
+                flex: 2,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          prefixWidget,
+                          const SizedBox(width: 8),
+                          Text(
+                            '$value',
+                            style: TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
-                  _buildCounterAdjustButton(Icons.add, () {
-                    setState(() {});
-                    onIncrement();
-                  }),
-                ],
-              ),
-              Positioned(
-                top: 4,
-                left: 0,
-                right: 0,
-                child: Text(
-                  label.toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: widget.player.alive
-                        ? Colors.black54
-                        : Colors.red.shade900,
-                  ),
                 ),
               ),
+              _buildCounterAdjustButton(Icons.add, () {
+                setState(() {});
+                onIncrement();
+              }, textColor),
             ],
           ),
         ),
@@ -122,10 +114,17 @@ class _CountersGridState extends State<CountersGrid> {
   }
 
   Widget _buildToggleDisplay({
-    required String label,
+    required Widget prefixWidget,
     required bool isEnabled,
     required VoidCallback onToggle,
   }) {
+    Color activeColor = widget.player.alive
+        ? Settings.playerTextColors[widget.player.order]
+        : Colors.red;
+    Color inactiveColor = widget.player.alive
+        ? Settings.playerTextColors[widget.player.order].withValues(alpha: 0.4)
+        : Colors.red.shade900;
+
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -135,42 +134,25 @@ class _CountersGridState extends State<CountersGrid> {
         },
         child: Container(
           color: Colors.transparent,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Icon(
-                    isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-                    size: 48,
-                    color: isEnabled
-                        ? (widget.player.alive
-                              ? Colors.black
-                              : Colors.red.shade200)
-                        : (widget.player.alive
-                              ? Colors.black54
-                              : Colors.red.shade900),
-                  ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    prefixWidget,
+                    const SizedBox(width: 8),
+                    Icon(
+                      isEnabled ? Icons.check : Icons.close,
+                      size: 40,
+                      color: isEnabled ? activeColor : inactiveColor,
+                    ),
+                  ],
                 ),
               ),
-              Positioned(
-                top: 4,
-                left: 0,
-                right: 0,
-                child: Text(
-                  label.toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: widget.player.alive
-                        ? Colors.black54
-                        : Colors.red.shade900,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -178,13 +160,17 @@ class _CountersGridState extends State<CountersGrid> {
   }
 
   Widget _buildCounterCell(List<Widget> children) {
+    Color borderColor = widget.player.alive
+        ? Settings.playerTextColors[widget.player.order].withValues(alpha: 0.3)
+        : Colors.red.shade900;
+
     return Expanded(
       child: Container(
         margin: const EdgeInsets.all(4.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.transparent,
           borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.black),
+          border: Border.all(color: borderColor),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -197,6 +183,9 @@ class _CountersGridState extends State<CountersGrid> {
   @override
   Widget build(BuildContext context) {
     bool hasPartner = Settings.hasPartner[widget.player.order];
+    Color contentColor = widget.player.alive
+        ? Settings.playerTextColors[widget.player.order]
+        : Colors.red;
 
     return Padding(
       padding: const EdgeInsets.all(4.0),
@@ -209,7 +198,14 @@ class _CountersGridState extends State<CountersGrid> {
               children: [
                 _buildCounterCell([
                   _buildCounterData(
-                    label: 'Poison',
+                    prefixWidget: Text(
+                      'Φ',
+                      style: TextStyle(
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        color: contentColor,
+                      ),
+                    ),
                     value:
                         widget
                             .player
@@ -223,7 +219,7 @@ class _CountersGridState extends State<CountersGrid> {
                 ]),
                 _buildCounterCell([
                   _buildCounterData(
-                    label: 'Energy',
+                    prefixWidget: Icon(Icons.bolt, size: 38, color: contentColor),
                     value:
                         widget
                             .player
@@ -244,7 +240,7 @@ class _CountersGridState extends State<CountersGrid> {
               children: [
                 _buildCounterCell([
                   _buildCounterData(
-                    label: 'Tax',
+                    prefixWidget: Icon(Icons.shield_outlined, size: 32, color: contentColor),
                     value:
                         (widget.player.counters.activeCounters['commanderTax']
                                 as PairCounter?)
@@ -271,7 +267,7 @@ class _CountersGridState extends State<CountersGrid> {
                   ),
                   if (hasPartner)
                     _buildCounterData(
-                      label: 'Tax',
+                      prefixWidget: Icon(Icons.shield_outlined, size: 32, color: contentColor),
                       value:
                           (widget.player.counters.activeCounters['commanderTax']
                                   as PairCounter?)
@@ -305,7 +301,7 @@ class _CountersGridState extends State<CountersGrid> {
                 ]),
                 _buildCounterCell([
                   _buildToggleDisplay(
-                    label: 'Monarch',
+                    prefixWidget: Icon(RpgAwesome.crown, size: 34, color: contentColor),
                     isEnabled:
                         (widget.player.counters.activeCounters['monarch']
                                 as ToggleCounter?)
