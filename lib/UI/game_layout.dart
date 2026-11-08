@@ -138,7 +138,7 @@ class _GameLayoutState extends State<GameLayout> {
 
   void _handleRoll() {
     if (_rollTimer?.isActive ?? false) return;
-
+    widget.onToggleMenu();
     int totalPlayers = widget.players.length;
     if (totalPlayers == 0) return;
 
