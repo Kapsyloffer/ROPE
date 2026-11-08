@@ -120,6 +120,9 @@ class _GameLayoutState extends State<GameLayout> {
   int _resetTrigger = 0;
   final ValueNotifier<int> _highlightedNotifier = ValueNotifier<int>(-1);
   async.Timer? _rollTimer;
+  
+  // This link bridges the position of the MenuRow to the floating button
+  final LayerLink _menuLink = LayerLink();
 
   @override
   void dispose() {
@@ -204,10 +207,10 @@ class _GameLayoutState extends State<GameLayout> {
       (max, p) => p.queuePosition > max ? p.queuePosition : max,
     );
 
-    Widget layoutColumn = PlayerLayout.build(
-      playerCount: widget.players.length,
-      builder: (index) => _buildPlayerWidget(index, maxQueue),
-      centerMenu: MenuRow(
+    // Target marks exactly where the MenuRow is dynamically placed in the flex layout
+    Widget centerMenuWidget = CompositedTransformTarget(
+      link: _menuLink,
+      child: MenuRow(
         onPause: widget.onPause,
         onReset: _handleReset,
         onRoll: _handleRoll,
@@ -216,25 +219,46 @@ class _GameLayoutState extends State<GameLayout> {
       ),
     );
 
+    Widget layoutColumn = PlayerLayout.build(
+      playerCount: widget.players.length,
+      builder: (index) => _buildPlayerWidget(index, maxQueue),
+      centerMenu: centerMenuWidget,
+    );
+
     return Stack(
       alignment: Alignment.center,
       children: [
         layoutColumn,
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: widget.onToggleMenu,
-          child: AnimatedRotation(
-            turns: widget.showMenu ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: Container(
+        // The follower completely floats over everything but dynamically anchors to the Target
+        Positioned(
+          left: 0,
+          top: 0,
+          child: CompositedTransformFollower(
+            link: _menuLink,
+            showWhenUnlinked: false,
+            targetAnchor: Alignment.center,
+            followerAnchor: Alignment.center,
+            child: SizedBox(
               width: 64,
               height: 64,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.onToggleMenu,
+                child: AnimatedRotation(
+                  turns: widget.showMenu ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.hourglass_empty, color: Colors.white),
+                  ),
+                ),
               ),
-              child: const Icon(Icons.hourglass_empty, color: Colors.white),
             ),
           ),
         ),

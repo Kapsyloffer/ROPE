@@ -133,6 +133,11 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
       builder: (index) => _buildPlayerTile(context, index),
     );
 
+    // Calculate height based on number of rows needed
+    int rowCount = (Settings.players <= 2) ? 2 : 
+                   (Settings.players <= 4) ? 2 : 3;
+    double previewHeight = rowCount * 140.0; // 140px per row
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -147,7 +152,7 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
               trailing: DropdownButton<int>(
                 value: Settings.players,
                 underline: const SizedBox(),
-                items: [2, 3, 4].map((int value) {
+                items: [2, 3, 4, 5, 6].map((int value) {
                   return DropdownMenuItem<int>(
                     value: value,
                     child: Text(value.toString()),
@@ -179,7 +184,12 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                 horizontal: 12.0,
                 vertical: 8.0,
               ),
-              child: SizedBox(height: 280, child: layoutPreview),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                height: previewHeight, 
+                child: layoutPreview
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(
