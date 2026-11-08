@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../models/player.dart';
 import 'player_widget.dart';
+import 'player_layout.dart';
 
 class MenuRow extends StatelessWidget {
   final VoidCallback onPause;
@@ -138,7 +139,11 @@ class _GameLayoutState extends State<GameLayout> {
 
   void _handleRoll() {
     if (_rollTimer?.isActive ?? false) return;
-    widget.onToggleMenu();
+    
+    if (widget.showMenu) {
+      widget.onToggleMenu();
+    }
+    
     int totalPlayers = widget.players.length;
     if (totalPlayers == 0) return;
 
@@ -167,111 +172,49 @@ class _GameLayoutState extends State<GameLayout> {
     nextStep();
   }
 
-  Widget _buildPlayerWidget(int index, int rotations, int maxQueue) {
+  Widget _buildPlayerWidget(int index, int maxQueue) {
     final player = widget.players[index];
     final bool isNextInQueue =
         player.queuePosition > 0 && player.queuePosition == maxQueue;
+    final int rotations = PlayerLayout.getRotation(widget.players.length, index);
 
-    return Expanded(
-      child: PlayerWidget(
-        key: ValueKey(player.order),
-        player: player,
-        onTimerTap: () => widget.onTimerTap(player),
-        onLifeAdjust: (amt) => widget.onLifeAdjust(player, amt),
-        onTimeAdjust: (amt) => widget.onTimeAdjust(player, amt),
-        onCommanderDamageAdjust: (targetId, commanderIndex, amt) => widget
-            .onCommanderDamageAdjust(player, targetId, commanderIndex, amt),
-        onCounterAdjust: (counterType, amt) =>
-            widget.onCounterAdjust(player, counterType, amt),
-        onTimerLongPress: widget.onTimerLongPress,
-        onPriorityCheck: widget.onPriorityCheck,
-        rotations: rotations,
-        resetTrigger: _resetTrigger,
-        highlightedNotifier: _highlightedNotifier,
-        isNextInQueue: isNextInQueue,
-      ),
+    return PlayerWidget(
+      key: ValueKey(player.order),
+      player: player,
+      onTimerTap: () => widget.onTimerTap(player),
+      onLifeAdjust: (amt) => widget.onLifeAdjust(player, amt),
+      onTimeAdjust: (amt) => widget.onTimeAdjust(player, amt),
+      onCommanderDamageAdjust: (targetId, commanderIndex, amt) => widget
+          .onCommanderDamageAdjust(player, targetId, commanderIndex, amt),
+      onCounterAdjust: (counterType, amt) =>
+          widget.onCounterAdjust(player, counterType, amt),
+      onTimerLongPress: widget.onTimerLongPress,
+      onPriorityCheck: widget.onPriorityCheck,
+      rotations: rotations,
+      resetTrigger: _resetTrigger,
+      highlightedNotifier: _highlightedNotifier,
+      isNextInQueue: isNextInQueue,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget layoutColumn;
     int maxQueue = widget.players.fold(
       0,
       (max, p) => p.queuePosition > max ? p.queuePosition : max,
     );
 
-    if (widget.players.length == 2) {
-      layoutColumn = Column(
-        children: [
-          _buildPlayerWidget(0, 2, maxQueue),
-          MenuRow(
-            onPause: widget.onPause,
-            onReset: _handleReset,
-            onRoll: _handleRoll,
-            onSettings: widget.onSettings,
-            showMenu: widget.showMenu,
-          ),
-          _buildPlayerWidget(1, 0, maxQueue),
-        ],
-      );
-    } else if (widget.players.length == 3) {
-      layoutColumn = Column(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                _buildPlayerWidget(0, 1, maxQueue),
-                _buildPlayerWidget(1, 3, maxQueue),
-              ],
-            ),
-          ),
-          MenuRow(
-            onPause: widget.onPause,
-            onReset: _handleReset,
-            onRoll: _handleRoll,
-            onSettings: widget.onSettings,
-            showMenu: widget.showMenu,
-          ),
-          _buildPlayerWidget(2, 0, maxQueue),
-        ],
-      );
-    } else if (widget.players.length == 4) {
-      layoutColumn = Column(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                _buildPlayerWidget(0, 1, maxQueue),
-                _buildPlayerWidget(1, 3, maxQueue),
-              ],
-            ),
-          ),
-          MenuRow(
-            onPause: widget.onPause,
-            onReset: _handleReset,
-            onRoll: _handleRoll,
-            onSettings: widget.onSettings,
-            showMenu: widget.showMenu,
-          ),
-          Expanded(
-            child: Row(
-              children: [
-                _buildPlayerWidget(3, 1, maxQueue),
-                _buildPlayerWidget(2, 3, maxQueue),
-              ],
-            ),
-          ),
-        ],
-      );
-    } else {
-      layoutColumn = Column(
-        children: List.generate(
-          widget.players.length,
-          (index) => _buildPlayerWidget(index, 0, maxQueue),
-        ),
-      );
-    }
+    Widget layoutColumn = PlayerLayout.build(
+      playerCount: widget.players.length,
+      builder: (index) => _buildPlayerWidget(index, maxQueue),
+      centerMenu: MenuRow(
+        onPause: widget.onPause,
+        onReset: _handleReset,
+        onRoll: _handleRoll,
+        onSettings: widget.onSettings,
+        showMenu: widget.showMenu,
+      ),
+    );
 
     return Stack(
       alignment: Alignment.center,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/player.dart';
 import '../models/settings.dart';
 import '../models/game.dart';
+import 'player_layout.dart';
 
 class CommanderDamageGrid extends StatefulWidget {
   final Player player;
@@ -200,42 +201,11 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
     );
   }
 
-  Widget _buildCommanderRow(int id1, int id2) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(child: _buildCommanderCell(id1)),
-        Expanded(child: _buildCommanderCell(id2)),
-      ],
-    );
-  }
-
   Widget _buildCommanderGrid() {
-    if (Settings.players == 2) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: _buildCommanderCell(0)),
-          Expanded(child: _buildCommanderCell(1)),
-        ],
-      );
-    } else if (Settings.players == 3) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: _buildCommanderRow(0, 1)),
-          Expanded(child: _buildCommanderCell(2)),
-        ],
-      );
-    } else {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: _buildCommanderRow(0, 1)),
-          Expanded(child: _buildCommanderRow(3, 2)),
-        ],
-      );
-    }
+    return PlayerLayout.build(
+      playerCount: Settings.players,
+      builder: (index) => _buildCommanderCell(index),
+    );
   }
 
   @override

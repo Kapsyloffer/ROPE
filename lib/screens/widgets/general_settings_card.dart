@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/settings.dart';
+import '../../UI/player_layout.dart';
 import 'player_color_picker_dialog.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
@@ -65,61 +66,59 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
     final Color bgColor = Settings.playerColors[index];
     final Color fgColor = Settings.playerTextColors[index];
 
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Material(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(12),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () => _showColorPicker(context, index),
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Material(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _showColorPicker(context, index),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'P${index + 1}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: fgColor,
+                      ),
+                    ),
+                    Icon(Icons.palette_outlined, color: fgColor, size: 20),
+                  ],
+                ),
+                if (Settings.useCommanderDamage)
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'P${index + 1}',
+                        'Partner',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                           color: fgColor,
                         ),
                       ),
-                      Icon(Icons.palette_outlined, color: fgColor, size: 20),
+                      const SizedBox(width: 4),
+                      Switch(
+                        value: Settings.hasPartner[index],
+                        onChanged: (value) {
+                          setState(() {
+                            Settings.hasPartner[index] = value;
+                          });
+                          Settings.save();
+                          widget.onUpdate();
+                        },
+                      ),
                     ],
                   ),
-                  if (Settings.useCommanderDamage)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Partner',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: fgColor,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Switch(
-                          value: Settings.hasPartner[index],
-                          onChanged: (value) {
-                            setState(() {
-                              Settings.hasPartner[index] = value;
-                            });
-                            Settings.save();
-                            widget.onUpdate();
-                          },
-                        ),
-                      ],
-                    ),
-                ],
-              ),
+              ],
             ),
           ),
         ),
@@ -129,55 +128,10 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
 
   @override
   Widget build(BuildContext context) {
-    Widget layoutPreview;
-
-    if (Settings.players == 2) {
-      layoutPreview = Column(
-        children: [_buildPlayerTile(context, 0), _buildPlayerTile(context, 1)],
-      );
-    } else if (Settings.players == 3) {
-      layoutPreview = Column(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                _buildPlayerTile(context, 0),
-                _buildPlayerTile(context, 1),
-              ],
-            ),
-          ),
-          _buildPlayerTile(context, 2),
-        ],
-      );
-    } else if (Settings.players == 4) {
-      layoutPreview = Column(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                _buildPlayerTile(context, 0),
-                _buildPlayerTile(context, 1),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Row(
-              children: [
-                _buildPlayerTile(context, 3),
-                _buildPlayerTile(context, 2),
-              ],
-            ),
-          ),
-        ],
-      );
-    } else {
-      layoutPreview = Column(
-        children: List.generate(
-          Settings.players,
-          (index) => _buildPlayerTile(context, index),
-        ),
-      );
-    }
+    Widget layoutPreview = PlayerLayout.build(
+      playerCount: Settings.players,
+      builder: (index) => _buildPlayerTile(context, index),
+    );
 
     return Card(
       elevation: 2,
