@@ -89,10 +89,11 @@ class Settings {
       playerColors = colors.map((c) => Color(int.parse(c))).toList();
     } else {
       List<Color> defaultColors = [
-        Colors.blue.shade200,
         Colors.amber.shade200,
+        Colors.blue.shade200,
         Colors.purple.shade200,
         Colors.red.shade200,
+        Colors.green.shade200,
       ];
       playerColors = List.generate(
         players,

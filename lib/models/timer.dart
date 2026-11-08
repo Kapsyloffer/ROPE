@@ -21,9 +21,7 @@ class Timer {
   void toggleTimer({bool isInterrupt = false, bool isPriority = false}) {
     active = !active;
     if (!active) {
-      if (isPriority) {
-        curTime += Settings.prio;
-      } else if (!isInterrupt) {
+      if (!isInterrupt && !isPriority) {
         curTime += increment;
       }
       resetTurn();
