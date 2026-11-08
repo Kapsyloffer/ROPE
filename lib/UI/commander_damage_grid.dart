@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/player.dart';
 import '../models/settings.dart';
+import '../models/game.dart';
 
 class CommanderDamageGrid extends StatefulWidget {
   final Player player;
@@ -40,6 +41,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
     int commanderIndex,
     IconData icon,
     int amount,
+    Color iconColor,
   ) {
     return Expanded(
       child: Material(
@@ -53,7 +55,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(icon, size: 32, color: Colors.black),
+              child: Icon(icon, size: 32, color: iconColor),
             ),
           ),
         ),
@@ -66,6 +68,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
     int commanderIndex,
     int damage,
     bool me,
+    Color textColor,
   ) {
     bool isEditing =
         _editingCommanderId == targetPlayerId &&
@@ -101,6 +104,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                       commanderIndex,
                       Icons.remove,
                       -1,
+                      textColor,
                     ),
                     Expanded(
                       flex: 2,
@@ -111,10 +115,10 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                             fit: BoxFit.scaleDown,
                             child: Text(
                               '$damage',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: textColor,
                               ),
                             ),
                           ),
@@ -126,6 +130,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                       commanderIndex,
                       Icons.add,
                       1,
+                      textColor,
                     ),
                   ],
                 )
@@ -136,10 +141,10 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                       fit: BoxFit.scaleDown,
                       child: Text(
                         (me && damage == 0) ? '--' : '$damage',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: textColor,
                         ),
                       ),
                     ),
@@ -153,13 +158,13 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
   Widget _buildCommanderCell(int targetPlayerId) {
     bool me = targetPlayerId == widget.player.order;
     bool hasPartner = Settings.hasPartner[targetPlayerId];
+    Color contentColor = Settings.playerTextColors[targetPlayerId];
 
     return Container(
       margin: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
         color: Settings.playerColors[targetPlayerId],
         borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: me ? Colors.black : Colors.black12),
       ),
       child: RotatedBox(
         quarterTurns: widget.rotations,
@@ -175,6 +180,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                   .commanders[targetPlayerId]
                   .damageDealt[0],
               me,
+              contentColor,
             ),
             if (hasPartner)
               _buildDamageDisplay(
@@ -186,6 +192,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                     .commanders[targetPlayerId]
                     .damageDealt[1],
                 me,
+                contentColor,
               ),
           ],
         ),
