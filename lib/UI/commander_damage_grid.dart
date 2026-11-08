@@ -170,6 +170,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
       decoration: BoxDecoration(
         color: Settings.playerColors[targetPlayerId],
         borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: contentColor.withOpacity(0.3)),
       ),
       child: RotatedBox(
         quarterTurns: widget.rotations,
