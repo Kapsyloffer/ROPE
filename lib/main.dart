@@ -70,7 +70,6 @@ class _MyHomePageState extends State<MyHomePage> {
       };
       newPlayer.timer.onBurn = () {
         if (mounted) {
-          HapticFeedback.mediumImpact();
           _adjustLife(newPlayer, -Settings.burnAmount);
           setState(() {
             bool wasAlive = newPlayer.alive;
@@ -85,6 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _handleTimerToggle(Player player) {
     if (!player.alive) return;
+    HapticFeedback.heavyImpact(); 
     setState(() {
       bool isPaused = !_game.players.any((p) => p.timer.active);
 

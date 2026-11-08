@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/player.dart';
 import '../models/settings.dart';
@@ -47,10 +48,14 @@ class PlayerWidget extends StatefulWidget {
 class _PlayerWidgetState extends State<PlayerWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _flipController;
+  int _lastLife = 0;
+  bool _isFlashing = false;
+  bool _skipNextFlash = false;
 
   @override
   void initState() {
     super.initState();
+    _lastLife = widget.player.curLife;
     _flipController = AnimationController(
       vsync: this,
       value: 0.0,
@@ -63,6 +68,32 @@ class _PlayerWidgetState extends State<PlayerWidget>
   @override
   void didUpdateWidget(covariant PlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    
+    // Globally track life changes to flash the player tile
+    int diff = widget.player.curLife - _lastLife;
+    if (diff != 0) {
+      if (diff < 0) {
+        if (_skipNextFlash) {
+          _skipNextFlash = false;
+          HapticFeedback.mediumImpact(); // Manual damage haptics only
+        } else {
+          HapticFeedback.mediumImpact(); // External damage haptics + flash
+          _isFlashing = true;
+          Future.delayed(const Duration(milliseconds: 150), () {
+            if (mounted) {
+              setState(() {
+                _isFlashing = false;
+              });
+            }
+          });
+        }
+      } else {
+        _skipNextFlash = false;
+        HapticFeedback.lightImpact(); // Positive life gain
+      }
+    }
+    _lastLife = widget.player.curLife;
+
     if (oldWidget.resetTrigger != widget.resetTrigger) {
       _flipController.animateTo(0.0, curve: Curves.easeInOut);
     } else if (_flipController.value < _minFlip ||
@@ -82,7 +113,6 @@ class _PlayerWidgetState extends State<PlayerWidget>
     double delta = details.primaryDelta! / height;
     final double v = _flipController.value;
 
-    // value -= delta, so delta > 0 moves toward the counters side
     if (delta > 0 && v <= _minFlip) {
       if (_minFlip == 0.0) return;
       if (v < -1.0) delta *= 0.25;
@@ -201,7 +231,12 @@ class _PlayerWidgetState extends State<PlayerWidget>
                               child: LifeDisplay(
                                 key: ValueKey('${widget.player.order}_life'),
                                 player: widget.player,
-                                onLifeAdjust: widget.onLifeAdjust,
+                                onLifeAdjust: (amt) {
+                                  if (amt < 0) {
+                                    _skipNextFlash = true;
+                                  }
+                                  widget.onLifeAdjust(amt);
+                                },
                               ),
                             ),
                             if (Settings.useCommanderDamage) ...[
@@ -245,6 +280,15 @@ class _PlayerWidgetState extends State<PlayerWidget>
                           ),
                         );
                       },
+                    ),
+                  ),
+                ),
+                // Flash overlay is now constrained strictly to the flex: 2 section
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      color: _isFlashing ? Colors.black.withOpacity(0.15) : Colors.transparent,
                     ),
                   ),
                 ),

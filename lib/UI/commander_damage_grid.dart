@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../models/player.dart';
 import '../models/settings.dart';
@@ -50,9 +49,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            if (amount > 0) { 
-              HapticFeedback.mediumImpact();
-            }
+            // HapticFeedback removed, PlayerWidget handles the drop globally
             widget.onCommanderDamageAdjust(
               targetPlayerId,
               commanderIndex,
@@ -91,7 +88,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
               _editingCommanderIndex = null;
             });
           } else {
-            HapticFeedback.mediumImpact();
+            // HapticFeedback removed, PlayerWidget handles the drop globally
             widget.onCommanderDamageAdjust(targetPlayerId, commanderIndex, 1);
           }
         },

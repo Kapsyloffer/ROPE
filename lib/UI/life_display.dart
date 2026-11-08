@@ -1,7 +1,6 @@
 import 'dart:async' as async;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../models/player.dart';
 import '../models/settings.dart';
@@ -26,7 +25,6 @@ class _LifeDisplayState extends State<LifeDisplay> {
   async.Timer? _lifeDeltaTimer;
   async.Timer? _lifeDeltaHideTimer;
   double _lifeDeltaOpacity = 0.0;
-  bool _isFlashing = false;
   
   int _lastLife = 0;
 
@@ -60,10 +58,6 @@ class _LifeDisplayState extends State<LifeDisplay> {
 
     int diff = widget.player.curLife - _lastLife;
     if (diff != 0) {
-      if (diff < 0) {
-        _triggerDamageHapticsAndFlash();
-      }
-
       _lifeDelta += diff;
       _showLifeDelta = true;
       _lifeDeltaOpacity = 1.0;
@@ -92,20 +86,6 @@ class _LifeDisplayState extends State<LifeDisplay> {
       });
     }
     _lastLife = widget.player.curLife;
-  }
-
-  void _triggerDamageHapticsAndFlash() {
-    HapticFeedback.mediumImpact();
-    setState(() {
-      _isFlashing = true;
-    });
-    Future.delayed(const Duration(milliseconds: 150), () {
-      if (mounted) {
-        setState(() {
-          _isFlashing = false;
-        });
-      }
-    });
   }
 
   void _handleLifeAdjust(int amount) {
@@ -181,66 +161,57 @@ class _LifeDisplayState extends State<LifeDisplay> {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.black.withOpacity(0.05), // Subtle permanent darkening of the life display
-      child: Stack(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Flash overlay sits behind the buttons/text
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            color: _isFlashing ? Colors.black.withOpacity(0.15) : Colors.transparent,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildAdjustButton(Icons.remove, -1),
-              Expanded(
-                flex: 2,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        '${widget.player.curLife}',
-                        style: TextStyle(
-                          fontSize: 80,
-                          fontWeight: FontWeight.bold,
-                          color: widget.player.alive
-                              ? Settings.playerTextColors[widget.player.order]
-                              : Colors.red,
-                        ),
-                      ),
+          _buildAdjustButton(Icons.remove, -1),
+          Expanded(
+            flex: 2,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '${widget.player.curLife}',
+                    style: TextStyle(
+                      fontSize: 80,
+                      fontWeight: FontWeight.bold,
+                      color: widget.player.alive
+                          ? Settings.playerTextColors[widget.player.order]
+                          : Colors.red,
                     ),
-                    if (_showLifeDelta && _lifeDelta != 0)
-                      Positioned(
-                        top: 12,
-                        left: _lifeDelta < 0 ? 8 : null,
-                        right: _lifeDelta > 0 ? 8 : null,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 300),
-                          opacity: _lifeDeltaOpacity,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            child: Text(
-                              _lifeDelta > 0 ? '+$_lifeDelta' : '$_lifeDelta',
-                              style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                                color: Settings.playerTextColors[widget.player.order],
-                              ),
-                            ),
+                  ),
+                ),
+                if (_showLifeDelta && _lifeDelta != 0)
+                  Positioned(
+                    top: 12,
+                    left: _lifeDelta < 0 ? 8 : null,
+                    right: _lifeDelta > 0 ? 8 : null,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 300),
+                      opacity: _lifeDeltaOpacity,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        child: Text(
+                          _lifeDelta > 0 ? '+$_lifeDelta' : '$_lifeDelta',
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                            color: Settings.playerTextColors[widget.player.order],
                           ),
                         ),
                       ),
-                  ],
-                ),
-              ),
-              _buildAdjustButton(Icons.add, 1),
-            ],
+                    ),
+                  ),
+              ],
+            ),
           ),
+          _buildAdjustButton(Icons.add, 1),
         ],
       ),
     );
