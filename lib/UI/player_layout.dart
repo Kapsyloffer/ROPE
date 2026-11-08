@@ -38,14 +38,14 @@ class PlayerLayout {
         Expanded(child: buildRow([0, 1])),
         Expanded(child: buildRow([4, 2])),
         if (centerMenu != null) centerMenu,
-        Expanded(child: buildRow([3]))
+        Expanded(child: buildRow([3])),
       ];
     } else if (playerCount == 6) {
       children = [
         Expanded(child: buildRow([0, 1])),
         Expanded(child: buildRow([5, 2])),
         if (centerMenu != null) centerMenu,
-        Expanded(child: buildRow([4, 3]))
+        Expanded(child: buildRow([4, 3])),
       ];
     } else {
       children = List.generate(
@@ -82,7 +82,7 @@ class PlayerLayout {
       if (index == 0) return 1; // Top Left
       if (index == 1) return 3; // Top Right
       if (index == 2) return 3; // Center Right
-      if (index == 3) return 3; // Bottom Right 
+      if (index == 3) return 3; // Bottom Right
       if (index == 4) return 1; // Bottom Left
       if (index == 5) return 1; // Center Left
     }

@@ -134,8 +134,11 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
     );
 
     // Calculate height based on number of rows needed
-    int rowCount = (Settings.players <= 2) ? 2 : 
-                   (Settings.players <= 4) ? 2 : 3;
+    int rowCount = (Settings.players <= 2)
+        ? 2
+        : (Settings.players <= 4)
+        ? 2
+        : 3;
     double previewHeight = rowCount * 140.0; // 140px per row
 
     return Card(
@@ -187,8 +190,8 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
-                height: previewHeight, 
-                child: layoutPreview
+                height: previewHeight,
+                child: layoutPreview,
               ),
             ),
             Padding(

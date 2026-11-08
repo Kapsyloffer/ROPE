@@ -120,7 +120,7 @@ class _GameLayoutState extends State<GameLayout> {
   int _resetTrigger = 0;
   final ValueNotifier<int> _highlightedNotifier = ValueNotifier<int>(-1);
   async.Timer? _rollTimer;
-  
+
   // This link bridges the position of the MenuRow to the floating button
   final LayerLink _menuLink = LayerLink();
 
@@ -142,11 +142,11 @@ class _GameLayoutState extends State<GameLayout> {
 
   void _handleRoll() {
     if (_rollTimer?.isActive ?? false) return;
-    
+
     if (widget.showMenu) {
       widget.onToggleMenu();
     }
-    
+
     int totalPlayers = widget.players.length;
     if (totalPlayers == 0) return;
 
@@ -179,7 +179,10 @@ class _GameLayoutState extends State<GameLayout> {
     final player = widget.players[index];
     final bool isNextInQueue =
         player.queuePosition > 0 && player.queuePosition == maxQueue;
-    final int rotations = PlayerLayout.getRotation(widget.players.length, index);
+    final int rotations = PlayerLayout.getRotation(
+      widget.players.length,
+      index,
+    );
 
     return PlayerWidget(
       key: ValueKey(player.order),
@@ -187,8 +190,8 @@ class _GameLayoutState extends State<GameLayout> {
       onTimerTap: () => widget.onTimerTap(player),
       onLifeAdjust: (amt) => widget.onLifeAdjust(player, amt),
       onTimeAdjust: (amt) => widget.onTimeAdjust(player, amt),
-      onCommanderDamageAdjust: (targetId, commanderIndex, amt) => widget
-          .onCommanderDamageAdjust(player, targetId, commanderIndex, amt),
+      onCommanderDamageAdjust: (targetId, commanderIndex, amt) =>
+          widget.onCommanderDamageAdjust(player, targetId, commanderIndex, amt),
       onCounterAdjust: (counterType, amt) =>
           widget.onCounterAdjust(player, counterType, amt),
       onTimerLongPress: widget.onTimerLongPress,
@@ -255,7 +258,10 @@ class _GameLayoutState extends State<GameLayout> {
                       color: Colors.black,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.hourglass_empty, color: Colors.white),
+                    child: const Icon(
+                      Icons.hourglass_empty,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
