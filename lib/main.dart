@@ -7,9 +7,11 @@ import 'models/settings.dart';
 import 'models/counters.dart';
 import 'UI/game_layout.dart';
 import 'screens/settings_screen.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  WakelockPlus.enable();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
