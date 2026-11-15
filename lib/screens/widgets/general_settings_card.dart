@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -64,6 +65,14 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
     });
   }
 
+  ImageProvider _getImageProvider(String path) {
+    if (path.startsWith('http')) {
+      return CachedNetworkImageProvider(path);
+    } else {
+      return FileImage(File(path));
+    }
+  }
+
   Widget _buildPlayerTile(BuildContext context, int index) {
     final Color bgColor = Settings.playerColors[index];
     final Color fgColor = Settings.playerTextColors[index];
@@ -83,8 +92,7 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                 if (Settings.playerImageUrls[index].isNotEmpty)
                   Expanded(
                     child: Image(
-                      image: CachedNetworkImageProvider(
-                          Settings.playerImageUrls[index]),
+                      image: _getImageProvider(Settings.playerImageUrls[index]),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -92,8 +100,7 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                     Settings.playerPartnerImageUrls[index].isNotEmpty)
                   Expanded(
                     child: Image(
-                      image: CachedNetworkImageProvider(
-                          Settings.playerPartnerImageUrls[index]),
+                      image: _getImageProvider(Settings.playerPartnerImageUrls[index]),
                       fit: BoxFit.cover,
                     ),
                   ),

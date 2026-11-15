@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -152,6 +153,14 @@ class _PlayerWidgetState extends State<PlayerWidget>
   double get _minFlip => Settings.useCounters ? -1.0 : 0.0;
   double get _maxFlip => Settings.useCommanderDamage ? 1.0 : 0.0;
 
+  ImageProvider _getImageProvider(String path) {
+    if (path.startsWith('http')) {
+      return CachedNetworkImageProvider(path);
+    } else {
+      return FileImage(File(path));
+    }
+  }
+
   Widget _buildFlipFace({
     required Widget child,
     required double offset,
@@ -200,7 +209,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                 if (Settings.playerImageUrls[widget.player.order].isNotEmpty)
                   Expanded(
                     child: Image(
-                      image: CachedNetworkImageProvider(
+                      image: _getImageProvider(
                         Settings.playerImageUrls[widget.player.order],
                       ),
                       fit: BoxFit.fill,
@@ -213,7 +222,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                     Settings.playerPartnerImageUrls[widget.player.order].isNotEmpty)
                   Expanded(
                     child: Image(
-                      image: CachedNetworkImageProvider(
+                      image: _getImageProvider(
                         Settings.playerPartnerImageUrls[widget.player.order],
                       ),
                       fit: BoxFit.fill,

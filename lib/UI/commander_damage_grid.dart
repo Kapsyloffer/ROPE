@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -36,6 +37,14 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
         oldWidget.player != widget.player) {
       _editingCommanderId = null;
       _editingCommanderIndex = null;
+    }
+  }
+
+  ImageProvider _getImageProvider(String path) {
+    if (path.startsWith('http')) {
+      return CachedNetworkImageProvider(path);
+    } else {
+      return FileImage(File(path));
     }
   }
 
@@ -197,7 +206,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                 if (Settings.playerImageUrls[targetPlayerId].isNotEmpty)
                   Expanded(
                     child: Image(
-                      image: CachedNetworkImageProvider(
+                      image: _getImageProvider(
                         Settings.playerImageUrls[targetPlayerId],
                       ),
                       fit: BoxFit.fill,
@@ -207,7 +216,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                     Settings.playerPartnerImageUrls[targetPlayerId].isNotEmpty)
                   Expanded(
                     child: Image(
-                      image: CachedNetworkImageProvider(
+                      image: _getImageProvider(
                         Settings.playerPartnerImageUrls[targetPlayerId],
                       ),
                       fit: BoxFit.fill,
