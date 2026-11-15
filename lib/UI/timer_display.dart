@@ -273,9 +273,13 @@ class _TimerDisplayState extends State<TimerDisplay>
 
     Color playerBgColor = Settings.playerColors[widget.player.order];
     HSVColor hsv = HSVColor.fromColor(playerBgColor);
-    Color inactiveSolidColor = hsv
-        .withSaturation((hsv.saturation + 0.20).clamp(0.0, 1.0))
-        .toColor();
+    Color inactiveSolidColor;
+    
+    if (hsv.saturation < 0.05) {
+      inactiveSolidColor = hsv.withValue((hsv.value - 0.15).clamp(0.0, 1.0)).toColor();
+    } else {
+      inactiveSolidColor = hsv.withSaturation((hsv.saturation + 0.20).clamp(0.0, 1.0)).toColor();
+    }
 
     Color antsColor = widget.player.timer.active
         ? Colors.black
