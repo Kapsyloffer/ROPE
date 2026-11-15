@@ -81,6 +81,9 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
   Widget _buildPlayerTile(BuildContext context, int index) {
     final Color bgColor = Settings.playerColors[index];
     final Color fgColor = Settings.playerTextColors[index];
+    final textShadows = Settings.playerUseOutline[index]
+        ? Settings.getOutlineShadows(Settings.playerOutlineColors[index])
+        : null;
 
     return Padding(
       padding: const EdgeInsets.all(4.0),
@@ -88,77 +91,98 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
-        child: Ink(
-          decoration: BoxDecoration(
-            image: Settings.playerImageUrls[index].isNotEmpty
-                ? DecorationImage(
-                    image: CachedNetworkImageProvider(Settings.playerImageUrls[index]),
-                    fit: BoxFit.cover,
-                  )
-                : null,
-          ),
-          child: InkWell(
-            onTap: () => _showColorPicker(context, index),
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'P${index + 1}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: fgColor,
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            icon: Icon(Icons.image_outlined, color: fgColor, size: 20),
-                            onPressed: () => _showImagePicker(context, index),
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(Icons.palette_outlined, color: fgColor, size: 20),
-                        ],
-                      ),
-                    ],
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (Settings.playerImageUrls[index].isNotEmpty)
+                  Expanded(
+                    child: Image(
+                      image: CachedNetworkImageProvider(
+                          Settings.playerImageUrls[index]),
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  if (Settings.useCommanderDamage)
+                if (Settings.hasPartner[index] &&
+                    Settings.playerPartnerImageUrls[index].isNotEmpty)
+                  Expanded(
+                    child: Image(
+                      image: CachedNetworkImageProvider(
+                          Settings.playerPartnerImageUrls[index]),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+              ],
+            ),
+            InkWell(
+              onTap: () => _showColorPicker(context, index),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Partner',
+                          'P${index + 1}',
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                             color: fgColor,
+                            shadows: textShadows,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Switch(
-                          value: Settings.hasPartner[index],
-                          onChanged: (value) {
-                            setState(() {
-                              Settings.hasPartner[index] = value;
-                            });
-                            Settings.save();
-                            widget.onUpdate();
-                          },
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              icon: Icon(Icons.image_outlined,
+                                  color: fgColor, size: 20, shadows: textShadows),
+                              onPressed: () => _showImagePicker(context, index),
+                            ),
+                            const SizedBox(width: 12),
+                            Icon(Icons.palette_outlined,
+                                color: fgColor, size: 20, shadows: textShadows),
+                          ],
                         ),
                       ],
                     ),
-                ],
+                    if (Settings.useCommanderDamage)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Partner',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: fgColor,
+                              shadows: textShadows,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Switch(
+                            value: Settings.hasPartner[index],
+                            onChanged: (value) {
+                              setState(() {
+                                Settings.hasPartner[index] = value;
+                              });
+                              Settings.save();
+                              widget.onUpdate();
+                            },
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -214,12 +238,24 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                           Settings.players) {
                         Settings.playerTextColors.add(Colors.black87);
                       }
+                      while (Settings.playerOutlineColors.length <
+                          Settings.players) {
+                        Settings.playerOutlineColors.add(Colors.black);
+                      }
+                      while (Settings.playerUseOutline.length <
+                          Settings.players) {
+                        Settings.playerUseOutline.add(false);
+                      }
                       while (Settings.hasPartner.length < Settings.players) {
                         Settings.hasPartner.add(false);
                       }
                       while (Settings.playerImageUrls.length <
                           Settings.players) {
                         Settings.playerImageUrls.add('');
+                      }
+                      while (Settings.playerPartnerImageUrls.length <
+                          Settings.players) {
+                        Settings.playerPartnerImageUrls.add('');
                       }
                     });
                     Settings.save();

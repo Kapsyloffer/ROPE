@@ -21,7 +21,9 @@ class PlayerColorPickerDialog extends StatefulWidget {
 class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
   late HSVColor _bgHsv;
   late HSVColor _textHsv;
-  bool _isEditingText = false;
+  late HSVColor _outlineHsv;
+  int _editingMode = 0;
+  bool _useOutline = false;
   late String _imageUrl;
 
   static final List<Color> _presetBgColors = [
@@ -43,8 +45,13 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
     _textHsv = HSVColor.fromColor(
       Settings.playerTextColors[widget.playerIndex],
     );
+    _outlineHsv = HSVColor.fromColor(
+      Settings.playerOutlineColors[widget.playerIndex],
+    );
+    _useOutline = Settings.playerUseOutline[widget.playerIndex];
+    
     if (_imageUrl.isNotEmpty) {
-      _isEditingText = true;
+      _editingMode = 1;
     }
   }
 
@@ -67,8 +74,10 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final currentColor = _isEditingText ? _textHsv.toColor() : _bgHsv.toColor();
-    final presets = _isEditingText ? _presetTextColors : _presetBgColors;
+    final currentColor = _editingMode == 1
+        ? _textHsv.toColor()
+        : (_editingMode == 2 ? _outlineHsv.toColor() : _bgHsv.toColor());
+    final presets = _editingMode == 1 ? _presetTextColors : _presetBgColors;
 
     return AlertDialog(
       title: Text('Player ${widget.playerIndex + 1} Color'),
@@ -97,13 +106,17 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                     fontSize: 40,
                     fontWeight: FontWeight.bold,
                     color: _textHsv.toColor(),
+                    shadows: _useOutline
+                        ? Settings.getOutlineShadows(_outlineHsv.toColor())
+                        : null,
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
               children: [
                 if (_imageUrl.isNotEmpty)
                   ActionChip(
@@ -112,24 +125,38 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                     onPressed: () {
                       setState(() {
                         _imageUrl = '';
-                        _isEditingText = false;
+                        _editingMode = 0;
                       });
                     },
                   )
                 else
                   ChoiceChip(
                     label: const Text('Background'),
-                    selected: !_isEditingText,
-                    onSelected: (val) => setState(() => _isEditingText = false),
+                    selected: _editingMode == 0,
+                    onSelected: (val) => setState(() => _editingMode = 0),
                   ),
-                const SizedBox(width: 8),
                 ChoiceChip(
                   label: const Text('Text'),
-                  selected: _isEditingText,
-                  onSelected: (val) => setState(() => _isEditingText = true),
+                  selected: _editingMode == 1,
+                  onSelected: (val) => setState(() => _editingMode = 1),
+                ),
+                ChoiceChip(
+                  label: const Text('Outline'),
+                  selected: _editingMode == 2,
+                  onSelected: (val) => setState(() => _editingMode = 2),
                 ),
               ],
             ),
+            if (_editingMode == 2)
+              SwitchListTile(
+                title: const Text('Enable Outline'),
+                value: _useOutline,
+                onChanged: (val) {
+                  setState(() {
+                    _useOutline = val;
+                  });
+                },
+              ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -137,8 +164,10 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                 return GestureDetector(
                   onTap: () {
                     setState(() {
-                      if (_isEditingText) {
+                      if (_editingMode == 1) {
                         _textHsv = HSVColor.fromColor(color);
+                      } else if (_editingMode == 2) {
+                        _outlineHsv = HSVColor.fromColor(color);
                       } else {
                         _bgHsv = HSVColor.fromColor(color);
                       }
@@ -164,51 +193,67 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            _buildSlider(
-              'H',
-              _isEditingText ? _textHsv.hue : _bgHsv.hue,
-              0,
-              360,
-              (val) {
-                setState(() {
-                  if (_isEditingText) {
-                    _textHsv = _textHsv.withHue(val);
-                  } else {
-                    _bgHsv = _bgHsv.withHue(val);
-                  }
-                });
-              },
-            ),
-            _buildSlider(
-              'S',
-              _isEditingText ? _textHsv.saturation : _bgHsv.saturation,
-              0,
-              1,
-              (val) {
-                setState(() {
-                  if (_isEditingText) {
-                    _textHsv = _textHsv.withSaturation(val);
-                  } else {
-                    _bgHsv = _bgHsv.withSaturation(val);
-                  }
-                });
-              },
-            ),
-            _buildSlider(
-              'V',
-              _isEditingText ? _textHsv.value : _bgHsv.value,
-              0,
-              1,
-              (val) {
-                setState(() {
-                  if (_isEditingText) {
-                    _textHsv = _textHsv.withValue(val);
-                  } else {
-                    _bgHsv = _bgHsv.withValue(val);
-                  }
-                });
-              },
-            ),
+            if (_editingMode != 2 || _useOutline) ...[
+              _buildSlider(
+                'H',
+                _editingMode == 1
+                    ? _textHsv.hue
+                    : (_editingMode == 2 ? _outlineHsv.hue : _bgHsv.hue),
+                0,
+                360,
+                (val) {
+                  setState(() {
+                    if (_editingMode == 1) {
+                      _textHsv = _textHsv.withHue(val);
+                    } else if (_editingMode == 2) {
+                      _outlineHsv = _outlineHsv.withHue(val);
+                    } else {
+                      _bgHsv = _bgHsv.withHue(val);
+                    }
+                  });
+                },
+              ),
+              _buildSlider(
+                'S',
+                _editingMode == 1
+                    ? _textHsv.saturation
+                    : (_editingMode == 2
+                        ? _outlineHsv.saturation
+                        : _bgHsv.saturation),
+                0,
+                1,
+                (val) {
+                  setState(() {
+                    if (_editingMode == 1) {
+                      _textHsv = _textHsv.withSaturation(val);
+                    } else if (_editingMode == 2) {
+                      _outlineHsv = _outlineHsv.withSaturation(val);
+                    } else {
+                      _bgHsv = _bgHsv.withSaturation(val);
+                    }
+                  });
+                },
+              ),
+              _buildSlider(
+                'V',
+                _editingMode == 1
+                    ? _textHsv.value
+                    : (_editingMode == 2 ? _outlineHsv.value : _bgHsv.value),
+                0,
+                1,
+                (val) {
+                  setState(() {
+                    if (_editingMode == 1) {
+                      _textHsv = _textHsv.withValue(val);
+                    } else if (_editingMode == 2) {
+                      _outlineHsv = _outlineHsv.withValue(val);
+                    } else {
+                      _bgHsv = _bgHsv.withValue(val);
+                    }
+                  });
+                },
+              ),
+            ],
           ],
         ),
       ),
@@ -221,6 +266,8 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
           onPressed: () {
             Settings.playerColors[widget.playerIndex] = _bgHsv.toColor();
             Settings.playerTextColors[widget.playerIndex] = _textHsv.toColor();
+            Settings.playerOutlineColors[widget.playerIndex] = _outlineHsv.toColor();
+            Settings.playerUseOutline[widget.playerIndex] = _useOutline;
             Settings.playerImageUrls[widget.playerIndex] = _imageUrl;
             Settings.save();
             widget.onUpdate();

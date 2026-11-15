@@ -44,6 +44,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
     IconData icon,
     int amount,
     Color iconColor,
+    List<Shadow>? textShadows,
   ) {
     return Expanded(
       child: Material(
@@ -59,7 +60,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(icon, size: 32, color: iconColor),
+              child: Icon(icon, size: 32, color: iconColor, shadows: textShadows),
             ),
           ),
         ),
@@ -73,6 +74,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
     int damage,
     bool me,
     Color textColor,
+    List<Shadow>? textShadows,
   ) {
     bool isEditing =
         _editingCommanderId == targetPlayerId &&
@@ -109,6 +111,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                       Icons.remove,
                       -1,
                       textColor,
+                      textShadows,
                     ),
                     Expanded(
                       flex: 2,
@@ -123,6 +126,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
                                 color: textColor,
+                                shadows: textShadows,
                               ),
                             ),
                           ),
@@ -135,6 +139,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                       Icons.add,
                       1,
                       textColor,
+                      textShadows,
                     ),
                   ],
                 )
@@ -149,6 +154,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: textColor,
+                          shadows: textShadows,
                         ),
                       ),
                     ),
@@ -163,6 +169,9 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
     bool me = targetPlayerId == widget.player.order;
     bool hasPartner = Settings.hasPartner[targetPlayerId];
     Color contentColor = Settings.playerTextColors[targetPlayerId];
+    List<Shadow>? textShadows = Settings.playerUseOutline[targetPlayerId]
+        ? Settings.getOutlineShadows(Settings.playerOutlineColors[targetPlayerId])
+        : null;
 
     return Container(
       margin: const EdgeInsets.all(4.0),
@@ -174,45 +183,64 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
       clipBehavior: Clip.antiAlias,
       child: RotatedBox(
         quarterTurns: widget.rotations,
-        child: Container(
-          decoration: BoxDecoration(
-            image: Settings.playerImageUrls[targetPlayerId].isNotEmpty
-                ? DecorationImage(
-                    image: CachedNetworkImageProvider(
-                      Settings.playerImageUrls[targetPlayerId],
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (Settings.playerImageUrls[targetPlayerId].isNotEmpty)
+                  Expanded(
+                    child: Image(
+                      image: CachedNetworkImageProvider(
+                        Settings.playerImageUrls[targetPlayerId],
+                      ),
+                      fit: BoxFit.fill,
                     ),
-                    fit: BoxFit.fill,
-                  )
-                : null,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildDamageDisplay(
-                targetPlayerId,
-                0,
-                widget
-                    .player
-                    .commanderDamage
-                    .commanders[targetPlayerId]
-                    .damageDealt[0],
-                me,
-                contentColor,
-              ),
-              if (hasPartner)
+                  ),
+                if (hasPartner &&
+                    Settings.playerPartnerImageUrls[targetPlayerId].isNotEmpty)
+                  Expanded(
+                    child: Image(
+                      image: CachedNetworkImageProvider(
+                        Settings.playerPartnerImageUrls[targetPlayerId],
+                      ),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                 _buildDamageDisplay(
                   targetPlayerId,
-                  1,
+                  0,
                   widget
                       .player
                       .commanderDamage
                       .commanders[targetPlayerId]
-                      .damageDealt[1],
+                      .damageDealt[0],
                   me,
                   contentColor,
+                  textShadows,
                 ),
-            ],
-          ),
+                if (hasPartner)
+                  _buildDamageDisplay(
+                    targetPlayerId,
+                    1,
+                    widget
+                        .player
+                        .commanderDamage
+                        .commanders[targetPlayerId]
+                        .damageDealt[1],
+                    me,
+                    contentColor,
+                    textShadows,
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );

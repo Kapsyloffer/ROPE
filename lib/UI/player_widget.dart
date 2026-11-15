@@ -190,137 +190,160 @@ class _PlayerWidgetState extends State<PlayerWidget>
         color: widget.player.alive
             ? Settings.playerColors[widget.player.order]
             : Colors.grey.shade800,
-        image: Settings.playerImageUrls[widget.player.order].isNotEmpty
-            ? DecorationImage(
-                image: CachedNetworkImageProvider(
-                  Settings.playerImageUrls[widget.player.order],
-                ),
-                fit: BoxFit.fill,
-                colorFilter: widget.player.alive
-                    ? null
-                    : const ColorFilter.mode(
-                        Colors.black54,
-                        BlendMode.darken,
-                      ),
-              )
-            : null,
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Expanded(
-            flex: 2,
-            child: Stack(
+          Positioned.fill(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onVerticalDragUpdate: _onVerticalDragUpdate,
-                  onVerticalDragEnd: _onVerticalDragEnd,
-                  child: ClipRect(
-                    child: AnimatedBuilder(
-                      animation: _flipController,
-                      builder: (context, child) {
-                        double val = _flipController.value;
-                        return Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            if (Settings.useCounters) ...[
-                              _buildFlipFace(
-                                offset: -1.0,
-                                val: val,
-                                activeIndex: -1,
-                                child: CountersGrid(
-                                  key: ValueKey(
-                                    '${widget.player.order}_counters',
-                                  ),
-                                  player: widget.player,
-                                  onCounterAdjust: widget.onCounterAdjust,
-                                  isVisible: val <= -0.5,
-                                ),
-                              ),
-                            ],
-                            _buildFlipFace(
-                              offset: 0.0,
-                              val: val,
-                              activeIndex: 0,
-                              child: LifeDisplay(
-                                key: ValueKey('${widget.player.order}_life'),
-                                player: widget.player,
-                                onLifeAdjust: (amt) {
-                                  if (amt < 0) {
-                                    _skipNextFlash = true;
-                                  }
-                                  widget.onLifeAdjust(amt);
-                                },
-                              ),
-                            ),
-                            if (Settings.useCommanderDamage) ...[
-                              _buildFlipFace(
-                                offset: 1.0,
-                                val: val,
-                                activeIndex: 1,
-                                child: CommanderDamageGrid(
-                                  key: ValueKey(
-                                    '${widget.player.order}_commander',
-                                  ),
-                                  player: widget.player,
-                                  onCommanderDamageAdjust:
-                                      widget.onCommanderDamageAdjust,
-                                  rotations: widget.rotations,
-                                  isVisible: val >= 0.5,
-                                ),
-                              ),
-                            ],
-                          ],
-                        );
-                      },
+                if (Settings.playerImageUrls[widget.player.order].isNotEmpty)
+                  Expanded(
+                    child: Image(
+                      image: CachedNetworkImageProvider(
+                        Settings.playerImageUrls[widget.player.order],
+                      ),
+                      fit: BoxFit.fill,
+                      color: widget.player.alive ? null : Colors.black54,
+                      colorBlendMode:
+                          widget.player.alive ? null : BlendMode.darken,
                     ),
                   ),
-                ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: ValueListenableBuilder<int>(
-                      valueListenable: widget.highlightedNotifier,
-                      builder: (context, highlightedIndex, child) {
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color:
-                                highlightedIndex == widget.player.order
-                                  ? Colors.white
-                                  : Colors.transparent,
-                              width: 8.0,
-                            ),
-                          ),
-                        );
-                      },
+                if (Settings.hasPartner[widget.player.order] &&
+                    Settings.playerPartnerImageUrls[widget.player.order].isNotEmpty)
+                  Expanded(
+                    child: Image(
+                      image: CachedNetworkImageProvider(
+                        Settings.playerPartnerImageUrls[widget.player.order],
+                      ),
+                      fit: BoxFit.fill,
+                      color: widget.player.alive ? null : Colors.black54,
+                      colorBlendMode:
+                          widget.player.alive ? null : BlendMode.darken,
                     ),
                   ),
-                ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      color: _isFlashing ? Colors.black.withOpacity(0.15) : Colors.transparent,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
-          if (Settings.useTimer)
-            Expanded(
-              flex: 1,
-              child: TimerDisplay(
-                key: ValueKey(widget.player.order),
-                player: widget.player,
-                isNextInQueue: widget.isNextInQueue,
-                onTimerTap: widget.onTimerTap,
-                onTimerLongPress: widget.onTimerLongPress,
-                onTimeAdjust: widget.onTimeAdjust,
-                onPriorityCheck: widget.onPriorityCheck,
+          Column(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Stack(
+                  children: [
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onVerticalDragUpdate: _onVerticalDragUpdate,
+                      onVerticalDragEnd: _onVerticalDragEnd,
+                      child: ClipRect(
+                        child: AnimatedBuilder(
+                          animation: _flipController,
+                          builder: (context, child) {
+                            double val = _flipController.value;
+                            return Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                if (Settings.useCounters) ...[
+                                  _buildFlipFace(
+                                    offset: -1.0,
+                                    val: val,
+                                    activeIndex: -1,
+                                    child: CountersGrid(
+                                      key: ValueKey(
+                                        '${widget.player.order}_counters',
+                                      ),
+                                      player: widget.player,
+                                      onCounterAdjust: widget.onCounterAdjust,
+                                      isVisible: val <= -0.5,
+                                    ),
+                                  ),
+                                ],
+                                _buildFlipFace(
+                                  offset: 0.0,
+                                  val: val,
+                                  activeIndex: 0,
+                                  child: LifeDisplay(
+                                    key: ValueKey('${widget.player.order}_life'),
+                                    player: widget.player,
+                                    onLifeAdjust: (amt) {
+                                      if (amt < 0) {
+                                        _skipNextFlash = true;
+                                      }
+                                      widget.onLifeAdjust(amt);
+                                    },
+                                  ),
+                                ),
+                                if (Settings.useCommanderDamage) ...[
+                                  _buildFlipFace(
+                                    offset: 1.0,
+                                    val: val,
+                                    activeIndex: 1,
+                                    child: CommanderDamageGrid(
+                                      key: ValueKey(
+                                        '${widget.player.order}_commander',
+                                      ),
+                                      player: widget.player,
+                                      onCommanderDamageAdjust:
+                                          widget.onCommanderDamageAdjust,
+                                      rotations: widget.rotations,
+                                      isVisible: val >= 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: ValueListenableBuilder<int>(
+                          valueListenable: widget.highlightedNotifier,
+                          builder: (context, highlightedIndex, child) {
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: highlightedIndex == widget.player.order
+                                      ? Colors.white
+                                      : Colors.transparent,
+                                  width: 8.0,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          color: _isFlashing
+                              ? Colors.black.withOpacity(0.15)
+                              : Colors.transparent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              if (Settings.useTimer)
+                Expanded(
+                  flex: 1,
+                  child: TimerDisplay(
+                    key: ValueKey(widget.player.order),
+                    player: widget.player,
+                    isNextInQueue: widget.isNextInQueue,
+                    onTimerTap: widget.onTimerTap,
+                    onTimerLongPress: widget.onTimerLongPress,
+                    onTimeAdjust: widget.onTimeAdjust,
+                    onPriorityCheck: widget.onPriorityCheck,
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );

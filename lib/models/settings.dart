@@ -21,8 +21,18 @@ class Settings {
     Colors.black87,
     Colors.black87,
   ];
+  static List<Color> playerOutlineColors = [
+    Colors.black,
+    Colors.black,
+    Colors.black,
+    Colors.black,
+    Colors.black,
+    Colors.black,
+  ];
+  static List<bool> playerUseOutline = [false, false, false, false, false, false];
   static List<bool> hasPartner = [false, false, false, false, false, false];
   static List<String> playerImageUrls = ['', '', '', '', '', ''];
+  static List<String> playerPartnerImageUrls = ['', '', '', '', '', ''];
 
   static bool useTimer = true;
   static double startTime = 1.0;
@@ -64,15 +74,23 @@ class Settings {
     List<String> textColorStrings = playerTextColors
         .map((c) => c.toARGB32().toString())
         .toList();
+    List<String> outlineColorStrings = playerOutlineColors
+        .map((c) => c.toARGB32().toString())
+        .toList();
 
     prefs.setBool('useCommanderDamage', useCommanderDamage);
     prefs.setBool('useCounters', useCounters);
     prefs.setStringList('playerColors', colorStrings);
     prefs.setStringList('playerTextColors', textColorStrings);
+    prefs.setStringList('playerOutlineColors', outlineColorStrings);
+
+    List<String> useOutlineStrings = playerUseOutline.map((p) => p.toString()).toList();
+    prefs.setStringList('playerUseOutline', useOutlineStrings);
 
     List<String> partnerStrings = hasPartner.map((p) => p.toString()).toList();
     prefs.setStringList('hasPartner', partnerStrings);
     prefs.setStringList('playerImageUrls', playerImageUrls);
+    prefs.setStringList('playerPartnerImageUrls', playerPartnerImageUrls);
   }
 
   static void load() {
@@ -105,7 +123,6 @@ class Settings {
     } else {
       playerColors = [];
     }
-
     while (playerColors.length < players) {
       int index = playerColors.length;
       playerColors.add(
@@ -123,6 +140,26 @@ class Settings {
     }
     while (playerTextColors.length < players) {
       playerTextColors.add(Colors.black87);
+    }
+
+    List<String>? outColors = prefs.getStringList('playerOutlineColors');
+    if (outColors != null && outColors.isNotEmpty) {
+      playerOutlineColors = outColors.map((c) => Color(int.parse(c))).toList();
+    } else {
+      playerOutlineColors = [];
+    }
+    while (playerOutlineColors.length < players) {
+      playerOutlineColors.add(Colors.black);
+    }
+
+    List<String>? useOut = prefs.getStringList('playerUseOutline');
+    if (useOut != null && useOut.isNotEmpty) {
+      playerUseOutline = useOut.map((p) => p == 'true').toList();
+    } else {
+      playerUseOutline = [];
+    }
+    while (playerUseOutline.length < players) {
+      playerUseOutline.add(false);
     }
 
     List<String>? partners = prefs.getStringList('hasPartner');
@@ -144,6 +181,26 @@ class Settings {
     while (playerImageUrls.length < players) {
       playerImageUrls.add('');
     }
+
+    List<String>? pImages = prefs.getStringList('playerPartnerImageUrls');
+    if (pImages != null && pImages.isNotEmpty) {
+      playerPartnerImageUrls = pImages;
+    } else {
+      playerPartnerImageUrls = [];
+    }
+    while (playerPartnerImageUrls.length < players) {
+      playerPartnerImageUrls.add('');
+    }
+  }
+
+  static List<Shadow> getOutlineShadows(Color color) {
+    const double stroke = 2.0;
+    return [
+      Shadow(offset: const Offset(-stroke, -stroke), color: color),
+      Shadow(offset: const Offset(stroke, -stroke), color: color),
+      Shadow(offset: const Offset(stroke, stroke), color: color),
+      Shadow(offset: const Offset(-stroke, stroke), color: color),
+    ];
   }
 
   static String? get savedGame => prefs.getString('savedGame');

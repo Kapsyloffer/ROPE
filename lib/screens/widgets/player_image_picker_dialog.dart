@@ -36,6 +36,9 @@ class PlayerImagePickerDialog extends StatefulWidget {
 
 class _PlayerImagePickerDialogState extends State<PlayerImagePickerDialog> {
   late String _imageUrl;
+  late String _partnerImageUrl;
+  bool _isEditingPartner = false;
+
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
   String _errorMessage = '';
@@ -45,6 +48,7 @@ class _PlayerImagePickerDialogState extends State<PlayerImagePickerDialog> {
   void initState() {
     super.initState();
     _imageUrl = Settings.playerImageUrls[widget.playerIndex];
+    _partnerImageUrl = Settings.playerPartnerImageUrls[widget.playerIndex];
   }
 
   @override
@@ -134,6 +138,12 @@ class _PlayerImagePickerDialogState extends State<PlayerImagePickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    bool hasPartnerActive = Settings.hasPartner[widget.playerIndex];
+    bool showClear = (_isEditingPartner && _partnerImageUrl.isNotEmpty) ||
+        (!_isEditingPartner && _imageUrl.isNotEmpty);
+    String currentSelectionUrl =
+        _isEditingPartner ? _partnerImageUrl : _imageUrl;
+
     return AlertDialog(
       title: Text('Player ${widget.playerIndex + 1} Art'),
       content: SizedBox(
@@ -141,6 +151,28 @@ class _PlayerImagePickerDialogState extends State<PlayerImagePickerDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (hasPartnerActive)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('Main Art'),
+                      selected: !_isEditingPartner,
+                      onSelected: (val) =>
+                          setState(() => _isEditingPartner = false),
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Partner Art'),
+                      selected: _isEditingPartner,
+                      onSelected: (val) =>
+                          setState(() => _isEditingPartner = true),
+                    ),
+                  ],
+                ),
+              ),
             Container(
               height: 110,
               width: double.infinity,
@@ -148,22 +180,46 @@ class _PlayerImagePickerDialogState extends State<PlayerImagePickerDialog> {
                 color: Settings.playerColors[widget.playerIndex],
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.black26),
-                image: _imageUrl.isNotEmpty
-                    ? DecorationImage(
-                        image: CachedNetworkImageProvider(_imageUrl),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
               ),
-              child: Center(
-                child: Text(
-                  '40',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: Settings.playerTextColors[widget.playerIndex],
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (_imageUrl.isNotEmpty)
+                        Expanded(
+                          child: Image(
+                            image: CachedNetworkImageProvider(_imageUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      if (hasPartnerActive && _partnerImageUrl.isNotEmpty)
+                        Expanded(
+                          child: Image(
+                            image: CachedNetworkImageProvider(_partnerImageUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                    ],
                   ),
-                ),
+                  Center(
+                    child: Text(
+                      '40',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Settings.playerTextColors[widget.playerIndex],
+                        shadows: Settings.playerUseOutline[widget.playerIndex]
+                            ? Settings.getOutlineShadows(
+                                Settings.playerOutlineColors[widget.playerIndex],
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 12),
@@ -190,13 +246,21 @@ class _PlayerImagePickerDialogState extends State<PlayerImagePickerDialog> {
               ),
               onSubmitted: (_) => _searchCard(),
             ),
-            if (_imageUrl.isNotEmpty)
+            if (showClear)
               Padding(
                 padding: const EdgeInsets.only(top: 4.0),
                 child: TextButton.icon(
                   icon: const Icon(Icons.clear),
                   label: const Text('Clear Image'),
-                  onPressed: () => setState(() => _imageUrl = ''),
+                  onPressed: () {
+                    setState(() {
+                      if (_isEditingPartner) {
+                        _partnerImageUrl = '';
+                      } else {
+                        _imageUrl = '';
+                      }
+                    });
+                  },
                 ),
               ),
             if (_errorMessage.isNotEmpty)
@@ -221,12 +285,16 @@ class _PlayerImagePickerDialogState extends State<PlayerImagePickerDialog> {
                   itemCount: _searchResults.length,
                   itemBuilder: (context, index) {
                     final option = _searchResults[index];
-                    final isSelected = _imageUrl == option.imageUrl;
+                    final isSelected = currentSelectionUrl == option.imageUrl;
 
                     return GestureDetector(
                       onTap: () {
                         setState(() {
-                          _imageUrl = option.imageUrl;
+                          if (_isEditingPartner) {
+                            _partnerImageUrl = option.imageUrl;
+                          } else {
+                            _imageUrl = option.imageUrl;
+                          }
                         });
                       },
                       child: Container(
@@ -297,6 +365,7 @@ class _PlayerImagePickerDialogState extends State<PlayerImagePickerDialog> {
         ElevatedButton(
           onPressed: () {
             Settings.playerImageUrls[widget.playerIndex] = _imageUrl;
+            Settings.playerPartnerImageUrls[widget.playerIndex] = _partnerImageUrl;
             Settings.save();
             widget.onUpdate();
             Navigator.of(context).pop();
