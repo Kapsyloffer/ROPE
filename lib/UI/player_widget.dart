@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -68,16 +69,15 @@ class _PlayerWidgetState extends State<PlayerWidget>
   @override
   void didUpdateWidget(covariant PlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // Globally track life changes to flash the player tile
+    
     int diff = widget.player.curLife - _lastLife;
     if (diff != 0) {
       if (diff < 0) {
         if (_skipNextFlash) {
           _skipNextFlash = false;
-          HapticFeedback.mediumImpact(); // Manual damage haptics only
+          HapticFeedback.mediumImpact(); 
         } else {
-          HapticFeedback.mediumImpact(); // External damage haptics + flash
+          HapticFeedback.mediumImpact(); 
           _isFlashing = true;
           Future.delayed(const Duration(milliseconds: 150), () {
             if (mounted) {
@@ -89,7 +89,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
         }
       } else {
         _skipNextFlash = false;
-        HapticFeedback.lightImpact(); // Positive life gain
+        HapticFeedback.lightImpact(); 
       }
     }
     _lastLife = widget.player.curLife;
@@ -190,6 +190,20 @@ class _PlayerWidgetState extends State<PlayerWidget>
         color: widget.player.alive
             ? Settings.playerColors[widget.player.order]
             : Colors.grey.shade800,
+        image: Settings.playerImageUrls[widget.player.order].isNotEmpty
+            ? DecorationImage(
+                image: CachedNetworkImageProvider(
+                  Settings.playerImageUrls[widget.player.order],
+                ),
+                fit: BoxFit.fill,
+                colorFilter: widget.player.alive
+                    ? null
+                    : const ColorFilter.mode(
+                        Colors.black54,
+                        BlendMode.darken,
+                      ),
+              )
+            : null,
       ),
       child: Column(
         children: [
@@ -271,7 +285,8 @@ class _PlayerWidgetState extends State<PlayerWidget>
                           duration: const Duration(milliseconds: 200),
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: highlightedIndex == widget.player.order
+                              color:
+                                highlightedIndex == widget.player.order
                                   ? Colors.white
                                   : Colors.transparent,
                               width: 8.0,
@@ -282,14 +297,11 @@ class _PlayerWidgetState extends State<PlayerWidget>
                     ),
                   ),
                 ),
-                // Flash overlay is now constrained strictly to the flex: 2 section
                 Positioned.fill(
                   child: IgnorePointer(
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      color: _isFlashing
-                          ? Colors.black.withOpacity(0.15)
-                          : Colors.transparent,
+                      color: _isFlashing ? Colors.black.withOpacity(0.15) : Colors.transparent,
                     ),
                   ),
                 ),

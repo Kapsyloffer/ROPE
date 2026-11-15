@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../models/player.dart';
@@ -49,7 +50,6 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // HapticFeedback removed, PlayerWidget handles the drop globally
             widget.onCommanderDamageAdjust(
               targetPlayerId,
               commanderIndex,
@@ -88,7 +88,6 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
               _editingCommanderIndex = null;
             });
           } else {
-            // HapticFeedback removed, PlayerWidget handles the drop globally
             widget.onCommanderDamageAdjust(targetPlayerId, commanderIndex, 1);
           }
         },
@@ -172,35 +171,48 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
         borderRadius: BorderRadius.circular(8.0),
         border: Border.all(color: contentColor.withOpacity(0.3)),
       ),
+      clipBehavior: Clip.antiAlias,
       child: RotatedBox(
         quarterTurns: widget.rotations,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildDamageDisplay(
-              targetPlayerId,
-              0,
-              widget
-                  .player
-                  .commanderDamage
-                  .commanders[targetPlayerId]
-                  .damageDealt[0],
-              me,
-              contentColor,
-            ),
-            if (hasPartner)
+        child: Container(
+          decoration: BoxDecoration(
+            image: Settings.playerImageUrls[targetPlayerId].isNotEmpty
+                ? DecorationImage(
+                    image: CachedNetworkImageProvider(
+                      Settings.playerImageUrls[targetPlayerId],
+                    ),
+                    fit: BoxFit.fill,
+                  )
+                : null,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               _buildDamageDisplay(
                 targetPlayerId,
-                1,
+                0,
                 widget
                     .player
                     .commanderDamage
                     .commanders[targetPlayerId]
-                    .damageDealt[1],
+                    .damageDealt[0],
                 me,
                 contentColor,
               ),
-          ],
+              if (hasPartner)
+                _buildDamageDisplay(
+                  targetPlayerId,
+                  1,
+                  widget
+                      .player
+                      .commanderDamage
+                      .commanders[targetPlayerId]
+                      .damageDealt[1],
+                  me,
+                  contentColor,
+                ),
+            ],
+          ),
         ),
       ),
     );

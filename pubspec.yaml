@@ -36,6 +36,8 @@ dependencies:
   shared_preferences: ^2.5.5
   wakelock_plus: ^1.8.2
   fluttericon: ^2.0.0
+  http: ^1.6.0
+  cached_network_image: ^4.0.7
 
 dev_dependencies:
   flutter_test:

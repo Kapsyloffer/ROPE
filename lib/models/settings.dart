@@ -22,6 +22,7 @@ class Settings {
     Colors.black87,
   ];
   static List<bool> hasPartner = [false, false, false, false, false, false];
+  static List<String> playerImageUrls = ['', '', '', '', '', ''];
 
   static bool useTimer = true;
   static double startTime = 1.0;
@@ -71,6 +72,7 @@ class Settings {
 
     List<String> partnerStrings = hasPartner.map((p) => p.toString()).toList();
     prefs.setStringList('hasPartner', partnerStrings);
+    prefs.setStringList('playerImageUrls', playerImageUrls);
   }
 
   static void load() {
@@ -131,6 +133,16 @@ class Settings {
     }
     while (hasPartner.length < players) {
       hasPartner.add(false);
+    }
+
+    List<String>? images = prefs.getStringList('playerImageUrls');
+    if (images != null && images.isNotEmpty) {
+      playerImageUrls = images;
+    } else {
+      playerImageUrls = [];
+    }
+    while (playerImageUrls.length < players) {
+      playerImageUrls.add('');
     }
   }
 

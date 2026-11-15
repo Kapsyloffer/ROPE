@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/settings.dart';
 import 'widgets/general_settings_card.dart';
 import 'widgets/timer_settings_card.dart';
 import 'widgets/slowburn_settings_card.dart';
@@ -34,6 +35,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           CommanderDamageSettingsCard(onUpdate: _refreshSettings),
           const SizedBox(height: 24),
           CountersSettingsCard(onUpdate: _refreshSettings),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () async {
+              await Settings.prefs.clear();
+              Settings.load();
+              _refreshSettings();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Factory reset baby')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade100,
+              foregroundColor: Colors.red.shade900,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            icon: const Icon(Icons.delete_forever),
+            label: const Text('Clear SharedPreferences'),
+          ),
           const SizedBox(height: 24),
         ],
       ),

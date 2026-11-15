@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/settings.dart';
@@ -21,6 +22,7 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
   late HSVColor _bgHsv;
   late HSVColor _textHsv;
   bool _isEditingText = false;
+  late String _imageUrl;
 
   static final List<Color> _presetBgColors = [
     Colors.grey.shade300,
@@ -36,10 +38,14 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
   @override
   void initState() {
     super.initState();
+    _imageUrl = Settings.playerImageUrls[widget.playerIndex];
     _bgHsv = HSVColor.fromColor(Settings.playerColors[widget.playerIndex]);
     _textHsv = HSVColor.fromColor(
       Settings.playerTextColors[widget.playerIndex],
     );
+    if (_imageUrl.isNotEmpty) {
+      _isEditingText = true;
+    }
   }
 
   Widget _buildSlider(
@@ -77,6 +83,12 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                 color: _bgHsv.toColor(),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.black26),
+                image: _imageUrl.isNotEmpty
+                    ? DecorationImage(
+                        image: CachedNetworkImageProvider(_imageUrl),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
               child: Center(
                 child: Text(
@@ -93,11 +105,23 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ChoiceChip(
-                  label: const Text('Background'),
-                  selected: !_isEditingText,
-                  onSelected: (val) => setState(() => _isEditingText = false),
-                ),
+                if (_imageUrl.isNotEmpty)
+                  ActionChip(
+                    avatar: const Icon(Icons.clear, size: 16),
+                    label: const Text('Clear image'),
+                    onPressed: () {
+                      setState(() {
+                        _imageUrl = '';
+                        _isEditingText = false;
+                      });
+                    },
+                  )
+                else
+                  ChoiceChip(
+                    label: const Text('Background'),
+                    selected: !_isEditingText,
+                    onSelected: (val) => setState(() => _isEditingText = false),
+                  ),
                 const SizedBox(width: 8),
                 ChoiceChip(
                   label: const Text('Text'),
@@ -197,6 +221,7 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
           onPressed: () {
             Settings.playerColors[widget.playerIndex] = _bgHsv.toColor();
             Settings.playerTextColors[widget.playerIndex] = _textHsv.toColor();
+            Settings.playerImageUrls[widget.playerIndex] = _imageUrl;
             Settings.save();
             widget.onUpdate();
             Navigator.of(context).pop();

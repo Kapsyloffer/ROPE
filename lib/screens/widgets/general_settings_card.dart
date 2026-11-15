@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/settings.dart';
 import '../../UI/player_layout.dart';
 import 'player_color_picker_dialog.dart';
+import 'player_image_picker_dialog.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -62,6 +64,20 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
     });
   }
 
+  void _showImagePicker(BuildContext context, int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return PlayerImagePickerDialog(
+          playerIndex: index,
+          onUpdate: widget.onUpdate,
+        );
+      },
+    ).then((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
   Widget _buildPlayerTile(BuildContext context, int index) {
     final Color bgColor = Settings.playerColors[index];
     final Color fgColor = Settings.playerTextColors[index];
@@ -72,53 +88,75 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => _showColorPicker(context, index),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'P${index + 1}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: fgColor,
-                      ),
-                    ),
-                    Icon(Icons.palette_outlined, color: fgColor, size: 20),
-                  ],
-                ),
-                if (Settings.useCommanderDamage)
+        child: Ink(
+          decoration: BoxDecoration(
+            image: Settings.playerImageUrls[index].isNotEmpty
+                ? DecorationImage(
+                    image: CachedNetworkImageProvider(Settings.playerImageUrls[index]),
+                    fit: BoxFit.cover,
+                  )
+                : null,
+          ),
+          child: InkWell(
+            onTap: () => _showColorPicker(context, index),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Partner',
+                        'P${index + 1}',
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                           color: fgColor,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Switch(
-                        value: Settings.hasPartner[index],
-                        onChanged: (value) {
-                          setState(() {
-                            Settings.hasPartner[index] = value;
-                          });
-                          Settings.save();
-                          widget.onUpdate();
-                        },
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: Icon(Icons.image_outlined, color: fgColor, size: 20),
+                            onPressed: () => _showImagePicker(context, index),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(Icons.palette_outlined, color: fgColor, size: 20),
+                        ],
                       ),
                     ],
                   ),
-              ],
+                  if (Settings.useCommanderDamage)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Partner',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: fgColor,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Switch(
+                          value: Settings.hasPartner[index],
+                          onChanged: (value) {
+                            setState(() {
+                              Settings.hasPartner[index] = value;
+                            });
+                            Settings.save();
+                            widget.onUpdate();
+                          },
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -178,6 +216,10 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                       }
                       while (Settings.hasPartner.length < Settings.players) {
                         Settings.hasPartner.add(false);
+                      }
+                      while (Settings.playerImageUrls.length <
+                          Settings.players) {
+                        Settings.playerImageUrls.add('');
                       }
                     });
                     Settings.save();
