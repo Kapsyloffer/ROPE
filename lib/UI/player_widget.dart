@@ -202,7 +202,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
       ),
       child: Stack(
         children: [
-          Positioned.cover(
+          Positioned.fill(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -305,7 +305,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                         ),
                       ),
                     ),
-                    Positioned.cover(
+                    Positioned.fill(
                       child: IgnorePointer(
                         child: ValueListenableBuilder<int>(
                           valueListenable: widget.highlightedNotifier,
@@ -325,7 +325,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                         ),
                       ),
                     ),
-                    Positioned.cover(
+                    Positioned.fill(
                       child: IgnorePointer(
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),

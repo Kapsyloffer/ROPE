@@ -86,7 +86,7 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
         try {
           CroppedFile? croppedFile = await ImageCropper().cropImage(
             sourcePath: image.path,
-            aspectRatio: const CropAspectRatio(ratioX: 9, ratioY: 8),
+            aspectRatio: const CropAspectRatio(ratioX: 16, ratioY: 10),
             uiSettings: [
               AndroidUiSettings(
                 toolbarTitle: 'Crop Art',
@@ -146,7 +146,7 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               AspectRatio(
-                aspectRatio: 9 / 8,
+                aspectRatio: 16 / 10,
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
