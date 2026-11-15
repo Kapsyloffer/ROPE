@@ -287,7 +287,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
-                            color: Settings.playerTextColors[widget.player.order],
+                            color: widget.player.alive ? Settings.playerTextColors[widget.player.order] : Colors.red,
                           ),
                         ),
                       ),

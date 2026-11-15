@@ -6,18 +6,22 @@ class Settings {
   static int startLife = 40;
 
   static List<Color> playerColors = [
-    Colors.blue.shade200,
     Colors.amber.shade200,
+    Colors.blue.shade200,
     Colors.purple.shade200,
     Colors.red.shade200,
+    Colors.green.shade200,
+    Colors.grey.shade300,
   ];
   static List<Color> playerTextColors = [
     Colors.black87,
     Colors.black87,
     Colors.black87,
     Colors.black87,
+    Colors.black87,
+    Colors.black87,
   ];
-  static List<bool> hasPartner = [false, false, false, false];
+  static List<bool> hasPartner = [false, false, false, false, false, false];
 
   static bool useTimer = true;
   static double startTime = 1.0;
@@ -84,40 +88,54 @@ class Settings {
     useCommanderDamage = prefs.getBool('useCommanderDamage') ?? true;
     useCounters = prefs.getBool('useCounters') ?? true;
 
+    List<Color> defaultColors = [
+      Colors.amber.shade200,
+      Colors.blue.shade200,
+      Colors.purple.shade200,
+      Colors.red.shade200,
+      Colors.green.shade200,
+      Colors.grey.shade300,
+    ];
+
     List<String>? colors = prefs.getStringList('playerColors');
-    if (colors != null && colors.length >= players) {
+    if (colors != null && colors.isNotEmpty) {
       playerColors = colors.map((c) => Color(int.parse(c))).toList();
     } else {
-      List<Color> defaultColors = [
-        Colors.amber.shade200,
-        Colors.blue.shade200,
-        Colors.purple.shade200,
-        Colors.red.shade200,
-        Colors.green.shade200,
-      ];
-      playerColors = List.generate(
-        players,
-        (i) =>
-            i < defaultColors.length ? defaultColors[i] : Colors.grey.shade300,
+      playerColors = [];
+    }
+
+    while (playerColors.length < players) {
+      int index = playerColors.length;
+      playerColors.add(
+        index < defaultColors.length
+            ? defaultColors[index]
+            : Colors.grey.shade300,
       );
     }
 
     List<String>? textColors = prefs.getStringList('playerTextColors');
-    if (textColors != null && textColors.length >= players) {
+    if (textColors != null && textColors.isNotEmpty) {
       playerTextColors = textColors.map((c) => Color(int.parse(c))).toList();
     } else {
-      playerTextColors = List.generate(players, (i) => Colors.black87);
+      playerTextColors = [];
+    }
+    while (playerTextColors.length < players) {
+      playerTextColors.add(Colors.black87);
     }
 
     List<String>? partners = prefs.getStringList('hasPartner');
-    if (partners != null && partners.length >= players) {
+    if (partners != null && partners.isNotEmpty) {
       hasPartner = partners.map((p) => p == 'true').toList();
     } else {
-      hasPartner = List.generate(players, (i) => false);
+      hasPartner = [];
+    }
+    while (hasPartner.length < players) {
+      hasPartner.add(false);
     }
   }
 
   static String? get savedGame => prefs.getString('savedGame');
-  static Future<void> saveGame(String json) => prefs.setString('savedGame', json);
+  static Future<void> saveGame(String json) =>
+      prefs.setString('savedGame', json);
   static Future<void> clearSavedGame() => prefs.remove('savedGame');
 }

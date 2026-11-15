@@ -133,13 +133,12 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
       builder: (index) => _buildPlayerTile(context, index),
     );
 
-    // Calculate height based on number of rows needed
     int rowCount = (Settings.players <= 2)
         ? 2
         : (Settings.players <= 4)
         ? 2
         : 3;
-    double previewHeight = rowCount * 140.0; // 140px per row
+    double previewHeight = rowCount * 140.0;
 
     return Card(
       elevation: 2,
@@ -166,7 +165,12 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                     setState(() {
                       Settings.players = value;
                       while (Settings.playerColors.length < Settings.players) {
-                        Settings.playerColors.add(Colors.grey.shade300);
+                        int index = Settings.playerColors.length;
+                        Settings.playerColors.add(
+                          index < _presetColors.length
+                              ? _presetColors[index]
+                              : Colors.grey.shade300,
+                        );
                       }
                       while (Settings.playerTextColors.length <
                           Settings.players) {

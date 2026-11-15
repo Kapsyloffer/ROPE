@@ -21,6 +21,7 @@ void main() async {
   ]);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await Settings.init();
+  // await Settings.prefs.clear();
   runApp(const MyApp());
 }
 
@@ -221,15 +222,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
       if (amount == 0) return;
       
-      _adjustLife(player, -amount);
-
-      bool wasAlive = player.alive;
       player
               .commanderDamage
               .commanders[fromPlayerId]
               .damageDealt[commanderIndex] +=
           amount;
-      _game.checkState(player, wasAlive);
+
+      _adjustLife(player, -amount);
     });
     _saveState();
   }
