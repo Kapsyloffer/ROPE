@@ -202,7 +202,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
       ),
       child: Stack(
         children: [
-          Positioned.fill(
+          Positioned.cover(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -212,7 +212,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                       image: _getImageProvider(
                         Settings.playerImageUrls[widget.player.order],
                       ),
-                      fit: BoxFit.fill,
+                      fit: BoxFit.cover,
                       color: widget.player.alive ? null : Colors.black54,
                       colorBlendMode:
                           widget.player.alive ? null : BlendMode.darken,
@@ -225,7 +225,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                       image: _getImageProvider(
                         Settings.playerPartnerImageUrls[widget.player.order],
                       ),
-                      fit: BoxFit.fill,
+                      fit: BoxFit.cover,
                       color: widget.player.alive ? null : Colors.black54,
                       colorBlendMode:
                           widget.player.alive ? null : BlendMode.darken,
@@ -305,7 +305,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                         ),
                       ),
                     ),
-                    Positioned.fill(
+                    Positioned.cover(
                       child: IgnorePointer(
                         child: ValueListenableBuilder<int>(
                           valueListenable: widget.highlightedNotifier,
@@ -325,7 +325,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                         ),
                       ),
                     ),
-                    Positioned.fill(
+                    Positioned.cover(
                       child: IgnorePointer(
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),

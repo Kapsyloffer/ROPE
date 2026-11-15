@@ -209,7 +209,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                       image: _getImageProvider(
                         Settings.playerImageUrls[targetPlayerId],
                       ),
-                      fit: BoxFit.fill,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 if (hasPartner &&
@@ -219,7 +219,7 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                       image: _getImageProvider(
                         Settings.playerPartnerImageUrls[targetPlayerId],
                       ),
-                      fit: BoxFit.fill,
+                      fit: BoxFit.cover,
                     ),
                   ),
               ],
