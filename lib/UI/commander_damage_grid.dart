@@ -5,6 +5,7 @@ import '../models/player.dart';
 import '../models/settings.dart';
 import '../models/game.dart';
 import 'player_layout.dart';
+import 'outlined_text.dart';
 
 class CommanderDamageGrid extends StatefulWidget {
   final Player player;
@@ -120,14 +121,16 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                         children: [
                           FittedBox(
                             fit: BoxFit.scaleDown,
-                            child: Text(
+                            child: OutlinedText(
                               '$damage',
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
                                 color: textColor,
-                                shadows: textShadows,
                               ),
+                              useOutline: Settings.playerUseOutline[targetPlayerId],
+                              outlineColor: Settings.playerOutlineColors[targetPlayerId],
+                              strokeWidth: 3.0,
                             ),
                           ),
                         ],
@@ -148,14 +151,16 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                   children: [
                     FittedBox(
                       fit: BoxFit.scaleDown,
-                      child: Text(
+                      child: OutlinedText(
                         (me && damage == 0) ? '--' : '$damage',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: textColor,
-                          shadows: textShadows,
                         ),
+                        useOutline: Settings.playerUseOutline[targetPlayerId],
+                        outlineColor: Settings.playerOutlineColors[targetPlayerId],
+                        strokeWidth: 3.0,
                       ),
                     ),
                   ],

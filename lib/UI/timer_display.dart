@@ -250,6 +250,10 @@ class _TimerDisplayState extends State<TimerDisplay>
   Widget build(BuildContext context) {
     Color activeTimerColor = Colors.green.shade400;
     Color ropeColor = Colors.green.shade800;
+    bool hasImage = Settings.playerImageUrls[widget.player.order].isNotEmpty;
+    bool hasPartner = Settings.hasPartner[widget.player.order];
+    bool hasPartnerImage = Settings.playerPartnerImageUrls[widget.player.order].isNotEmpty;
+    bool hasAnyImage = hasImage || (hasPartner && hasPartnerImage);
 
     if (widget.player.timer.curTime <= 15) {
       activeTimerColor = Colors.redAccent.shade400;
@@ -260,6 +264,10 @@ class _TimerDisplayState extends State<TimerDisplay>
     } else if (widget.player.timer.curTime <= 60) {
       activeTimerColor = Colors.amber.shade500;
       ropeColor = Colors.amber.shade800;
+    }
+
+    if (hasAnyImage) {
+      activeTimerColor = activeTimerColor.withValues(alpha: 0.8);
     }
 
     Color antsColor = widget.player.timer.active
@@ -296,7 +304,7 @@ class _TimerDisplayState extends State<TimerDisplay>
           color: widget.player.alive
               ? (widget.player.timer.active
                     ? activeTimerColor
-                    : Colors.black.withValues(alpha: 0.15))
+                    : (hasAnyImage ? Colors.black.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.25)))
               : Colors.black.withValues(alpha: 0.3),
         ),
         child: Stack(

@@ -6,6 +6,7 @@ import 'package:fluttericon/rpg_awesome_icons.dart';
 import '../models/player.dart';
 import '../models/settings.dart';
 import '../models/counters.dart';
+import 'outlined_text.dart';
 
 class LifeDisplay extends StatefulWidget {
   final Player player;
@@ -171,14 +172,16 @@ class _LifeDisplayState extends State<LifeDisplay> {
           icon,
           if (text != null) ...[
             const SizedBox(width: 4),
-            Text(
+            OutlinedText(
               text,
               style: TextStyle(
                 color: textColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                shadows: shadows,
               ),
+              useOutline: Settings.playerUseOutline[widget.player.order],
+              outlineColor: Settings.playerOutlineColors[widget.player.order],
+              strokeWidth: 2.0,
             ),
           ]
         ],
@@ -188,14 +191,16 @@ class _LifeDisplayState extends State<LifeDisplay> {
     if (poison > 0) {
       activeIcons.add(
         buildItem(
-          Text(
+          OutlinedText(
             'Φ',
             style: TextStyle(
               color: textColor,
               fontWeight: FontWeight.bold,
               fontSize: 20,
-              shadows: shadows,
             ),
+            useOutline: Settings.playerUseOutline[widget.player.order],
+            outlineColor: Settings.playerOutlineColors[widget.player.order],
+            strokeWidth: 2.0,
           ),
           '$poison',
         ),
@@ -265,7 +270,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
                 ),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(
+                  child: OutlinedText(
                     '${widget.player.curLife}',
                     style: TextStyle(
                       fontSize: 80,
@@ -273,8 +278,10 @@ class _LifeDisplayState extends State<LifeDisplay> {
                       color: widget.player.alive
                           ? Settings.playerTextColors[widget.player.order]
                           : Colors.red,
-                      shadows: textShadows,
                     ),
+                    useOutline: Settings.playerUseOutline[widget.player.order],
+                    outlineColor: Settings.playerOutlineColors[widget.player.order],
+                    strokeWidth: 4.0,
                   ),
                 ),
                 if (_showLifeDelta && _lifeDelta != 0)
@@ -290,7 +297,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
                           horizontal: 10,
                           vertical: 4,
                         ),
-                        child: Text(
+                        child: OutlinedText(
                           _lifeDelta > 0 ? '+$_lifeDelta' : '$_lifeDelta',
                           style: TextStyle(
                             fontSize: 30,
@@ -298,8 +305,10 @@ class _LifeDisplayState extends State<LifeDisplay> {
                             color: widget.player.alive
                                 ? Settings.playerTextColors[widget.player.order]
                                 : Colors.red,
-                            shadows: textShadows,
                           ),
+                          useOutline: Settings.playerUseOutline[widget.player.order],
+                          outlineColor: Settings.playerOutlineColors[widget.player.order],
+                          strokeWidth: 3.0,
                         ),
                       ),
                     ),

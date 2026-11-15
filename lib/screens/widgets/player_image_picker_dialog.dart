@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../../models/settings.dart';
+import '../../UI/outlined_text.dart';
 
 class _CardArtOption {
   final String name;
@@ -205,18 +206,16 @@ class _PlayerImagePickerDialogState extends State<PlayerImagePickerDialog> {
                     ],
                   ),
                   Center(
-                    child: Text(
+                    child: OutlinedText(
                       '40',
                       style: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
                         color: Settings.playerTextColors[widget.playerIndex],
-                        shadows: Settings.playerUseOutline[widget.playerIndex]
-                            ? Settings.getOutlineShadows(
-                                Settings.playerOutlineColors[widget.playerIndex],
-                              )
-                            : null,
                       ),
+                      useOutline: Settings.playerUseOutline[widget.playerIndex],
+                      outlineColor: Settings.playerOutlineColors[widget.playerIndex],
+                      strokeWidth: 3.0,
                     ),
                   ),
                 ],

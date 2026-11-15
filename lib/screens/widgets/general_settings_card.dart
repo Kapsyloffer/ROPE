@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../../models/settings.dart';
 import '../../UI/player_layout.dart';
+import '../../UI/outlined_text.dart';
 import 'player_color_picker_dialog.dart';
-import 'player_image_picker_dialog.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -64,26 +64,9 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
     });
   }
 
-  void _showImagePicker(BuildContext context, int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return PlayerImagePickerDialog(
-          playerIndex: index,
-          onUpdate: widget.onUpdate,
-        );
-      },
-    ).then((_) {
-      if (mounted) setState(() {});
-    });
-  }
-
   Widget _buildPlayerTile(BuildContext context, int index) {
     final Color bgColor = Settings.playerColors[index];
     final Color fgColor = Settings.playerTextColors[index];
-    final textShadows = Settings.playerUseOutline[index]
-        ? Settings.getOutlineShadows(Settings.playerOutlineColors[index])
-        : null;
 
     return Padding(
       padding: const EdgeInsets.all(4.0),
@@ -126,29 +109,25 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        OutlinedText(
                           'P${index + 1}',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: fgColor,
-                            shadows: textShadows,
                           ),
+                          useOutline: Settings.playerUseOutline[index],
+                          outlineColor: Settings.playerOutlineColors[index],
+                          strokeWidth: 2.5,
                         ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              icon: Icon(Icons.image_outlined,
-                                  color: fgColor, size: 20, shadows: textShadows),
-                              onPressed: () => _showImagePicker(context, index),
-                            ),
-                            const SizedBox(width: 12),
-                            Icon(Icons.palette_outlined,
-                                color: fgColor, size: 20, shadows: textShadows),
-                          ],
+                        Icon(
+                          Icons.palette_outlined,
+                          color: fgColor,
+                          size: 20,
+                          shadows: Settings.playerUseOutline[index]
+                              ? Settings.getOutlineShadows(
+                                  Settings.playerOutlineColors[index])
+                              : null,
                         ),
                       ],
                     ),
@@ -156,14 +135,16 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          OutlinedText(
                             'Partner',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: fgColor,
-                              shadows: textShadows,
                             ),
+                            useOutline: Settings.playerUseOutline[index],
+                            outlineColor: Settings.playerOutlineColors[index],
+                            strokeWidth: 2.5,
                           ),
                           const SizedBox(width: 4),
                           Switch(
