@@ -65,8 +65,10 @@ class PlayerCounters {
     activeCounters['energy']!.amount = json['energy'] as int? ?? 0;
     var cTax = json['commanderTax'] as List?;
     if (cTax != null) {
-      (activeCounters['commanderTax'] as PairCounter).amounts = cTax.cast<int>();
+      (activeCounters['commanderTax'] as PairCounter).amounts = cTax
+          .cast<int>();
     }
-    (activeCounters['monarch'] as ToggleCounter).enabled = json['monarch'] as bool? ?? false;
+    (activeCounters['monarch'] as ToggleCounter).enabled =
+        json['monarch'] as bool? ?? false;
   }
 }

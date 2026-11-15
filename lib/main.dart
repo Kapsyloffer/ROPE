@@ -67,8 +67,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || 
-        state == AppLifecycleState.inactive || 
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
       _saveState();
     }
@@ -128,7 +128,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   void _handleTimerToggle(Player player) {
     if (!player.alive) return;
-    HapticFeedback.heavyImpact(); 
+    HapticFeedback.heavyImpact();
     setState(() {
       bool isPaused = !_game.players.any((p) => p.timer.active);
 
@@ -221,7 +221,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       }
 
       if (amount == 0) return;
-      
+
       player
               .commanderDamage
               .commanders[fromPlayerId]

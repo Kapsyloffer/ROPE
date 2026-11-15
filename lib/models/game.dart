@@ -17,9 +17,9 @@ class StackItem {
   };
 
   StackItem.fromJson(Map<String, dynamic> json)
-      : playerId = json['playerId'],
-        returnType = TurnType.values[json['returnType']],
-        isFresh = json['isFresh'] ?? false;
+    : playerId = json['playerId'],
+      returnType = TurnType.values[json['returnType']],
+      isFresh = json['isFresh'] ?? false;
 }
 
 class Game {

@@ -1,7 +1,7 @@
 class Commander {
   int playerId;
   List<int> damageDealt;
-  
+
   Commander(this.playerId) : damageDealt = [0, 0];
 
   Map<String, dynamic> toJson() => {
@@ -10,8 +10,8 @@ class Commander {
   };
 
   Commander.fromJson(Map<String, dynamic> json)
-      : playerId = json['playerId'],
-        damageDealt = (json['damageDealt'] as List).cast<int>();
+    : playerId = json['playerId'],
+      damageDealt = (json['damageDealt'] as List).cast<int>();
 }
 
 class CommanderDamage {
@@ -42,6 +42,8 @@ class CommanderDamage {
   void loadFromJson(Map<String, dynamic> json) {
     numPlayers = json['numPlayers'];
     var cmds = json['commanders'] as List;
-    commanders = cmds.map((c) => Commander.fromJson(c as Map<String, dynamic>)).toList();
+    commanders = cmds
+        .map((c) => Commander.fromJson(c as Map<String, dynamic>))
+        .toList();
   }
 }

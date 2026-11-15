@@ -29,7 +29,11 @@ class _CountersGridState extends State<CountersGrid> {
         oldWidget.player != widget.player) {}
   }
 
-  Widget _buildCounterAdjustButton(IconData icon, VoidCallback onTap, Color color) {
+  Widget _buildCounterAdjustButton(
+    IconData icon,
+    VoidCallback onTap,
+    Color color,
+  ) {
     return Expanded(
       child: Material(
         color: Colors.transparent,
@@ -38,11 +42,7 @@ class _CountersGridState extends State<CountersGrid> {
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(
-                icon,
-                size: 28,
-                color: color,
-              ),
+              child: Icon(icon, size: 28, color: color),
             ),
           ),
         ),
@@ -219,7 +219,11 @@ class _CountersGridState extends State<CountersGrid> {
                 ]),
                 _buildCounterCell([
                   _buildCounterData(
-                    prefixWidget: Icon(Icons.bolt, size: 38, color: contentColor),
+                    prefixWidget: Icon(
+                      Icons.bolt,
+                      size: 38,
+                      color: contentColor,
+                    ),
                     value:
                         widget
                             .player
@@ -240,7 +244,11 @@ class _CountersGridState extends State<CountersGrid> {
               children: [
                 _buildCounterCell([
                   _buildCounterData(
-                    prefixWidget: Icon(Icons.shield_outlined, size: 32, color: contentColor),
+                    prefixWidget: Icon(
+                      Icons.shield_outlined,
+                      size: 32,
+                      color: contentColor,
+                    ),
                     value:
                         (widget.player.counters.activeCounters['commanderTax']
                                 as PairCounter?)
@@ -267,7 +275,11 @@ class _CountersGridState extends State<CountersGrid> {
                   ),
                   if (hasPartner)
                     _buildCounterData(
-                      prefixWidget: Icon(Icons.shield_outlined, size: 32, color: contentColor),
+                      prefixWidget: Icon(
+                        Icons.shield_outlined,
+                        size: 32,
+                        color: contentColor,
+                      ),
                       value:
                           (widget.player.counters.activeCounters['commanderTax']
                                   as PairCounter?)
@@ -301,7 +313,11 @@ class _CountersGridState extends State<CountersGrid> {
                 ]),
                 _buildCounterCell([
                   _buildToggleDisplay(
-                    prefixWidget: Icon(RpgAwesome.crown, size: 34, color: contentColor),
+                    prefixWidget: Icon(
+                      RpgAwesome.crown,
+                      size: 34,
+                      color: contentColor,
+                    ),
                     isEnabled:
                         (widget.player.counters.activeCounters['monarch']
                                 as ToggleCounter?)

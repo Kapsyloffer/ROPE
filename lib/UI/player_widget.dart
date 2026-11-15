@@ -68,7 +68,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
   @override
   void didUpdateWidget(covariant PlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Globally track life changes to flash the player tile
     int diff = widget.player.curLife - _lastLife;
     if (diff != 0) {
@@ -271,8 +271,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                           duration: const Duration(milliseconds: 200),
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color:
-                                highlightedIndex == widget.player.order
+                              color: highlightedIndex == widget.player.order
                                   ? Colors.white
                                   : Colors.transparent,
                               width: 8.0,
@@ -288,7 +287,9 @@ class _PlayerWidgetState extends State<PlayerWidget>
                   child: IgnorePointer(
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      color: _isFlashing ? Colors.black.withOpacity(0.15) : Colors.transparent,
+                      color: _isFlashing
+                          ? Colors.black.withOpacity(0.15)
+                          : Colors.transparent,
                     ),
                   ),
                 ),
