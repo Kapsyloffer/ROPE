@@ -1,30 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/settings.dart';
-
-String _formatMMSS(double minutes) {
-  int m = minutes.floor();
-  int s = ((minutes - m) * 60).round();
-  if (s == 60) {
-    m += 1;
-    s = 0;
-  }
-  return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-}
-
-double? _parseMMSS(String value) {
-  if (value.contains(':')) {
-    final parts = value.split(':');
-    if (parts.length >= 2) {
-      double? m = double.tryParse(parts[0]);
-      double? s = double.tryParse(parts[1]);
-      if (m != null && s != null) {
-        return m + (s / 60.0);
-      }
-    }
-  }
-  return num.tryParse(value.replaceAll(',', '.'))?.toDouble();
-}
+import '../../helpers/time_format_helper.dart';
 
 class TimerSettingsCard extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -43,7 +20,7 @@ class _TimerSettingsCardState extends State<TimerSettingsCard> {
   void initState() {
     super.initState();
     _timeController = TextEditingController(
-      text: _formatMMSS(Settings.startTime),
+      text: formatMMSS(Settings.startTime),
     );
     _timeFocusNode = FocusNode();
     _timeFocusNode.addListener(_onTimeFocusChanged);
@@ -59,10 +36,10 @@ class _TimerSettingsCardState extends State<TimerSettingsCard> {
 
   void _onTimeFocusChanged() {
     if (!_timeFocusNode.hasFocus) {
-      double? parsedValue = _parseMMSS(_timeController.text);
+      double? parsedValue = parseMMSS(_timeController.text);
       if (parsedValue != null) {
         setState(() {
-          _timeController.text = _formatMMSS(parsedValue);
+          _timeController.text = formatMMSS(parsedValue);
         });
       }
     }
@@ -98,14 +75,14 @@ class _TimerSettingsCardState extends State<TimerSettingsCard> {
                 controller: _timeController,
                 focusNode: _timeFocusNode,
                 decoration: const InputDecoration(
-                  labelText: 'Start Time (MM:SS)',
+                  labelText: 'Start Time (mm:ss)',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.timer_outlined),
                 ),
                 keyboardType: TextInputType.datetime,
                 enabled: Settings.useTimer,
                 onChanged: (value) {
-                  double? parsedValue = _parseMMSS(value);
+                  double? parsedValue = parseMMSS(value);
                   if (parsedValue != null) {
                     Settings.startTime = parsedValue;
                     Settings.save();

@@ -1,11 +1,49 @@
 import 'package:flutter/material.dart';
 
 import '../../models/settings.dart';
+import '../../helpers/time_format_helper.dart';
 
-class SlowBurnSettingsCard extends StatelessWidget {
+class SlowBurnSettingsCard extends StatefulWidget {
   final VoidCallback onUpdate;
 
   const SlowBurnSettingsCard({super.key, required this.onUpdate});
+
+  @override
+  State<SlowBurnSettingsCard> createState() => _SlowBurnSettingsCardState();
+}
+
+class _SlowBurnSettingsCardState extends State<SlowBurnSettingsCard> {
+  late TextEditingController _timeController;
+  late FocusNode _timeFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _timeController = TextEditingController(
+      text: formatMMSS(Settings.burnInterval),
+    );
+    _timeFocusNode = FocusNode();
+    _timeFocusNode.addListener(_onTimeFocusChanged);
+  }
+
+  @override
+  void dispose() {
+    _timeFocusNode.removeListener(_onTimeFocusChanged);
+    _timeFocusNode.dispose();
+    _timeController.dispose();
+    super.dispose();
+  }
+
+  void _onTimeFocusChanged() {
+    if (!_timeFocusNode.hasFocus) {
+      double? parsedValue = parseMMSS(_timeController.text);
+      if (parsedValue != null) {
+        setState(() {
+          _timeController.text = formatMMSS(parsedValue);
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +65,11 @@ class SlowBurnSettingsCard extends StatelessWidget {
                   title: const Text('Slow Burn'),
                   value: Settings.useSlowBurn,
                   onChanged: (value) {
-                    Settings.useSlowBurn = value;
+                    setState(() {
+                      Settings.useSlowBurn = value;
+                    });
                     Settings.save();
-                    onUpdate();
+                    widget.onUpdate();
                   },
                 ),
                 Padding(
@@ -38,22 +78,25 @@ class SlowBurnSettingsCard extends StatelessWidget {
                     vertical: 8.0,
                   ),
                   child: TextFormField(
-                    initialValue: Settings.burnInterval.toString(),
+                    controller: _timeController,
+                    focusNode: _timeFocusNode,
                     decoration: const InputDecoration(
-                      labelText: 'Burn Interval (seconds)',
+                      labelText: 'Burn Interval (mm:ss)',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.timelapse),
                     ),
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.datetime,
                     enabled: Settings.useSlowBurn,
                     onChanged: (value) {
-                      int? parsedValue = num.tryParse(
-                        value.replaceAll(',', '.'),
-                      )?.toInt();
+                      double? parsedValue = parseMMSS(value);
                       if (parsedValue != null) {
+                        // Spara direkt som minuter!
                         Settings.burnInterval = parsedValue;
                         Settings.save();
                       }
+                    },
+                    onEditingComplete: () {
+                      _timeFocusNode.unfocus();
                     },
                   ),
                 ),
@@ -86,9 +129,11 @@ class SlowBurnSettingsCard extends StatelessWidget {
                   title: const Text('Flash on burn damage'),
                   value: Settings.useFlashing,
                   onChanged: (value) {
-                    Settings.useFlashing = value;
+                    setState(() {
+                      Settings.useFlashing = value;
+                    });
                     Settings.save();
-                    onUpdate();
+                    widget.onUpdate();
                   },
                 ),
               ],

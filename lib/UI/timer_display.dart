@@ -1,59 +1,13 @@
 import 'dart:async' as async;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
 import '../models/player.dart';
 import '../models/settings.dart';
+import '../UI/outlined_text.dart';
 
-String _formatTime(double seconds) {
-  int min = seconds ~/ 60;
-  int sec = (seconds % 60).toInt();
-  return '$min:${sec.toString().padLeft(2, '0')}';
-}
-
-class _MarchingAntsPainter extends CustomPainter {
-  final double progress;
-  final Color color;
-
-  _MarchingAntsPainter({required this.progress, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 4.0
-      ..style = PaintingStyle.stroke;
-
-    final path = Path()
-      ..addRect(Rect.fromLTWH(2.0, 2.0, size.width - 4.0, size.height - 4.0));
-
-    const dashWidth = 10.0;
-    const dashSpace = 10.0;
-    const distance = dashWidth + dashSpace;
-
-    for (PathMetric metric in path.computeMetrics()) {
-      double start = progress * distance;
-
-      while (start < metric.length) {
-        double end = start + dashWidth;
-        double drawEnd = end > metric.length ? metric.length : end;
-
-        canvas.drawPath(metric.extractPath(start, drawEnd), paint);
-
-        if (end > metric.length) {
-          canvas.drawPath(metric.extractPath(0.0, end - metric.length), paint);
-        }
-        start += distance;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _MarchingAntsPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.color != color;
-  }
-}
+import '../helpers/time_format_helper.dart';
+import '../helpers/marching_ants.dart';
 
 class TimerDisplay extends StatefulWidget {
   final Player player;
@@ -87,6 +41,7 @@ class _TimerDisplayState extends State<TimerDisplay>
   double _lastTime = 0.0;
   double _lastAddedAmount = 0.0;
   bool _isEditingTimer = false;
+  bool _useOutline = false;
 
   late AnimationController _ropeController;
   late AnimationController _antsController;
@@ -96,11 +51,13 @@ class _TimerDisplayState extends State<TimerDisplay>
     super.initState();
     _lastTime = widget.player.timer.curTime;
 
-    int durationSec = Settings.burnInterval > 0 ? Settings.burnInterval : 1;
+    int durationSec = Settings.burnInterval > 0 ? (Settings.burnInterval * 60.0).round() : 1;
     _ropeController = AnimationController(
       vsync: this,
       duration: Duration(seconds: durationSec),
     );
+
+    _useOutline = Settings.playerUseOutline[widget.player.order];
 
     _antsController = AnimationController(
       vsync: this,
@@ -121,7 +78,7 @@ class _TimerDisplayState extends State<TimerDisplay>
       return;
     }
     double startFraction = Settings.burnInterval > 0
-        ? widget.player.timer.elapsedTurnTime / Settings.burnInterval
+        ? widget.player.timer.elapsedTurnTime / (Settings.burnInterval * 60.0)
         : 0.0;
     if (startFraction < 0.0) startFraction = 0.0;
     if (startFraction > 1.0) startFraction = 1.0;
@@ -162,7 +119,7 @@ class _TimerDisplayState extends State<TimerDisplay>
   }
 
   void _handleRopeAnimation() {
-    int durationSec = Settings.burnInterval > 0 ? Settings.burnInterval : 1;
+    int durationSec = Settings.burnInterval > 0 ? (Settings.burnInterval * 60.0).round() : 1;
     if (_ropeController.duration?.inSeconds != durationSec) {
       _ropeController.duration = Duration(seconds: durationSec);
     }
@@ -179,7 +136,7 @@ class _TimerDisplayState extends State<TimerDisplay>
 
     if (!_ropeController.isAnimating) {
       double currentFraction = Settings.burnInterval > 0
-          ? widget.player.timer.elapsedTurnTime / Settings.burnInterval
+          ? widget.player.timer.elapsedTurnTime / (Settings.burnInterval * 60.0)
           : 0.0;
       if (currentFraction < 0.0) currentFraction = 0.0;
       if (currentFraction > 1.0) currentFraction = 1.0;
@@ -354,7 +311,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                     animation: _antsController,
                     builder: (context, child) {
                       return CustomPaint(
-                        painter: _MarchingAntsPainter(
+                        painter: MarchingAntsPainter(
                           progress: _antsController.value,
                           color: antsColor,
                         ),
@@ -397,13 +354,15 @@ class _TimerDisplayState extends State<TimerDisplay>
                     child: Center(
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: Text(
-                          _formatTime(widget.player.timer.curTime),
+                        child: OutlinedText(
+                          formatTime(widget.player.timer.curTime),
                           style: TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
                             color: textColor,
                           ),
+                          useOutline: _useOutline,
+                          outlineColor: Settings.playerOutlineColors[widget.player.order],
                         ),
                       ),
                     ),
@@ -417,13 +376,15 @@ class _TimerDisplayState extends State<TimerDisplay>
                   padding: const EdgeInsets.all(8.0),
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(
-                      _formatTime(widget.player.timer.curTime),
+                    child: OutlinedText(
+                      formatTime(widget.player.timer.curTime),
                       style: TextStyle(
                         fontSize: 48,
                         fontWeight: FontWeight.bold,
                         color: textColor,
                       ),
+                      useOutline: widget.player.timer.active ? false : _useOutline,
+                      outlineColor: Settings.playerOutlineColors[widget.player.order],
                     ),
                   ),
                 ),
@@ -438,7 +399,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                   curve: Curves.easeInQuint,
                   opacity: _timeIncOpacity,
                   child: Text(
-                    '+${_formatTime(_lastAddedAmount)}',
+                    '+${formatTime(_lastAddedAmount)}',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,

@@ -51,7 +51,7 @@ flutter_icons:
   android: true
   ios: true
   image_path: "assets/icon.png"
-  adaptive_icon_background: "#3E3024"
+  adaptive_icon_background: "#F36521"
   adaptive_icon_foreground: "assets/foreground.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to

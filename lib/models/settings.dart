@@ -41,7 +41,7 @@ class Settings {
   static int prio = 3;
 
   static bool useSlowBurn = false;
-  static int burnInterval = 30;
+  static double burnInterval = 1.5;
   static int burnAmount = 5;
   static bool useFlashing = true;
 
@@ -64,7 +64,7 @@ class Settings {
     prefs.setBool('usePriority', usePriority);
     prefs.setInt('prio', prio);
     prefs.setBool('useSlowBurn', useSlowBurn);
-    prefs.setInt('burnInterval', burnInterval);
+    prefs.setDouble('burnInterval', burnInterval);
     prefs.setInt('burnAmount', burnAmount);
     prefs.setBool('useFlashing', useFlashing);
 
@@ -97,12 +97,15 @@ class Settings {
     players = prefs.getInt('players') ?? 4;
     startLife = prefs.getInt('startLife') ?? 40;
     useTimer = prefs.getBool('useTimer') ?? true;
-    startTime = prefs.getDouble('startTime') ?? 10.0;
+    
+    // Fixed: Casts to num? first to safely parse ints saved as doubles
+    startTime = (prefs.get('startTime') as num?)?.toDouble() ?? 10.0;
+    burnInterval = (prefs.get('burnInterval') as num?)?.toDouble() ?? 1.5;
+    
     increment = prefs.getInt('increment') ?? 15;
     usePriority = prefs.getBool('usePriority') ?? true;
     prio = prefs.getInt('prio') ?? 3;
     useSlowBurn = prefs.getBool('useSlowBurn') ?? false;
-    burnInterval = prefs.getInt('burnInterval') ?? 30;
     burnAmount = prefs.getInt('burnAmount') ?? 5;
     useFlashing = prefs.getBool('useFlashing') ?? true;
     useCommanderDamage = prefs.getBool('useCommanderDamage') ?? true;

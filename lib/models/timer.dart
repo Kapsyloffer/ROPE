@@ -38,7 +38,8 @@ class Timer {
         curTime -= 1;
         if (Settings.useSlowBurn) {
           elapsedTurnTime += 1;
-          if (elapsedTurnTime >= Settings.burnInterval) {
+          // Eftersom burnInterval sparas i minuter (t.ex. 1.5), multiplicerar vi med 60 för sekunder (90)
+          if (elapsedTurnTime >= (Settings.burnInterval * 60.0).round()) {
             if (onBurn != null) {
               onBurn!();
             }
