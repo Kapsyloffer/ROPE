@@ -10,22 +10,22 @@ import '../../models/settings.dart';
 import '../../helpers/outlined_text.dart';
 import 'scryfall_search.dart';
 
-class PlayerColorPickerDialog extends StatefulWidget {
+class PlayerCustomizationDialog extends StatefulWidget {
   final int playerIndex;
   final VoidCallback onUpdate;
 
-  const PlayerColorPickerDialog({
+  const PlayerCustomizationDialog({
     super.key,
     required this.playerIndex,
     required this.onUpdate,
   });
 
   @override
-  State<PlayerColorPickerDialog> createState() =>
-      _PlayerColorPickerDialogState();
+  State<PlayerCustomizationDialog> createState() =>
+      _PlayerCustomizationDialogState();
 }
 
-class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
+class _PlayerCustomizationDialogState extends State<PlayerCustomizationDialog> {
   late HSVColor _bgHsv;
   late HSVColor _textHsv;
   late HSVColor _outlineHsv;

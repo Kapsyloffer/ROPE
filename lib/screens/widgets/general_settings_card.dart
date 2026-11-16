@@ -7,7 +7,7 @@ import '../../models/settings.dart';
 import '../../UI/player_layout.dart';
 import '../../helpers/outlined_text.dart';
 import '../../helpers/outlined_icon.dart';
-import 'player_color_picker_dialog.dart';
+import 'player_customization_dialog.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -53,11 +53,11 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
     widget.onUpdate();
   }
 
-  void _showColorPicker(BuildContext context, int index) {
+  void _showCustomizationDialog(BuildContext context, int index) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return PlayerColorPickerDialog(
+        return PlayerCustomizationDialog(
           playerIndex: index,
           onUpdate: widget.onUpdate,
         );
@@ -111,7 +111,7 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
               ],
             ),
             InkWell(
-              onTap: () => _showColorPicker(context, index),
+              onTap: () => _showCustomizationDialog(context, index),
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Column(
