@@ -70,15 +70,15 @@ class _PlayerWidgetState extends State<PlayerWidget>
   @override
   void didUpdateWidget(covariant PlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     int diff = widget.player.curLife - _lastLife;
     if (diff != 0) {
       if (diff < 0) {
         if (_skipNextFlash) {
           _skipNextFlash = false;
-          HapticFeedback.mediumImpact(); 
+          HapticFeedback.mediumImpact();
         } else {
-          HapticFeedback.mediumImpact(); 
+          HapticFeedback.mediumImpact();
           _isFlashing = true;
           Future.delayed(const Duration(milliseconds: 150), () {
             if (mounted) {
@@ -90,7 +90,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
         }
       } else {
         _skipNextFlash = false;
-        HapticFeedback.lightImpact(); 
+        HapticFeedback.lightImpact();
       }
     }
     _lastLife = widget.player.curLife;
@@ -214,12 +214,15 @@ class _PlayerWidgetState extends State<PlayerWidget>
                       ),
                       fit: BoxFit.cover,
                       color: widget.player.alive ? null : Colors.black54,
-                      colorBlendMode:
-                          widget.player.alive ? null : BlendMode.darken,
+                      colorBlendMode: widget.player.alive
+                          ? null
+                          : BlendMode.darken,
                     ),
                   ),
                 if (Settings.hasPartner[widget.player.order] &&
-                    Settings.playerPartnerImageUrls[widget.player.order].isNotEmpty)
+                    Settings
+                        .playerPartnerImageUrls[widget.player.order]
+                        .isNotEmpty)
                   Expanded(
                     child: Image(
                       image: _getImageProvider(
@@ -227,8 +230,9 @@ class _PlayerWidgetState extends State<PlayerWidget>
                       ),
                       fit: BoxFit.cover,
                       color: widget.player.alive ? null : Colors.black54,
-                      colorBlendMode:
-                          widget.player.alive ? null : BlendMode.darken,
+                      colorBlendMode: widget.player.alive
+                          ? null
+                          : BlendMode.darken,
                     ),
                   ),
               ],
@@ -272,7 +276,9 @@ class _PlayerWidgetState extends State<PlayerWidget>
                                   val: val,
                                   activeIndex: 0,
                                   child: LifeDisplay(
-                                    key: ValueKey('${widget.player.order}_life'),
+                                    key: ValueKey(
+                                      '${widget.player.order}_life',
+                                    ),
                                     player: widget.player,
                                     onLifeAdjust: (amt) {
                                       if (amt < 0) {

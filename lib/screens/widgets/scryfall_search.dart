@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -53,10 +54,7 @@ class _ScryfallSearchState extends State<ScryfallSearch> {
       );
       final response = await http.get(
         uri,
-        headers: {
-          'User-Agent': 'ROPE/1.0',
-          'Accept': 'application/json',
-        },
+        headers: {'User-Agent': 'ROPE/1.0', 'Accept': 'application/json'},
       );
 
       final data = jsonDecode(response.body);
@@ -138,9 +136,7 @@ class _ScryfallSearchState extends State<ScryfallSearch> {
                         height: 20,
                         child: Padding(
                           padding: EdgeInsets.all(12.0),
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       )
                     : IconButton(

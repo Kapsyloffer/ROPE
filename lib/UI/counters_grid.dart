@@ -4,6 +4,8 @@ import 'package:fluttericon/rpg_awesome_icons.dart';
 import '../models/player.dart';
 import '../models/settings.dart';
 import '../models/counters.dart';
+import '../helpers/outlined_text.dart';
+import '../helpers/outlined_icon.dart';
 
 class CountersGrid extends StatefulWidget {
   final Player player;
@@ -34,6 +36,9 @@ class _CountersGridState extends State<CountersGrid> {
     VoidCallback onTap,
     Color color,
   ) {
+    bool useOutline = Settings.playerUseOutline[widget.player.order];
+    Color outlineColor = Settings.playerOutlineColors[widget.player.order];
+
     return Expanded(
       child: Material(
         color: Colors.transparent,
@@ -42,7 +47,14 @@ class _CountersGridState extends State<CountersGrid> {
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(icon, size: 28, color: color),
+              child: OutlinedIcon(
+                icon,
+                size: 28,
+                color: color,
+                useOutline: useOutline,
+                outlineColor: outlineColor,
+                strokeWidth: 2.0,
+              ),
             ),
           ),
         ),
@@ -59,6 +71,9 @@ class _CountersGridState extends State<CountersGrid> {
     Color textColor = widget.player.alive
         ? Settings.playerTextColors[widget.player.order]
         : Colors.red;
+
+    bool useOutline = Settings.playerUseOutline[widget.player.order];
+    Color outlineColor = Settings.playerOutlineColors[widget.player.order];
 
     return Expanded(
       child: GestureDetector(
@@ -88,13 +103,16 @@ class _CountersGridState extends State<CountersGrid> {
                         children: [
                           prefixWidget,
                           const SizedBox(width: 8),
-                          Text(
+                          OutlinedText(
                             '$value',
                             style: TextStyle(
                               fontSize: 48,
                               fontWeight: FontWeight.bold,
                               color: textColor,
                             ),
+                            useOutline: useOutline,
+                            outlineColor: outlineColor,
+                            strokeWidth: 4.0,
                           ),
                         ],
                       ),
@@ -125,6 +143,9 @@ class _CountersGridState extends State<CountersGrid> {
         ? Settings.playerTextColors[widget.player.order].withValues(alpha: 0.4)
         : Colors.red.shade900;
 
+    bool useOutline = Settings.playerUseOutline[widget.player.order];
+    Color outlineColor = Settings.playerOutlineColors[widget.player.order];
+
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -144,10 +165,13 @@ class _CountersGridState extends State<CountersGrid> {
                   children: [
                     prefixWidget,
                     const SizedBox(width: 8),
-                    Icon(
+                    OutlinedIcon(
                       isEnabled ? Icons.check : Icons.close,
                       size: 40,
                       color: isEnabled ? activeColor : inactiveColor,
+                      useOutline: useOutline,
+                      outlineColor: outlineColor,
+                      strokeWidth: 3.0,
                     ),
                   ],
                 ),
@@ -187,6 +211,9 @@ class _CountersGridState extends State<CountersGrid> {
         ? Settings.playerTextColors[widget.player.order]
         : Colors.red;
 
+    bool useOutline = Settings.playerUseOutline[widget.player.order];
+    Color outlineColor = Settings.playerOutlineColors[widget.player.order];
+
     return Padding(
       padding: const EdgeInsets.all(4.0),
       child: Column(
@@ -198,13 +225,16 @@ class _CountersGridState extends State<CountersGrid> {
               children: [
                 _buildCounterCell([
                   _buildCounterData(
-                    prefixWidget: Text(
+                    prefixWidget: OutlinedText(
                       'Φ',
                       style: TextStyle(
                         fontSize: 38,
                         fontWeight: FontWeight.bold,
                         color: contentColor,
                       ),
+                      useOutline: useOutline,
+                      outlineColor: outlineColor,
+                      strokeWidth: 3.0,
                     ),
                     value:
                         widget
@@ -219,10 +249,13 @@ class _CountersGridState extends State<CountersGrid> {
                 ]),
                 _buildCounterCell([
                   _buildCounterData(
-                    prefixWidget: Icon(
+                    prefixWidget: OutlinedIcon(
                       Icons.bolt,
                       size: 38,
                       color: contentColor,
+                      useOutline: useOutline,
+                      outlineColor: outlineColor,
+                      strokeWidth: 3.0,
                     ),
                     value:
                         widget
@@ -244,10 +277,13 @@ class _CountersGridState extends State<CountersGrid> {
               children: [
                 _buildCounterCell([
                   _buildCounterData(
-                    prefixWidget: Icon(
+                    prefixWidget: OutlinedIcon(
                       Icons.shield_outlined,
                       size: 32,
                       color: contentColor,
+                      useOutline: useOutline,
+                      outlineColor: outlineColor,
+                      strokeWidth: 2.5,
                     ),
                     value:
                         (widget.player.counters.activeCounters['commanderTax']
@@ -275,10 +311,13 @@ class _CountersGridState extends State<CountersGrid> {
                   ),
                   if (hasPartner)
                     _buildCounterData(
-                      prefixWidget: Icon(
+                      prefixWidget: OutlinedIcon(
                         Icons.shield_outlined,
                         size: 32,
                         color: contentColor,
+                        useOutline: useOutline,
+                        outlineColor: outlineColor,
+                        strokeWidth: 2.5,
                       ),
                       value:
                           (widget.player.counters.activeCounters['commanderTax']
@@ -313,10 +352,13 @@ class _CountersGridState extends State<CountersGrid> {
                 ]),
                 _buildCounterCell([
                   _buildToggleDisplay(
-                    prefixWidget: Icon(
+                    prefixWidget: OutlinedIcon(
                       RpgAwesome.crown,
                       size: 34,
                       color: contentColor,
+                      useOutline: useOutline,
+                      outlineColor: outlineColor,
+                      strokeWidth: 2.5,
                     ),
                     isEnabled:
                         (widget.player.counters.activeCounters['monarch']

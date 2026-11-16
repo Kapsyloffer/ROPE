@@ -6,7 +6,8 @@ import 'package:fluttericon/rpg_awesome_icons.dart';
 import '../models/player.dart';
 import '../models/settings.dart';
 import '../models/counters.dart';
-import 'outlined_text.dart';
+import '../helpers/outlined_text.dart';
+import '../helpers/outlined_icon.dart';
 
 class LifeDisplay extends StatefulWidget {
   final Player player;
@@ -28,7 +29,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
   async.Timer? _lifeDeltaTimer;
   async.Timer? _lifeDeltaHideTimer;
   double _lifeDeltaOpacity = 0.0;
-  
+
   int _lastLife = 0;
 
   async.Timer? _initialHoldTimer;
@@ -123,7 +124,10 @@ class _LifeDisplayState extends State<LifeDisplay> {
     _isHolding = false;
   }
 
-  Widget _buildAdjustButton(IconData icon, int amount, List<Shadow>? shadows) {
+  Widget _buildAdjustButton(IconData icon, int amount) {
+    bool useOutline = Settings.playerUseOutline[widget.player.order];
+    Color outlineColor = Settings.playerOutlineColors[widget.player.order];
+
     return Expanded(
       child: Material(
         color: Colors.transparent,
@@ -137,13 +141,15 @@ class _LifeDisplayState extends State<LifeDisplay> {
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(
+              child: OutlinedIcon(
                 icon,
                 size: 48,
                 color: widget.player.alive
                     ? Settings.playerTextColors[widget.player.order]
                     : Colors.red,
-                shadows: shadows,
+                useOutline: useOutline,
+                outlineColor: outlineColor,
+                strokeWidth: 3.0,
               ),
             ),
           ),
@@ -152,12 +158,13 @@ class _LifeDisplayState extends State<LifeDisplay> {
     );
   }
 
-  Widget _buildActiveCountersRow(List<Shadow>? shadows) {
+  Widget _buildActiveCountersRow() {
     final counters = widget.player.counters.activeCounters;
     final int poison = counters['poison']?.amount ?? 0;
     final int energy = counters['energy']?.amount ?? 0;
     final PairCounter? tax = counters['commanderTax'] as PairCounter?;
-    final bool monarch = (counters['monarch'] as ToggleCounter?)?.enabled ?? false;
+    final bool monarch =
+        (counters['monarch'] as ToggleCounter?)?.enabled ?? false;
     final bool hasPartner = Settings.hasPartner[widget.player.order];
 
     List<Widget> activeIcons = [];
@@ -165,11 +172,14 @@ class _LifeDisplayState extends State<LifeDisplay> {
         ? Settings.playerTextColors[widget.player.order]
         : Colors.red;
 
-    Widget buildItem(Widget icon, [String? text]) {
+    bool useOutline = Settings.playerUseOutline[widget.player.order];
+    Color outlineColor = Settings.playerOutlineColors[widget.player.order];
+
+    Widget buildItem(Widget iconWidget, [String? text]) {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          icon,
+          iconWidget,
           if (text != null) ...[
             const SizedBox(width: 4),
             OutlinedText(
@@ -179,11 +189,11 @@ class _LifeDisplayState extends State<LifeDisplay> {
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
-              useOutline: Settings.playerUseOutline[widget.player.order],
-              outlineColor: Settings.playerOutlineColors[widget.player.order],
+              useOutline: useOutline,
+              outlineColor: outlineColor,
               strokeWidth: 2.0,
             ),
-          ]
+          ],
         ],
       );
     }
@@ -198,8 +208,8 @@ class _LifeDisplayState extends State<LifeDisplay> {
               fontWeight: FontWeight.bold,
               fontSize: 20,
             ),
-            useOutline: Settings.playerUseOutline[widget.player.order],
-            outlineColor: Settings.playerOutlineColors[widget.player.order],
+            useOutline: useOutline,
+            outlineColor: outlineColor,
             strokeWidth: 2.0,
           ),
           '$poison',
@@ -207,20 +217,65 @@ class _LifeDisplayState extends State<LifeDisplay> {
       );
     }
     if (energy > 0) {
-      activeIcons.add(buildItem(Icon(Icons.bolt, color: textColor, size: 20, shadows: shadows), '$energy'));
+      activeIcons.add(
+        buildItem(
+          OutlinedIcon(
+            Icons.bolt,
+            color: textColor,
+            size: 20,
+            useOutline: useOutline,
+            outlineColor: outlineColor,
+            strokeWidth: 2.0,
+          ),
+          '$energy',
+        ),
+      );
     }
     if (tax != null) {
       if (tax.amounts[0] > 0) {
         activeIcons.add(
-            buildItem(Icon(Icons.shield_outlined, color: textColor, size: 20, shadows: shadows), '${tax.amounts[0]}'));
+          buildItem(
+            OutlinedIcon(
+              Icons.shield_outlined,
+              color: textColor,
+              size: 20,
+              useOutline: useOutline,
+              outlineColor: outlineColor,
+              strokeWidth: 2.0,
+            ),
+            '${tax.amounts[0]}',
+          ),
+        );
       }
       if (hasPartner && tax.amounts[1] > 0) {
         activeIcons.add(
-            buildItem(Icon(Icons.shield_outlined, color: textColor, size: 20, shadows: shadows), '${tax.amounts[1]}'));
+          buildItem(
+            OutlinedIcon(
+              Icons.shield_outlined,
+              color: textColor,
+              size: 20,
+              useOutline: useOutline,
+              outlineColor: outlineColor,
+              strokeWidth: 2.0,
+            ),
+            '${tax.amounts[1]}',
+          ),
+        );
       }
     }
     if (monarch) {
-      activeIcons.add(buildItem(Icon(RpgAwesome.crown, color: textColor, size: 20, shadows: shadows)));
+      activeIcons.add(
+        buildItem(
+          OutlinedIcon(
+            RpgAwesome.crown,
+            color: textColor,
+            size: 20,
+            useOutline: useOutline,
+            outlineColor: outlineColor,
+            strokeWidth: 2.0,
+          ),
+        ),
+      );
     }
 
     if (activeIcons.isEmpty) return const SizedBox.shrink();
@@ -244,17 +299,12 @@ class _LifeDisplayState extends State<LifeDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Shadow>? textShadows = Settings.playerUseOutline[widget.player.order]
-        ? Settings.getOutlineShadows(Settings.playerOutlineColors[widget.player.order])
-        : null;
-
     return Container(
-      color: Colors.black.withOpacity(0.05),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildAdjustButton(Icons.remove, -1, textShadows),
+          _buildAdjustButton(Icons.remove, -1),
           Expanded(
             flex: 2,
             child: Stack(
@@ -264,9 +314,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
                   bottom: 12,
                   left: 0,
                   right: 0,
-                  child: IgnorePointer(
-                    child: _buildActiveCountersRow(textShadows),
-                  ),
+                  child: IgnorePointer(child: _buildActiveCountersRow()),
                 ),
                 FittedBox(
                   fit: BoxFit.scaleDown,
@@ -280,7 +328,8 @@ class _LifeDisplayState extends State<LifeDisplay> {
                           : Colors.red,
                     ),
                     useOutline: Settings.playerUseOutline[widget.player.order],
-                    outlineColor: Settings.playerOutlineColors[widget.player.order],
+                    outlineColor:
+                        Settings.playerOutlineColors[widget.player.order],
                     strokeWidth: 4.0,
                   ),
                 ),
@@ -306,8 +355,10 @@ class _LifeDisplayState extends State<LifeDisplay> {
                                 ? Settings.playerTextColors[widget.player.order]
                                 : Colors.red,
                           ),
-                          useOutline: Settings.playerUseOutline[widget.player.order],
-                          outlineColor: Settings.playerOutlineColors[widget.player.order],
+                          useOutline:
+                              Settings.playerUseOutline[widget.player.order],
+                          outlineColor:
+                              Settings.playerOutlineColors[widget.player.order],
                           strokeWidth: 3.0,
                         ),
                       ),
@@ -316,7 +367,7 @@ class _LifeDisplayState extends State<LifeDisplay> {
               ],
             ),
           ),
-          _buildAdjustButton(Icons.add, 1, textShadows),
+          _buildAdjustButton(Icons.add, 1),
         ],
       ),
     );

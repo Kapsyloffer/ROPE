@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,7 +7,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../models/settings.dart';
-import '../../UI/outlined_text.dart';
+import '../../helpers/outlined_text.dart';
 import 'scryfall_search.dart';
 
 class PlayerColorPickerDialog extends StatefulWidget {
@@ -28,9 +29,9 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
   late HSVColor _bgHsv;
   late HSVColor _textHsv;
   late HSVColor _outlineHsv;
-  
+
   int _editingMode = 0;
-  
+
   bool _useOutline = false;
   late String _imageUrl;
   late String _partnerImageUrl;
@@ -73,12 +74,13 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
   Future<void> _pickLocalImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (image != null) {
       String finalImagePath = image.path;
 
       bool shouldCrop = true;
-      if (!kIsWeb && (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
+      if (!kIsWeb &&
+          (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
         shouldCrop = false;
       }
 
@@ -135,7 +137,9 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
   @override
   Widget build(BuildContext context) {
     bool hasPartnerActive = Settings.hasPartner[widget.playerIndex];
-    bool currentHasImage = _isEditingPartnerArt ? _partnerImageUrl.isNotEmpty : _imageUrl.isNotEmpty;
+    bool currentHasImage = _isEditingPartnerArt
+        ? _partnerImageUrl.isNotEmpty
+        : _imageUrl.isNotEmpty;
 
     return AlertDialog(
       title: Text('Player ${widget.playerIndex + 1} Style'),
@@ -212,7 +216,7 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               if (_editingMode == 0) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -230,10 +234,12 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                           color: color,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: _bgHsv.toColor().toARGB32() == color.toARGB32()
+                            color:
+                                _bgHsv.toColor().toARGB32() == color.toARGB32()
                                 ? Colors.black
                                 : Colors.black26,
-                            width: _bgHsv.toColor().toARGB32() == color.toARGB32()
+                            width:
+                                _bgHsv.toColor().toARGB32() == color.toARGB32()
                                 ? 2.5
                                 : 1.0,
                           ),
@@ -243,10 +249,28 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                   }).toList(),
                 ),
                 const SizedBox(height: 16),
-                _buildSlider('H', _bgHsv.hue, 0, 360, (val) => setState(() => _bgHsv = _bgHsv.withHue(val))),
-                _buildSlider('S', _bgHsv.saturation, 0, 1, (val) => setState(() => _bgHsv = _bgHsv.withSaturation(val))),
-                _buildSlider('V', _bgHsv.value, 0, 1, (val) => setState(() => _bgHsv = _bgHsv.withValue(val))),
-                
+                _buildSlider(
+                  'H',
+                  _bgHsv.hue,
+                  0,
+                  360,
+                  (val) => setState(() => _bgHsv = _bgHsv.withHue(val)),
+                ),
+                _buildSlider(
+                  'S',
+                  _bgHsv.saturation,
+                  0,
+                  1,
+                  (val) => setState(() => _bgHsv = _bgHsv.withSaturation(val)),
+                ),
+                _buildSlider(
+                  'V',
+                  _bgHsv.value,
+                  0,
+                  1,
+                  (val) => setState(() => _bgHsv = _bgHsv.withValue(val)),
+                ),
+
                 const Divider(height: 32),
 
                 if (hasPartnerActive)
@@ -271,7 +295,7 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                       ],
                     ),
                   ),
-                
+
                 if (currentHasImage) ...[
                   Padding(
                     padding: const EdgeInsets.only(top: 12.0),
@@ -344,10 +368,14 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                           color: color,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: _textHsv.toColor().toARGB32() == color.toARGB32()
+                            color:
+                                _textHsv.toColor().toARGB32() ==
+                                    color.toARGB32()
                                 ? Colors.blue
                                 : Colors.black26,
-                            width: _textHsv.toColor().toARGB32() == color.toARGB32()
+                            width:
+                                _textHsv.toColor().toARGB32() ==
+                                    color.toARGB32()
                                 ? 2.5
                                 : 1.0,
                           ),
@@ -357,10 +385,29 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                   }).toList(),
                 ),
                 const SizedBox(height: 16),
-                _buildSlider('H', _textHsv.hue, 0, 360, (val) => setState(() => _textHsv = _textHsv.withHue(val))),
-                _buildSlider('S', _textHsv.saturation, 0, 1, (val) => setState(() => _textHsv = _textHsv.withSaturation(val))),
-                _buildSlider('V', _textHsv.value, 0, 1, (val) => setState(() => _textHsv = _textHsv.withValue(val))),
-                
+                _buildSlider(
+                  'H',
+                  _textHsv.hue,
+                  0,
+                  360,
+                  (val) => setState(() => _textHsv = _textHsv.withHue(val)),
+                ),
+                _buildSlider(
+                  'S',
+                  _textHsv.saturation,
+                  0,
+                  1,
+                  (val) =>
+                      setState(() => _textHsv = _textHsv.withSaturation(val)),
+                ),
+                _buildSlider(
+                  'V',
+                  _textHsv.value,
+                  0,
+                  1,
+                  (val) => setState(() => _textHsv = _textHsv.withValue(val)),
+                ),
+
                 const SizedBox(height: 8),
                 SwitchListTile(
                   title: const Text('Enable Outline'),
@@ -372,7 +419,7 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                   },
                   contentPadding: EdgeInsets.zero,
                 ),
-                
+
                 if (_useOutline) ...[
                   const SizedBox(height: 8),
                   Row(
@@ -391,10 +438,14 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                             color: color,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: _outlineHsv.toColor().toARGB32() == color.toARGB32()
+                              color:
+                                  _outlineHsv.toColor().toARGB32() ==
+                                      color.toARGB32()
                                   ? Colors.blue
                                   : Colors.black26,
-                              width: _outlineHsv.toColor().toARGB32() == color.toARGB32()
+                              width:
+                                  _outlineHsv.toColor().toARGB32() ==
+                                      color.toARGB32()
                                   ? 2.5
                                   : 1.0,
                             ),
@@ -404,9 +455,32 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-                  _buildSlider('H', _outlineHsv.hue, 0, 360, (val) => setState(() => _outlineHsv = _outlineHsv.withHue(val))),
-                  _buildSlider('S', _outlineHsv.saturation, 0, 1, (val) => setState(() => _outlineHsv = _outlineHsv.withSaturation(val))),
-                  _buildSlider('V', _outlineHsv.value, 0, 1, (val) => setState(() => _outlineHsv = _outlineHsv.withValue(val))),
+                  _buildSlider(
+                    'H',
+                    _outlineHsv.hue,
+                    0,
+                    360,
+                    (val) =>
+                        setState(() => _outlineHsv = _outlineHsv.withHue(val)),
+                  ),
+                  _buildSlider(
+                    'S',
+                    _outlineHsv.saturation,
+                    0,
+                    1,
+                    (val) => setState(
+                      () => _outlineHsv = _outlineHsv.withSaturation(val),
+                    ),
+                  ),
+                  _buildSlider(
+                    'V',
+                    _outlineHsv.value,
+                    0,
+                    1,
+                    (val) => setState(
+                      () => _outlineHsv = _outlineHsv.withValue(val),
+                    ),
+                  ),
                 ],
               ],
             ],
@@ -422,10 +496,12 @@ class _PlayerColorPickerDialogState extends State<PlayerColorPickerDialog> {
           onPressed: () {
             Settings.playerColors[widget.playerIndex] = _bgHsv.toColor();
             Settings.playerTextColors[widget.playerIndex] = _textHsv.toColor();
-            Settings.playerOutlineColors[widget.playerIndex] = _outlineHsv.toColor();
+            Settings.playerOutlineColors[widget.playerIndex] = _outlineHsv
+                .toColor();
             Settings.playerUseOutline[widget.playerIndex] = _useOutline;
             Settings.playerImageUrls[widget.playerIndex] = _imageUrl;
-            Settings.playerPartnerImageUrls[widget.playerIndex] = _partnerImageUrl;
+            Settings.playerPartnerImageUrls[widget.playerIndex] =
+                _partnerImageUrl;
             Settings.save();
             widget.onUpdate();
             Navigator.of(context).pop();

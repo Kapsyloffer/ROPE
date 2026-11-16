@@ -29,7 +29,14 @@ class Settings {
     Colors.black,
     Colors.black,
   ];
-  static List<bool> playerUseOutline = [false, false, false, false, false, false];
+  static List<bool> playerUseOutline = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ];
   static List<bool> hasPartner = [false, false, false, false, false, false];
   static List<String> playerImageUrls = ['', '', '', '', '', ''];
   static List<String> playerPartnerImageUrls = ['', '', '', '', '', ''];
@@ -84,7 +91,9 @@ class Settings {
     prefs.setStringList('playerTextColors', textColorStrings);
     prefs.setStringList('playerOutlineColors', outlineColorStrings);
 
-    List<String> useOutlineStrings = playerUseOutline.map((p) => p.toString()).toList();
+    List<String> useOutlineStrings = playerUseOutline
+        .map((p) => p.toString())
+        .toList();
     prefs.setStringList('playerUseOutline', useOutlineStrings);
 
     List<String> partnerStrings = hasPartner.map((p) => p.toString()).toList();
@@ -97,11 +106,11 @@ class Settings {
     players = prefs.getInt('players') ?? 4;
     startLife = prefs.getInt('startLife') ?? 40;
     useTimer = prefs.getBool('useTimer') ?? true;
-    
+
     // Fixed: Casts to num? first to safely parse ints saved as doubles
     startTime = (prefs.get('startTime') as num?)?.toDouble() ?? 10.0;
     burnInterval = (prefs.get('burnInterval') as num?)?.toDouble() ?? 1.5;
-    
+
     increment = prefs.getInt('increment') ?? 15;
     usePriority = prefs.getBool('usePriority') ?? true;
     prio = prefs.getInt('prio') ?? 3;

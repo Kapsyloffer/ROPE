@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -6,7 +7,7 @@ import '../models/player.dart';
 import '../models/settings.dart';
 import '../models/game.dart';
 import 'player_layout.dart';
-import 'outlined_text.dart';
+import '../helpers/outlined_text.dart';
 
 class CommanderDamageGrid extends StatefulWidget {
   final Player player;
@@ -70,7 +71,12 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(icon, size: 32, color: iconColor, shadows: textShadows),
+              child: Icon(
+                icon,
+                size: 32,
+                color: iconColor,
+                shadows: textShadows,
+              ),
             ),
           ),
         ),
@@ -137,8 +143,10 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                                 fontWeight: FontWeight.bold,
                                 color: textColor,
                               ),
-                              useOutline: Settings.playerUseOutline[targetPlayerId],
-                              outlineColor: Settings.playerOutlineColors[targetPlayerId],
+                              useOutline:
+                                  Settings.playerUseOutline[targetPlayerId],
+                              outlineColor:
+                                  Settings.playerOutlineColors[targetPlayerId],
                               strokeWidth: 3.0,
                             ),
                           ),
@@ -168,7 +176,8 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
                           color: textColor,
                         ),
                         useOutline: Settings.playerUseOutline[targetPlayerId],
-                        outlineColor: Settings.playerOutlineColors[targetPlayerId],
+                        outlineColor:
+                            Settings.playerOutlineColors[targetPlayerId],
                         strokeWidth: 3.0,
                       ),
                     ),
@@ -184,7 +193,9 @@ class _CommanderDamageGridState extends State<CommanderDamageGrid> {
     bool hasPartner = Settings.hasPartner[targetPlayerId];
     Color contentColor = Settings.playerTextColors[targetPlayerId];
     List<Shadow>? textShadows = Settings.playerUseOutline[targetPlayerId]
-        ? Settings.getOutlineShadows(Settings.playerOutlineColors[targetPlayerId])
+        ? Settings.getOutlineShadows(
+            Settings.playerOutlineColors[targetPlayerId],
+          )
         : null;
 
     return Container(

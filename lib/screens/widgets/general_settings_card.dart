@@ -1,10 +1,12 @@
 import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/settings.dart';
 import '../../UI/player_layout.dart';
-import '../../UI/outlined_text.dart';
+import '../../helpers/outlined_text.dart';
+import '../../helpers/outlined_icon.dart';
 import 'player_color_picker_dialog.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
@@ -100,7 +102,9 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                     Settings.playerPartnerImageUrls[index].isNotEmpty)
                   Expanded(
                     child: Image(
-                      image: _getImageProvider(Settings.playerPartnerImageUrls[index]),
+                      image: _getImageProvider(
+                        Settings.playerPartnerImageUrls[index],
+                      ),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -127,14 +131,13 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                           outlineColor: Settings.playerOutlineColors[index],
                           strokeWidth: 2.5,
                         ),
-                        Icon(
+                        OutlinedIcon(
                           Icons.palette_outlined,
                           color: fgColor,
                           size: 20,
-                          shadows: Settings.playerUseOutline[index]
-                              ? Settings.getOutlineShadows(
-                                  Settings.playerOutlineColors[index])
-                              : null,
+                          useOutline: Settings.playerUseOutline[index],
+                          outlineColor: Settings.playerOutlineColors[index],
+                          strokeWidth: 4.0,
                         ),
                       ],
                     ),

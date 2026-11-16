@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../models/player.dart';
 import '../models/settings.dart';
-import '../UI/outlined_text.dart';
+import '../helpers/outlined_text.dart';
+import '../helpers/outlined_icon.dart';
 
 import '../helpers/time_format_helper.dart';
 import '../helpers/marching_ants.dart';
@@ -43,6 +44,10 @@ class _TimerDisplayState extends State<TimerDisplay>
   bool _isEditingTimer = false;
   bool _useOutline = false;
 
+  async.Timer? _initialHoldTimer;
+  async.Timer? _periodicHoldTimer;
+  bool _isHolding = false;
+
   late AnimationController _ropeController;
   late AnimationController _antsController;
 
@@ -51,7 +56,9 @@ class _TimerDisplayState extends State<TimerDisplay>
     super.initState();
     _lastTime = widget.player.timer.curTime;
 
-    int durationSec = Settings.burnInterval > 0 ? (Settings.burnInterval * 60.0).round() : 1;
+    int durationSec = Settings.burnInterval > 0
+        ? (Settings.burnInterval * 60.0).round()
+        : 1;
     _ropeController = AnimationController(
       vsync: this,
       duration: Duration(seconds: durationSec),
@@ -94,6 +101,10 @@ class _TimerDisplayState extends State<TimerDisplay>
       _delayTimer?.cancel();
       _timeIncrementTimer?.cancel();
 
+      _initialHoldTimer?.cancel();
+      _periodicHoldTimer?.cancel();
+      _isHolding = false;
+
       _isEditingTimer = false;
       _showTimeIncrement = false;
       _timeIncOpacity = 0.0;
@@ -119,7 +130,9 @@ class _TimerDisplayState extends State<TimerDisplay>
   }
 
   void _handleRopeAnimation() {
-    int durationSec = Settings.burnInterval > 0 ? (Settings.burnInterval * 60.0).round() : 1;
+    int durationSec = Settings.burnInterval > 0
+        ? (Settings.burnInterval * 60.0).round()
+        : 1;
     if (_ropeController.duration?.inSeconds != durationSec) {
       _ropeController.duration = Duration(seconds: durationSec);
     }
@@ -173,20 +186,63 @@ class _TimerDisplayState extends State<TimerDisplay>
     });
   }
 
+  void _handleTapDown(double amount) {
+    _isHolding = false;
+    _initialHoldTimer?.cancel();
+    _periodicHoldTimer?.cancel();
+
+    _initialHoldTimer = async.Timer(const Duration(milliseconds: 500), () {
+      _isHolding = true;
+      widget.onTimeAdjust(amount * 4);
+      _periodicHoldTimer = async.Timer.periodic(
+        const Duration(milliseconds: 500),
+        (t) {
+          widget.onTimeAdjust(amount * 4);
+        },
+      );
+    });
+  }
+
+  void _handleTapUp() {
+    _initialHoldTimer?.cancel();
+    _periodicHoldTimer?.cancel();
+  }
+
+  void _handleTapCancel() {
+    _initialHoldTimer?.cancel();
+    _periodicHoldTimer?.cancel();
+    _isHolding = false;
+  }
+
   Widget _buildTimerAdjustButton(
     IconData icon,
     double amount,
     Color iconColor,
   ) {
+    bool useOutline = widget.player.timer.active ? false : _useOutline;
+    Color outlineColor = Settings.playerOutlineColors[widget.player.order];
+
     return Expanded(
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => widget.onTimeAdjust(amount),
+          onTap: () {
+            if (!_isHolding) widget.onTimeAdjust(amount);
+          },
+          onTapDown: (_) => _handleTapDown(amount),
+          onTapUp: (_) => _handleTapUp(),
+          onTapCancel: _handleTapCancel,
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Icon(icon, size: 48, color: iconColor),
+              child: OutlinedIcon(
+                icon,
+                size: 56,
+                color: iconColor,
+                useOutline: useOutline,
+                outlineColor: outlineColor,
+                strokeWidth: 3.0,
+              ),
             ),
           ),
         ),
@@ -200,6 +256,8 @@ class _TimerDisplayState extends State<TimerDisplay>
     _antsController.dispose();
     _timeIncrementTimer?.cancel();
     _delayTimer?.cancel();
+    _initialHoldTimer?.cancel();
+    _periodicHoldTimer?.cancel();
     super.dispose();
   }
 
@@ -207,10 +265,11 @@ class _TimerDisplayState extends State<TimerDisplay>
   Widget build(BuildContext context) {
     Color activeTimerColor = Colors.green.shade400;
     Color ropeColor = Colors.green.shade800;
-    
+
     bool hasImage = Settings.playerImageUrls[widget.player.order].isNotEmpty;
     bool hasPartner = Settings.hasPartner[widget.player.order];
-    bool hasPartnerImage = Settings.playerPartnerImageUrls[widget.player.order].isNotEmpty;
+    bool hasPartnerImage =
+        Settings.playerPartnerImageUrls[widget.player.order].isNotEmpty;
     bool hasAnyImage = hasImage || (hasPartner && hasPartnerImage);
 
     if (widget.player.timer.curTime <= 15) {
@@ -231,11 +290,15 @@ class _TimerDisplayState extends State<TimerDisplay>
     Color playerBgColor = Settings.playerColors[widget.player.order];
     HSVColor hsv = HSVColor.fromColor(playerBgColor);
     Color inactiveSolidColor;
-    
+
     if (hsv.saturation < 0.05) {
-      inactiveSolidColor = hsv.withValue((hsv.value - 0.15).clamp(0.0, 1.0)).toColor();
+      inactiveSolidColor = hsv
+          .withValue((hsv.value - 0.15).clamp(0.0, 1.0))
+          .toColor();
     } else {
-      inactiveSolidColor = hsv.withSaturation((hsv.saturation + 0.20).clamp(0.0, 1.0)).toColor();
+      inactiveSolidColor = hsv
+          .withSaturation((hsv.saturation + 0.20).clamp(0.0, 1.0))
+          .toColor();
     }
 
     Color antsColor = widget.player.timer.active
@@ -272,7 +335,9 @@ class _TimerDisplayState extends State<TimerDisplay>
           color: widget.player.alive
               ? (widget.player.timer.active
                     ? activeTimerColor
-                    : (hasAnyImage ? Colors.black.withValues(alpha: 0.25) : inactiveSolidColor))
+                    : (hasAnyImage
+                          ? Colors.black.withValues(alpha: 0.25)
+                          : inactiveSolidColor))
               : Colors.black.withValues(alpha: 0.3),
         ),
         child: Stack(
@@ -361,8 +426,12 @@ class _TimerDisplayState extends State<TimerDisplay>
                             fontWeight: FontWeight.bold,
                             color: textColor,
                           ),
-                          useOutline: _useOutline,
-                          outlineColor: Settings.playerOutlineColors[widget.player.order],
+                          useOutline: widget.player.timer.active
+                              ? false
+                              : _useOutline,
+                          outlineColor:
+                              Settings.playerOutlineColors[widget.player.order],
+                          strokeWidth: 4.0,
                         ),
                       ),
                     ),
@@ -383,8 +452,12 @@ class _TimerDisplayState extends State<TimerDisplay>
                         fontWeight: FontWeight.bold,
                         color: textColor,
                       ),
-                      useOutline: widget.player.timer.active ? false : _useOutline,
-                      outlineColor: Settings.playerOutlineColors[widget.player.order],
+                      useOutline: widget.player.timer.active
+                          ? false
+                          : _useOutline,
+                      outlineColor:
+                          Settings.playerOutlineColors[widget.player.order],
+                      strokeWidth: 4.0,
                     ),
                   ),
                 ),
@@ -398,7 +471,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                   duration: const Duration(milliseconds: 1500),
                   curve: Curves.easeInQuint,
                   opacity: _timeIncOpacity,
-                  child: Text(
+                  child: OutlinedText(
                     '+${formatTime(_lastAddedAmount)}',
                     style: TextStyle(
                       fontSize: 28,
@@ -410,6 +483,12 @@ class _TimerDisplayState extends State<TimerDisplay>
                                       .withValues(alpha: 0.6))
                           : Colors.red,
                     ),
+                    useOutline: widget.player.timer.active
+                        ? false
+                        : _useOutline,
+                    outlineColor:
+                        Settings.playerOutlineColors[widget.player.order],
+                    strokeWidth: 3.0,
                   ),
                 ),
               ),
