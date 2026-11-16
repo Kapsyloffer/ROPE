@@ -258,9 +258,14 @@ class _GameLayoutState extends State<GameLayout> {
                       color: Colors.black,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.hourglass_empty,
-                      color: Colors.white,
+                    // child: const Icon(
+                    //   Icons.hourglass_empty,
+                    //   color: Colors.white,
+                    // ),
+                    child: Image.asset(
+                      'assets/icon.png',
+                      width: 32,
+                      height: 32,
                     ),
                   ),
                 ),
