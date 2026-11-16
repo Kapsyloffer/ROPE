@@ -42,8 +42,8 @@ class Settings {
   static List<String> playerPartnerImageUrls = ['', '', '', '', '', ''];
 
   static bool useTimer = true;
-  static double startTime = 1.0;
-  static int increment = 5;
+  static double startTime = 10.0;
+  static int increment = 60;
   static bool usePriority = true;
   static int prio = 3;
 
@@ -111,7 +111,7 @@ class Settings {
     startTime = (prefs.get('startTime') as num?)?.toDouble() ?? 10.0;
     burnInterval = (prefs.get('burnInterval') as num?)?.toDouble() ?? 1.5;
 
-    increment = prefs.getInt('increment') ?? 15;
+    increment = prefs.getInt('increment') ?? 60;
     usePriority = prefs.getBool('usePriority') ?? true;
     prio = prefs.getInt('prio') ?? 3;
     useSlowBurn = prefs.getBool('useSlowBurn') ?? false;

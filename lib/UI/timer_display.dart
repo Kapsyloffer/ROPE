@@ -42,7 +42,6 @@ class _TimerDisplayState extends State<TimerDisplay>
   double _lastTime = 0.0;
   double _lastAddedAmount = 0.0;
   bool _isEditingTimer = false;
-  bool _useOutline = false;
 
   async.Timer? _initialHoldTimer;
   async.Timer? _periodicHoldTimer;
@@ -63,8 +62,6 @@ class _TimerDisplayState extends State<TimerDisplay>
       vsync: this,
       duration: Duration(seconds: durationSec),
     );
-
-    _useOutline = Settings.playerUseOutline[widget.player.order];
 
     _antsController = AnimationController(
       vsync: this,
@@ -219,7 +216,7 @@ class _TimerDisplayState extends State<TimerDisplay>
     double amount,
     Color iconColor,
   ) {
-    bool useOutline = widget.player.timer.active ? false : _useOutline;
+    bool useOutline = widget.player.timer.active ? false : Settings.playerUseOutline[widget.player.order];
     Color outlineColor = Settings.playerOutlineColors[widget.player.order];
 
     return Expanded(
@@ -428,7 +425,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                           ),
                           useOutline: widget.player.timer.active
                               ? false
-                              : _useOutline,
+                              : Settings.playerUseOutline[widget.player.order],
                           outlineColor:
                               Settings.playerOutlineColors[widget.player.order],
                           strokeWidth: 4.0,
@@ -454,7 +451,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                       ),
                       useOutline: widget.player.timer.active
                           ? false
-                          : _useOutline,
+                          : Settings.playerUseOutline[widget.player.order],
                       outlineColor:
                           Settings.playerOutlineColors[widget.player.order],
                       strokeWidth: 4.0,
@@ -485,7 +482,7 @@ class _TimerDisplayState extends State<TimerDisplay>
                     ),
                     useOutline: widget.player.timer.active
                         ? false
-                        : _useOutline,
+                        : Settings.playerUseOutline[widget.player.order],
                     outlineColor:
                         Settings.playerOutlineColors[widget.player.order],
                     strokeWidth: 3.0,
