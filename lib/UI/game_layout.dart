@@ -254,6 +254,7 @@ class _GameLayoutState extends State<GameLayout> {
                   child: Container(
                     width: 64,
                     height: 64,
+                    alignment: Alignment.center,
                     decoration: const BoxDecoration(
                       color: Colors.black,
                       shape: BoxShape.circle,
@@ -263,9 +264,9 @@ class _GameLayoutState extends State<GameLayout> {
                     //   color: Colors.white,
                     // ),
                     child: Image.asset(
-                      'assets/icon.png',
-                      width: 32,
-                      height: 32,
+                      'assets/foreground.png',
+                      width: 48,
+                      height: 48,
                     ),
                   ),
                 ),
