@@ -296,7 +296,7 @@ class _PlayerCustomizationDialogState extends State<PlayerCustomizationDialog> {
                     ),
                   ),
 
-                if (currentHasImage) ...[
+if (currentHasImage)
                   Padding(
                     padding: const EdgeInsets.only(top: 12.0),
                     child: TextButton.icon(
@@ -313,42 +313,40 @@ class _PlayerCustomizationDialogState extends State<PlayerCustomizationDialog> {
                       },
                     ),
                   ),
-                ] else ...[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.photo_library),
-                          label: const Text('Upload Local Image'),
-                          onPressed: _pickLocalImage,
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.search),
-                          label: const Text('Search on Scryfall'),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => ScryfallSearch(
-                                onSelect: (url) {
-                                  setState(() {
-                                    if (_isEditingPartnerArt) {
-                                      _partnerImageUrl = url;
-                                    } else {
-                                      _imageUrl = url;
-                                    }
-                                  });
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.photo_library),
+                        label: const Text('Upload Local Image'),
+                        onPressed: _pickLocalImage,
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.search),
+                        label: const Text('Search on Scryfall'),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => ScryfallSearch(
+                              onSelect: (url) {
+                                setState(() {
+                                  if (_isEditingPartnerArt) {
+                                    _partnerImageUrl = url;
+                                  } else {
+                                    _imageUrl = url;
+                                  }
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ],
 
               if (_editingMode == 1) ...[
