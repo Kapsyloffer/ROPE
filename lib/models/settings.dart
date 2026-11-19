@@ -50,10 +50,10 @@ class Settings {
   static bool useSlowBurn = false;
   static double burnInterval = 1.5;
   static int burnAmount = 5;
-  static bool useFlashing = true;
 
   static bool useCommanderDamage = true;
   static bool useCounters = true;
+  static bool passOnCenter = true;
 
   static late SharedPreferences prefs;
 
@@ -73,7 +73,6 @@ class Settings {
     prefs.setBool('useSlowBurn', useSlowBurn);
     prefs.setDouble('burnInterval', burnInterval);
     prefs.setInt('burnAmount', burnAmount);
-    prefs.setBool('useFlashing', useFlashing);
 
     List<String> colorStrings = playerColors
         .map((c) => c.toARGB32().toString())
@@ -87,6 +86,8 @@ class Settings {
 
     prefs.setBool('useCommanderDamage', useCommanderDamage);
     prefs.setBool('useCounters', useCounters);
+    prefs.setBool('passOnCenter', passOnCenter);
+
     prefs.setStringList('playerColors', colorStrings);
     prefs.setStringList('playerTextColors', textColorStrings);
     prefs.setStringList('playerOutlineColors', outlineColorStrings);
@@ -116,9 +117,9 @@ class Settings {
     prio = prefs.getInt('prio') ?? 3;
     useSlowBurn = prefs.getBool('useSlowBurn') ?? false;
     burnAmount = prefs.getInt('burnAmount') ?? 5;
-    useFlashing = prefs.getBool('useFlashing') ?? true;
     useCommanderDamage = prefs.getBool('useCommanderDamage') ?? true;
     useCounters = prefs.getBool('useCounters') ?? true;
+    passOnCenter = prefs.getBool('passOnCenter') ?? false;
 
     List<Color> defaultColors = [
       Colors.amber.shade200,

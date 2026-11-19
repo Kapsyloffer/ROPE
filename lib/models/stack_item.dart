@@ -18,4 +18,3 @@ class StackItem {
       returnType = TurnType.values[json['returnType']],
       isFresh = json['isFresh'] ?? false;
 }
-

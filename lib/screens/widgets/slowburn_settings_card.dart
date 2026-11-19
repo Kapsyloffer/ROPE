@@ -125,17 +125,6 @@ class _SlowBurnSettingsCardState extends State<SlowBurnSettingsCard> {
                     },
                   ),
                 ),
-                SwitchListTile(
-                  title: const Text('Flash on burn damage'),
-                  value: Settings.useFlashing,
-                  onChanged: (value) {
-                    setState(() {
-                      Settings.useFlashing = value;
-                    });
-                    Settings.save();
-                    widget.onUpdate();
-                  },
-                ),
               ],
             ),
           ),

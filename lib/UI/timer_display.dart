@@ -216,7 +216,9 @@ class _TimerDisplayState extends State<TimerDisplay>
     double amount,
     Color iconColor,
   ) {
-    bool useOutline = widget.player.timer.active ? false : Settings.playerUseOutline[widget.player.order];
+    bool useOutline = widget.player.timer.active
+        ? false
+        : Settings.playerUseOutline[widget.player.order];
     Color outlineColor = Settings.playerOutlineColors[widget.player.order];
 
     return Expanded(

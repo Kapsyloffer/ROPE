@@ -12,11 +12,13 @@ import '../helpers/outlined_icon.dart';
 class LifeDisplay extends StatefulWidget {
   final Player player;
   final void Function(int) onLifeAdjust;
+  final VoidCallback? onTimerTap;
 
   const LifeDisplay({
     super.key,
     required this.player,
     required this.onLifeAdjust,
+    this.onTimerTap,
   });
 
   @override
@@ -307,64 +309,73 @@ class _LifeDisplayState extends State<LifeDisplay> {
           _buildAdjustButton(Icons.remove, -1),
           Expanded(
             flex: 2,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Positioned(
-                  bottom: 12,
-                  left: 0,
-                  right: 0,
-                  child: IgnorePointer(child: _buildActiveCountersRow()),
-                ),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: OutlinedText(
-                    '${widget.player.curLife}',
-                    style: TextStyle(
-                      fontSize: 80,
-                      fontWeight: FontWeight.bold,
-                      color: widget.player.alive
-                          ? Settings.playerTextColors[widget.player.order]
-                          : Colors.red,
-                    ),
-                    useOutline: Settings.playerUseOutline[widget.player.order],
-                    outlineColor:
-                        Settings.playerOutlineColors[widget.player.order],
-                    strokeWidth: 4.0,
-                  ),
-                ),
-                if (_showLifeDelta && _lifeDelta != 0)
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: (Settings.passOnCenter && Settings.useTimer)
+                  ? widget.onTimerTap
+                  : null,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
                   Positioned(
-                    top: 12,
-                    left: _lifeDelta < 0 ? 8 : null,
-                    right: _lifeDelta > 0 ? 8 : null,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 300),
-                      opacity: _lifeDeltaOpacity,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        child: OutlinedText(
-                          _lifeDelta > 0 ? '+$_lifeDelta' : '$_lifeDelta',
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            color: widget.player.alive
-                                ? Settings.playerTextColors[widget.player.order]
-                                : Colors.red,
+                    bottom: 12,
+                    left: 0,
+                    right: 0,
+                    child: IgnorePointer(child: _buildActiveCountersRow()),
+                  ),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: OutlinedText(
+                      '${widget.player.curLife}',
+                      style: TextStyle(
+                        fontSize: 80,
+                        fontWeight: FontWeight.bold,
+                        color: widget.player.alive
+                            ? Settings.playerTextColors[widget.player.order]
+                            : Colors.red,
+                      ),
+                      useOutline:
+                          Settings.playerUseOutline[widget.player.order],
+                      outlineColor:
+                          Settings.playerOutlineColors[widget.player.order],
+                      strokeWidth: 4.0,
+                    ),
+                  ),
+                  if (_showLifeDelta && _lifeDelta != 0)
+                    Positioned(
+                      top: 12,
+                      left: _lifeDelta < 0 ? 8 : null,
+                      right: _lifeDelta > 0 ? 8 : null,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 300),
+                        opacity: _lifeDeltaOpacity,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
                           ),
-                          useOutline:
-                              Settings.playerUseOutline[widget.player.order],
-                          outlineColor:
-                              Settings.playerOutlineColors[widget.player.order],
-                          strokeWidth: 3.0,
+                          child: OutlinedText(
+                            _lifeDelta > 0 ? '+$_lifeDelta' : '$_lifeDelta',
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                              color: widget.player.alive
+                                  ? Settings.playerTextColors[widget
+                                        .player
+                                        .order]
+                                  : Colors.red,
+                            ),
+                            useOutline:
+                                Settings.playerUseOutline[widget.player.order],
+                            outlineColor: Settings
+                                .playerOutlineColors[widget.player.order],
+                            strokeWidth: 3.0,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
           _buildAdjustButton(Icons.add, 1),

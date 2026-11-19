@@ -280,6 +280,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                                       '${widget.player.order}_life',
                                     ),
                                     player: widget.player,
+                                    onTimerTap: widget.onTimerTap,
                                     onLifeAdjust: (amt) {
                                       if (amt < 0) {
                                         _skipNextFlash = true;
