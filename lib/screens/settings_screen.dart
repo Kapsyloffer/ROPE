@@ -4,9 +4,7 @@ import '../models/settings.dart';
 import 'widgets/general_settings_card.dart';
 import 'widgets/timer_settings_card.dart';
 import 'widgets/slowburn_settings_card.dart';
-import 'widgets/commander_damage_settings_card.dart';
-import 'widgets/counters_settings_card.dart';
-import 'widgets/pass_settings_card.dart';
+import 'widgets/miscellaneous_settings_card.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -33,11 +31,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 16),
           SlowBurnSettingsCard(onUpdate: _refreshSettings),
           const SizedBox(height: 24),
-          CommanderDamageSettingsCard(onUpdate: _refreshSettings),
-          const SizedBox(height: 24),
-          CountersSettingsCard(onUpdate: _refreshSettings),
-          const SizedBox(height: 24),
-          PassSettingsCard(onUpdate: _refreshSettings),
+          MiscellaneousSettingsCard(onUpdate: _refreshSettings),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () async {
