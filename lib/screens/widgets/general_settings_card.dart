@@ -7,7 +7,7 @@ import '../../models/settings.dart';
 import '../../UI/player_layout.dart';
 import '../../helpers/outlined_text.dart';
 import '../../helpers/outlined_icon.dart';
-import 'player_customization_dialog.dart';
+import 'modals/player_customization_dialog.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
   final VoidCallback onUpdate;

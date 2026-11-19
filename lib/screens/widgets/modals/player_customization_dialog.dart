@@ -6,8 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-import '../../models/settings.dart';
-import '../../helpers/outlined_text.dart';
+import '../../../models/settings.dart';
+import '../../../helpers/outlined_text.dart';
 import 'scryfall_search.dart';
 
 class PlayerCustomizationDialog extends StatefulWidget {
