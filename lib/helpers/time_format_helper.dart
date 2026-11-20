@@ -16,17 +16,20 @@ String formatMMSS(double minutes) {
   return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
 }
 
-// read mm:ss as seconds
+// parse mm:ss (or bare minutes) -> minutes
 double? parseMMSS(String value) {
-  if (value.contains(':')) {
-    final parts = value.split(':');
-    if (parts.length >= 2) {
-      double? m = double.tryParse(parts[0]);
-      double? s = double.tryParse(parts[1]);
-      if (m != null && s != null) {
+  final normalized = value.trim().replaceAll(RegExp(r'[.,]'), ':');
+  if (normalized.contains(':')) {
+    final parts = normalized.split(':');
+    if (parts.length == 2) {
+      final int? m = parts[0].isEmpty ? 0 : int.tryParse(parts[0]);
+      final int? s = int.tryParse(parts[1]);
+      if (m != null && s != null && m >= 0 && s >= 0) {
         return m + (s / 60.0);
       }
     }
+    return null;
   }
-  return num.tryParse(value.replaceAll(',', '.'))?.toDouble();
+  final int? m = int.tryParse(normalized);
+  return (m != null && m >= 0) ? m.toDouble() : null;
 }
