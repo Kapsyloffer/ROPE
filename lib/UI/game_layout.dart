@@ -1,6 +1,7 @@
 import 'dart:async' as async;
 import 'dart:math' as math;
 
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
 import '../models/player.dart';
@@ -161,12 +162,14 @@ class _GameLayoutState extends State<GameLayout> {
       currentStep++;
 
       if (currentStep >= maxSteps) {
+        HapticFeedback.heavyImpact();
         _rollTimer = async.Timer(const Duration(seconds: 2), () {
           if (mounted) {
             _highlightedNotifier.value = -1;
           }
         });
       } else {
+        HapticFeedback.selectionClick();
         delay = delay + (currentStep * 2).toInt();
         _rollTimer = async.Timer(Duration(milliseconds: delay), nextStep);
       }
