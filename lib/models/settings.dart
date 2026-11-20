@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum BurnMode { damage, poison, time }
+
 class Settings {
   static int players = 4;
   static int startLife = 40;
@@ -49,7 +51,10 @@ class Settings {
 
   static bool useSlowBurn = false;
   static double burnInterval = 1.5;
-  static int burnAmount = 5;
+  static BurnMode burnMode = BurnMode.damage;
+  static int burnDamage = 5;
+  static int burnPoison = 1;
+  static double burnTime = 1.0;
 
   static bool useCommanderDamage = true;
   static bool useCounters = true;
@@ -72,7 +77,10 @@ class Settings {
     prefs.setInt('prio', prio);
     prefs.setBool('useSlowBurn', useSlowBurn);
     prefs.setDouble('burnInterval', burnInterval);
-    prefs.setInt('burnAmount', burnAmount);
+    prefs.setInt('burnMode', burnMode.index);
+    prefs.setInt('burnDamage', burnDamage);
+    prefs.setInt('burnPoison', burnPoison);
+    prefs.setDouble('burnTime', burnTime);
 
     List<String> colorStrings = playerColors
         .map((c) => c.toARGB32().toString())
@@ -116,7 +124,12 @@ class Settings {
     usePriority = prefs.getBool('usePriority') ?? true;
     prio = prefs.getInt('prio') ?? 3;
     useSlowBurn = prefs.getBool('useSlowBurn') ?? false;
-    burnAmount = prefs.getInt('burnAmount') ?? 5;
+    int burnModeIndex = prefs.getInt('burnMode') ?? 0;
+    burnMode =
+        BurnMode.values[burnModeIndex.clamp(0, BurnMode.values.length - 1)];
+    burnDamage = prefs.getInt('burnDamage') ?? prefs.getInt('burnAmount') ?? 5;
+    burnPoison = prefs.getInt('burnPoison') ?? 1;
+    burnTime = (prefs.get('burnTime') as num?)?.toDouble() ?? 1.0;
     useCommanderDamage = prefs.getBool('useCommanderDamage') ?? true;
     useCounters = prefs.getBool('useCounters') ?? true;
     passOnCenter = prefs.getBool('passOnCenter') ?? false;

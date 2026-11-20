@@ -1,3 +1,4 @@
+import 'dart:async' as async;
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -51,13 +52,17 @@ class _PlayerWidgetState extends State<PlayerWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _flipController;
   int _lastLife = 0;
+  int _lastPoison = 0;
   bool _isFlashing = false;
-  bool _skipNextFlash = false;
+  bool _isBurnTriggered = false;
+  async.Timer? _flashTimer;
 
   @override
   void initState() {
     super.initState();
     _lastLife = widget.player.curLife;
+    _lastPoison = widget.player.counters.activeCounters['poison']?.amount ?? 0;
+    widget.player.onBurnVisual = _handleBurnVisual;
     _flipController = AnimationController(
       vsync: this,
       value: 0.0,
@@ -67,33 +72,66 @@ class _PlayerWidgetState extends State<PlayerWidget>
     );
   }
 
+  void _handleBurnVisual() {
+    _isBurnTriggered = true;
+    _triggerFlash(needsSetState: true);
+  }
+
+  void _triggerFlash({bool needsSetState = true}) {
+    if (!mounted) return;
+    _flashTimer?.cancel();
+    if (needsSetState) {
+      setState(() {
+        _isFlashing = true;
+      });
+    } else {
+      _isFlashing = true;
+    }
+    _flashTimer = async.Timer(const Duration(milliseconds: 150), () {
+      if (mounted) {
+        setState(() {
+          _isFlashing = false;
+        });
+      }
+    });
+  }
+
   @override
   void didUpdateWidget(covariant PlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    int diff = widget.player.curLife - _lastLife;
-    if (diff != 0) {
-      if (diff < 0) {
-        if (_skipNextFlash) {
-          _skipNextFlash = false;
+    final int currentPoison =
+        widget.player.counters.activeCounters['poison']?.amount ?? 0;
+
+    if (oldWidget.player != widget.player) {
+      if (oldWidget.player.onBurnVisual == _handleBurnVisual) {
+        oldWidget.player.onBurnVisual = null;
+      }
+      widget.player.onBurnVisual = _handleBurnVisual;
+      _flashTimer?.cancel();
+      _isFlashing = false;
+      _isBurnTriggered = false;
+      _lastLife = widget.player.curLife;
+      _lastPoison = currentPoison;
+    } else {
+      final bool fromBurn = _isBurnTriggered;
+      _isBurnTriggered = false;
+
+      final int lifeDiff = widget.player.curLife - _lastLife;
+      final int poisonDiff = currentPoison - _lastPoison;
+
+      if (lifeDiff < 0 || poisonDiff > 0) {
+        if (!fromBurn) {
           HapticFeedback.mediumImpact();
-        } else {
-          HapticFeedback.mediumImpact();
-          _isFlashing = true;
-          Future.delayed(const Duration(milliseconds: 150), () {
-            if (mounted) {
-              setState(() {
-                _isFlashing = false;
-              });
-            }
-          });
+          _triggerFlash(needsSetState: false);
         }
-      } else {
-        _skipNextFlash = false;
+      } else if (lifeDiff > 0) {
         HapticFeedback.lightImpact();
       }
+
+      _lastLife = widget.player.curLife;
+      _lastPoison = currentPoison;
     }
-    _lastLife = widget.player.curLife;
 
     if (oldWidget.resetTrigger != widget.resetTrigger) {
       _flipController.animateTo(0.0, curve: Curves.easeInOut);
@@ -105,6 +143,10 @@ class _PlayerWidgetState extends State<PlayerWidget>
 
   @override
   void dispose() {
+    if (widget.player.onBurnVisual == _handleBurnVisual) {
+      widget.player.onBurnVisual = null;
+    }
+    _flashTimer?.cancel();
     _flipController.dispose();
     super.dispose();
   }
@@ -281,12 +323,7 @@ class _PlayerWidgetState extends State<PlayerWidget>
                                     ),
                                     player: widget.player,
                                     onTimerTap: widget.onTimerTap,
-                                    onLifeAdjust: (amt) {
-                                      if (amt < 0) {
-                                        _skipNextFlash = true;
-                                      }
-                                      widget.onLifeAdjust(amt);
-                                    },
+                                    onLifeAdjust: widget.onLifeAdjust,
                                   ),
                                 ),
                                 if (Settings.useCommanderDamage) ...[

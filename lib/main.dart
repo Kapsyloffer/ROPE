@@ -78,6 +78,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     Settings.saveGame(jsonEncode(_game.toJson()));
   }
 
+  Future<void> _burnHaptic() async {
+    for (int i = 0; i < 4; i++) {
+      HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+  }
+
   void _attachTimerCallbacks(Player player) {
     player.timer.onTick = () {
       if (mounted) {
@@ -90,11 +97,19 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     };
     player.timer.onBurn = () {
       if (mounted) {
-        _adjustLife(player, -Settings.burnAmount);
-        setState(() {
-          bool wasAlive = player.alive;
-          _game.checkState(player, wasAlive);
-        });
+        player.onBurnVisual?.call();
+        _burnHaptic();
+        switch (Settings.burnMode) {
+          case BurnMode.damage:
+            _adjustLife(player, -Settings.burnDamage);
+            break;
+          case BurnMode.poison:
+            _adjustCounter(player, 'poison', Settings.burnPoison);
+            break;
+          case BurnMode.time:
+            _adjustTime(player, -(Settings.burnTime * 60.0), snap: false);
+            break;
+        }
       }
     };
   }
@@ -267,15 +282,19 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     _saveState();
   }
 
-  void _adjustTime(Player player, double amount) {
+  void _adjustTime(Player player, double amount, {bool snap = true}) {
     setState(() {
-      double step = amount.abs();
-      if (amount > 0) {
-        player.timer.curTime =
-            ((player.timer.curTime / step).floor() * step) + step;
-      } else if (amount < 0) {
-        player.timer.curTime =
-            ((player.timer.curTime / step).ceil() * step) - step;
+      if (snap) {
+        double step = amount.abs();
+        if (amount > 0) {
+          player.timer.curTime =
+              ((player.timer.curTime / step).floor() * step) + step;
+        } else if (amount < 0) {
+          player.timer.curTime =
+              ((player.timer.curTime / step).ceil() * step) - step;
+        }
+      } else {
+        player.timer.curTime += amount;
       }
 
       if (player.timer.curTime < 0) player.timer.curTime = 0;

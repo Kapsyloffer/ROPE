@@ -296,7 +296,7 @@ class _PlayerCustomizationDialogState extends State<PlayerCustomizationDialog> {
                     ),
                   ),
 
-if (currentHasImage)
+                if (currentHasImage)
                   Padding(
                     padding: const EdgeInsets.only(top: 12.0),
                     child: TextButton.icon(

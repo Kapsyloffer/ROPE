@@ -14,6 +14,7 @@ class Player {
   bool isPriority = false;
   bool isInterrupting = false;
   int queuePosition = 0;
+  void Function()? onBurnVisual;
 
   Timer timer;
   late CommanderDamage commanderDamage;
