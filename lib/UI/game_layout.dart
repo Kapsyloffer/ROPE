@@ -151,13 +151,15 @@ class _GameLayoutState extends State<GameLayout> {
     int totalPlayers = widget.players.length;
     if (totalPlayers == 0) return;
 
+    final random = math.Random.secure();
+    int startOffset = random.nextInt(totalPlayers);
     int currentStep = 0;
-    int maxSteps = 10 + math.Random().nextInt(totalPlayers * 3);
-    int delay = 5;
+    int maxSteps = 10 + random.nextInt(totalPlayers * 4);
+    int delay = 4;
 
     void nextStep() {
       if (!mounted) return;
-      _highlightedNotifier.value = currentStep % totalPlayers;
+      _highlightedNotifier.value = (currentStep + startOffset) % totalPlayers;
 
       currentStep++;
 
